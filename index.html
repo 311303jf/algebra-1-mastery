@@ -492,6 +492,10 @@ if(lesson.unlockAfter){
 
 let statusText = "Open";
 let statusClass = "open";
+      if(!isUnlocked){
+  statusText = "Locked";
+  statusClass = "lock";
+}
 
 if(mastery >= 85){
   statusText = "Mastered";
@@ -505,7 +509,7 @@ if(mastery >= 85){
 }
 
       lessonsHTML += `
-        <div class="lesson" onclick="window.location.href='lesson.html?id=${lesson.id}'"> 
+        <div class="lesson" onclick="${isUnlocked ? `window.location.href='lesson.html?id=${lesson.id}'` : `alert('This lesson is locked. Reach 80% mastery in the previous lesson first.')`}"
           <div>
             <div class="lesson-title">
               ${lesson.id} ${lesson.title}
