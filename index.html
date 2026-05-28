@@ -475,6 +475,20 @@ function lesson11Mastery(){
 );
 
 const mastery = session.mastery || 0;
+     const unlockMastery =
+  lesson.unlockMastery || 80;
+
+let isUnlocked = true;
+
+if(lesson.unlockAfter){
+  const requiredSession = JSON.parse(
+    localStorage.getItem(`algebra_session_${lesson.unlockAfter}`) || "{}"
+  );
+
+  const requiredMastery = requiredSession.mastery || 0;
+
+  isUnlocked = requiredMastery >= unlockMastery;
+}
 
 let statusText = "Open";
 let statusClass = "open";
