@@ -1,330 +1,510 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Lesson 1.1 — Solving Simple Equations</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Lesson 1.1 — Solving Simple Equations | Algebra OS</title>
 
 <style>
-
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
+:root{
+  --bg:#f5f7fb;
+  --ink:#0f172a;
+  --muted:#64748b;
+  --blue:#2563eb;
+  --blue2:#1d4ed8;
+  --green:#16a34a;
+  --red:#dc2626;
+  --amber:#f59e0b;
+  --card:#ffffff;
+  --line:#e2e8f0;
+  --soft:#eff6ff;
+  --shadow:0 18px 50px rgba(15,23,42,.10);
 }
-
+*{box-sizing:border-box;margin:0;padding:0}
 body{
-  font-family:Arial, Helvetica, sans-serif;
-  background:#f3f6fb;
-  color:#1e293b;
+  font-family:Inter,Arial,Helvetica,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
 }
-
-/* HEADER */
-
-header{
-  background:#2563eb;
+.app{
+  display:grid;
+  grid-template-columns:260px 1fr 330px;
+  min-height:100vh;
+}
+.sidebar{
+  background:#0f172a;
   color:white;
-  padding:25px 40px;
+  padding:26px 18px;
+  position:sticky;
+  top:0;
+  height:100vh;
+}
+.logo{
+  font-size:24px;
+  font-weight:900;
+  margin-bottom:8px;
+}
+.sublogo{
+  color:#cbd5e1;
+  font-size:13px;
+  margin-bottom:30px;
+}
+.nav a{
+  display:block;
+  color:#e5e7eb;
+  text-decoration:none;
+  padding:13px 14px;
+  border-radius:14px;
+  margin-bottom:8px;
+  font-weight:700;
+}
+.nav a.active,.nav a:hover{background:#2563eb;color:white}
+.main{
+  padding:28px;
+  overflow:auto;
+}
+.topbar{
   display:flex;
   justify-content:space-between;
   align-items:center;
+  margin-bottom:24px;
 }
-
-header h1{
-  font-size:32px;
-}
-
-.back-btn{
-  background:white;
-  color:#2563eb;
-  padding:10px 18px;
-  border-radius:12px;
+.back{
   text-decoration:none;
-  font-weight:bold;
-}
-
-/* MAIN */
-
-.container{
-  max-width:1100px;
-  margin:auto;
-  padding:40px 20px;
-}
-
-.lesson-card{
   background:white;
-  border-radius:24px;
-  padding:30px;
-  margin-bottom:30px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  color:var(--blue);
+  padding:11px 16px;
+  border-radius:14px;
+  font-weight:800;
+  box-shadow:0 5px 18px rgba(15,23,42,.08);
 }
-
-.lesson-card h2{
-  color:#2563eb;
-  margin-bottom:20px;
+.student-pill{
+  background:white;
+  padding:12px 18px;
+  border-radius:18px;
+  box-shadow:0 5px 18px rgba(15,23,42,.08);
+  font-weight:800;
 }
-
+.hero{
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  color:white;
+  padding:34px;
+  border-radius:28px;
+  box-shadow:var(--shadow);
+  margin-bottom:24px;
+}
+.hero h1{font-size:42px;margin-bottom:10px}
+.hero p{font-size:18px;opacity:.93;max-width:780px}
+.lesson-path{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:12px;
+  margin-bottom:24px;
+}
+.step{
+  background:white;
+  padding:14px;
+  border-radius:18px;
+  box-shadow:0 8px 22px rgba(15,23,42,.07);
+  border:2px solid transparent;
+}
+.step.active{border-color:var(--blue);background:#eff6ff}
+.step small{display:block;color:var(--muted);font-weight:800;margin-bottom:4px}
+.step strong{font-size:14px}
+.grid{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:22px;
+}
+.card{
+  background:white;
+  border-radius:26px;
+  padding:28px;
+  box-shadow:var(--shadow);
+}
+.card h2{
+  color:var(--blue);
+  margin-bottom:16px;
+  font-size:25px;
+}
 .objective{
   font-size:18px;
-  line-height:1.6;
+  line-height:1.65;
 }
-
-/* EXAMPLES */
-
-.example-box{
-  background:#eff6ff;
-  padding:25px;
-  border-radius:18px;
-  margin-top:20px;
+.learn-box{
+  background:linear-gradient(180deg,#eff6ff,#ffffff);
+  border:1px solid #dbeafe;
+  padding:24px;
+  border-radius:22px;
 }
-
 .math{
-  font-size:32px;
-  font-weight:bold;
-  margin:20px 0;
+  font-size:36px;
+  font-weight:900;
   color:#1d4ed8;
+  margin:16px 0;
+  letter-spacing:.5px;
 }
-
-/* PRACTICE */
-
-.practice-question{
-  font-size:28px;
-  font-weight:bold;
-  margin:25px 0;
-  color:#1d4ed8;
+.steps{
+  display:grid;
+  gap:12px;
+  margin-top:18px;
 }
-
+.mini-step{
+  background:white;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:15px;
+  line-height:1.45;
+}
+.practice-head{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  align-items:center;
+  margin-bottom:18px;
+}
+.tag{
+  padding:8px 12px;
+  border-radius:999px;
+  background:#dcfce7;
+  color:#166534;
+  font-weight:900;
+  font-size:13px;
+}
+.question{
+  background:#f8fafc;
+  border:1px solid var(--line);
+  border-radius:22px;
+  padding:22px;
+}
+.question-title{
+  color:var(--muted);
+  font-weight:900;
+  margin-bottom:10px;
+}
+.answer-row{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  margin-top:18px;
+  flex-wrap:wrap;
+}
 input{
-  width:140px;
-  padding:14px;
+  width:150px;
+  padding:15px;
+  border:2px solid #cbd5e1;
+  border-radius:15px;
   font-size:20px;
-  border-radius:12px;
-  border:1px solid #cbd5e1;
 }
-
 button{
-  padding:14px 22px;
-  background:#2563eb;
-  color:white;
+  padding:15px 18px;
   border:none;
-  border-radius:12px;
-  font-size:16px;
+  border-radius:15px;
+  background:var(--blue);
+  color:white;
+  font-weight:900;
   cursor:pointer;
-  margin-left:10px;
-  transition:0.3s;
+  font-size:15px;
 }
-
-button:hover{
-  background:#1d4ed8;
-}
-
-/* FEEDBACK */
-
-.feedback{
-  margin-top:20px;
-  font-size:20px;
-  font-weight:bold;
-}
-
-.correct{
-  color:#16a34a;
-}
-
-.wrong{
-  color:#dc2626;
-}
-
-/* PROGRESS */
-
-.progress-section{
-  margin-top:30px;
-}
-
-.progress-bar{
-  width:100%;
-  height:24px;
+button.secondary{
   background:#e2e8f0;
-  border-radius:20px;
-  overflow:hidden;
+  color:#0f172a;
 }
-
-.progress-fill{
-  width:0%;
-  height:100%;
-  background:#22c55e;
-  transition:0.4s;
-}
-
-.mastery{
-  margin-top:12px;
-  font-weight:bold;
-}
-
-/* XP */
-
-.xp-box{
-  background:#fef3c7;
-  padding:18px;
-  border-radius:18px;
-  margin-top:25px;
-  font-size:18px;
-  font-weight:bold;
+button:hover{filter:brightness(.96)}
+.feedback{
+  margin-top:18px;
+  padding:16px;
+  border-radius:16px;
+  font-weight:800;
   display:none;
 }
-
+.feedback.correct{
+  background:#dcfce7;
+  color:#166534;
+  display:block;
+}
+.feedback.wrong{
+  background:#fee2e2;
+  color:#991b1b;
+  display:block;
+}
+.right{
+  background:white;
+  border-left:1px solid var(--line);
+  padding:26px 20px;
+  position:sticky;
+  top:0;
+  height:100vh;
+  overflow:auto;
+}
+.coach-card{
+  background:#eff6ff;
+  border-radius:24px;
+  padding:20px;
+  margin-bottom:18px;
+  border:1px solid #dbeafe;
+}
+.coach-card h3{
+  color:var(--blue);
+  margin-bottom:12px;
+}
+.progress-bar{
+  height:18px;
+  background:#e2e8f0;
+  border-radius:999px;
+  overflow:hidden;
+  margin:12px 0;
+}
+.progress-fill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(90deg,#22c55e,#16a34a);
+  transition:.4s;
+}
+.metric{
+  display:flex;
+  justify-content:space-between;
+  margin:10px 0;
+  font-weight:800;
+}
+.badge{
+  display:inline-block;
+  background:#fef3c7;
+  color:#92400e;
+  padding:10px 13px;
+  border-radius:999px;
+  font-weight:900;
+  margin-top:8px;
+}
+.hint{
+  margin-top:14px;
+  padding:14px;
+  background:white;
+  border-radius:16px;
+  line-height:1.5;
+}
+.xp-pop{
+  display:none;
+  margin-top:14px;
+  background:#fef3c7;
+  color:#92400e;
+  padding:14px;
+  border-radius:16px;
+  font-weight:900;
+}
+.lock-card{
+  background:#f8fafc;
+  border:1px dashed #cbd5e1;
+  border-radius:22px;
+  padding:20px;
+  color:#475569;
+}
+@media(max-width:1100px){
+  .app{grid-template-columns:1fr}
+  .sidebar,.right{position:relative;height:auto}
+  .lesson-path{grid-template-columns:1fr}
+}
 </style>
 </head>
 
 <body>
+<div class="app">
 
-<header>
+  <aside class="sidebar">
+    <div class="logo">Algebra OS</div>
+    <div class="sublogo">MDCPS Algebra 1 EOC</div>
+    <nav class="nav">
+      <a href="index.html">🏠 Dashboard</a>
+      <a class="active" href="#">📚 Learn</a>
+      <a href="#">🧠 Practice</a>
+      <a href="#">🎯 EOC Prep</a>
+      <a href="#">📈 Progress</a>
+      <a href="#">🏆 Achievements</a>
+    </nav>
+  </aside>
 
-  <h1>Lesson 1.1 — Solving Simple Equations</h1>
+  <main class="main">
 
-  <a class="back-btn" href="index.html">
-    ← Dashboard
-  </a>
-
-</header>
-
-<div class="container">
-
-  <!-- OBJECTIVE -->
-
-  <div class="lesson-card">
-
-    <h2>🎯 Learning Objective</h2>
-
-    <p class="objective">
-      Solve one-step equations using inverse operations and isolate the variable correctly.
-    </p>
-
-  </div>
-
-  <!-- LEARN -->
-
-  <div class="lesson-card">
-
-    <h2>📚 Learn</h2>
-
-    <div class="example-box">
-
-      <p>
-        To solve an equation, isolate the variable using inverse operations.
-      </p>
-
-      <div class="math">
-        x + 5 = 12
-      </div>
-
-      <p>
-        Subtract 5 from both sides.
-      </p>
-
-      <div class="math">
-        x = 7
-      </div>
-
+    <div class="topbar">
+      <a class="back" href="index.html">← Back to Dashboard</a>
+      <div class="student-pill">🔥 Streak: <span id="streak">1</span> day · XP: <span id="xpTop">0</span></div>
     </div>
 
-  </div>
+    <section class="hero">
+      <h1>Lesson 1.1 — Solving Simple Equations</h1>
+      <p>Learn how to isolate a variable using inverse operations, then prove mastery through guided practice.</p>
+    </section>
 
-  <!-- GUIDED PRACTICE -->
+    <section class="lesson-path">
+      <div class="step active"><small>Step 1</small><strong>Learn</strong></div>
+      <div class="step active"><small>Step 2</small><strong>Guided Practice</strong></div>
+      <div class="step"><small>Step 3</small><strong>Independent</strong></div>
+      <div class="step"><small>Step 4</small><strong>Challenge</strong></div>
+      <div class="step"><small>Step 5</small><strong>Exit Ticket</strong></div>
+    </section>
 
-  <div class="lesson-card">
+    <section class="grid">
 
-    <h2>🧠 Guided Practice</h2>
-
-    <p>Solve the equation:</p>
-
-    <div class="practice-question">
-      x − 8 = 15
-    </div>
-
-    <input
-      id="answer"
-      type="number"
-      placeholder="Answer"
-    >
-
-    <button onclick="checkAnswer()">
-      Check Answer
-    </button>
-
-    <div id="feedback" class="feedback"></div>
-
-    <div class="progress-section">
-
-      <div class="progress-bar">
-        <div id="progressFill" class="progress-fill"></div>
+      <div class="card">
+        <h2>🎯 Learning Objective</h2>
+        <p class="objective">
+          I can solve one-step equations by using inverse operations and checking whether my answer makes the equation true.
+        </p>
       </div>
 
-      <div id="masteryText" class="mastery">
-        Mastery: 0%
+      <div class="card">
+        <h2>📚 Learn the Strategy</h2>
+        <div class="learn-box">
+          <p><strong>Big idea:</strong> An equation is balanced. Whatever you do to one side, you must do to the other side.</p>
+          <div class="math">x + 5 = 12</div>
+          <div class="steps">
+            <div class="mini-step">1. Identify what is happening to the variable: <strong>5 is being added.</strong></div>
+            <div class="mini-step">2. Use the inverse operation: <strong>subtract 5 from both sides.</strong></div>
+            <div class="mini-step">3. The solution is <strong>x = 7</strong> because 7 + 5 = 12.</div>
+          </div>
+        </div>
       </div>
 
+      <div class="card">
+        <div class="practice-head">
+          <h2>🧠 Guided Practice</h2>
+          <span class="tag">DOK 1 · Fluency</span>
+        </div>
+
+        <div class="question">
+          <div class="question-title">Question <span id="qNum">1</span> of 5</div>
+          <p>Solve the equation:</p>
+          <div class="math" id="questionText">x − 8 = 15</div>
+
+          <div class="answer-row">
+            <input id="answer" type="number" placeholder="x = ?" />
+            <button onclick="checkAnswer()">Check Answer</button>
+            <button class="secondary" onclick="showHint()">Hint</button>
+            <button class="secondary" onclick="nextQuestion()">Next</button>
+          </div>
+
+          <div id="feedback" class="feedback"></div>
+          <div id="xpPop" class="xp-pop">🎉 +25 XP earned!</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>🔒 Coming Next</h2>
+        <div class="lock-card">
+          Independent Practice unlocks after you reach <strong>80% mastery</strong> in Guided Practice.
+        </div>
+      </div>
+
+    </section>
+  </main>
+
+  <aside class="right">
+
+    <div class="coach-card">
+      <h3>🤖 Algebra Coach</h3>
+      <p id="coachText">Start by isolating the variable. Ask: what operation is attached to x?</p>
+      <div class="hint" id="hintBox">💡 Hint will appear here when you need support.</div>
     </div>
 
-    <div id="xpBox" class="xp-box">
-      🎉 +25 XP Earned!
+    <div class="coach-card">
+      <h3>📈 Lesson Mastery</h3>
+      <div class="progress-bar"><div class="progress-fill" id="masteryFill"></div></div>
+      <div class="metric"><span>Mastery</span><span id="masteryText">0%</span></div>
+      <div class="metric"><span>Correct</span><span id="correctText">0/5</span></div>
+      <div class="metric"><span>XP</span><span id="xpText">0</span></div>
     </div>
 
-  </div>
+    <div class="coach-card">
+      <h3>🏆 Achievement</h3>
+      <p>Unlock a badge at 80% mastery.</p>
+      <span class="badge" id="badgeText">Not unlocked yet</span>
+    </div>
 
+  </aside>
 </div>
 
 <script>
+const questions = [
+  { text:"x − 8 = 15", answer:23, hint:"Since 8 is subtracted from x, add 8 to both sides." },
+  { text:"x + 6 = 19", answer:13, hint:"Since 6 is added to x, subtract 6 from both sides." },
+  { text:"x ÷ 4 = 9", answer:36, hint:"Since x is divided by 4, multiply both sides by 4." },
+  { text:"3x = 24", answer:8, hint:"Since x is multiplied by 3, divide both sides by 3." },
+  { text:"x − 11 = 4", answer:15, hint:"Add 11 to both sides to isolate x." }
+];
 
-let mastery = 0;
+let current = Number(localStorage.getItem("lesson11_current") || 0);
+let correct = Number(localStorage.getItem("lesson11_correct") || 0);
+let xp = Number(localStorage.getItem("algebra_xp") || 0);
+let answered = JSON.parse(localStorage.getItem("lesson11_answered") || "[]");
 
-function checkAnswer(){
+function render(){
+  if(current >= questions.length){ current = questions.length - 1; }
+  document.getElementById("questionText").textContent = questions[current].text;
+  document.getElementById("qNum").textContent = current + 1;
+  document.getElementById("answer").value = "";
+  document.getElementById("feedback").style.display = "none";
+  document.getElementById("xpPop").style.display = "none";
 
-  const answer =
-    document.getElementById("answer").value;
+  const mastery = Math.round((correct / questions.length) * 100);
+  document.getElementById("masteryFill").style.width = mastery + "%";
+  document.getElementById("masteryText").textContent = mastery + "%";
+  document.getElementById("correctText").textContent = correct + "/" + questions.length;
+  document.getElementById("xpText").textContent = xp;
+  document.getElementById("xpTop").textContent = xp;
 
-  const feedback =
-    document.getElementById("feedback");
-
-  const xpBox =
-    document.getElementById("xpBox");
-
-  if(answer == 23){
-
-    feedback.innerHTML =
-      "✅ Excellent! You solved the equation correctly.";
-
-    feedback.className =
-      "feedback correct";
-
-    mastery += 25;
-
-    xpBox.style.display = "block";
-
-  }else{
-
-    feedback.innerHTML =
-      "❌ Incorrect. Remember to use inverse operations.";
-
-    feedback.className =
-      "feedback wrong";
-
-    xpBox.style.display = "none";
+  if(mastery >= 80){
+    document.getElementById("badgeText").textContent = "Equation Apprentice";
+    document.getElementById("coachText").textContent = "Excellent work. You are ready for Independent Practice.";
   }
-
-  if(mastery > 100){
-    mastery = 100;
-  }
-
-  document.getElementById("progressFill")
-    .style.width = mastery + "%";
-
-  document.getElementById("masteryText")
-    .innerHTML =
-    "Mastery: " + mastery + "%";
-
 }
 
+function save(){
+  localStorage.setItem("lesson11_current", current);
+  localStorage.setItem("lesson11_correct", correct);
+  localStorage.setItem("algebra_xp", xp);
+  localStorage.setItem("lesson11_answered", JSON.stringify(answered));
+}
+
+function checkAnswer(){
+  const user = Number(document.getElementById("answer").value);
+  const fb = document.getElementById("feedback");
+  const xpPop = document.getElementById("xpPop");
+
+  if(user === questions[current].answer){
+    fb.className = "feedback correct";
+    fb.textContent = "✅ Correct. You isolated the variable and kept the equation balanced.";
+    if(!answered.includes(current)){
+      correct++;
+      xp += 25;
+      answered.push(current);
+      xpPop.style.display = "block";
+    }
+  }else{
+    fb.className = "feedback wrong";
+    fb.textContent = "❌ Not yet. Use the inverse operation to undo what is happening to x.";
+    xpPop.style.display = "none";
+  }
+
+  fb.style.display = "block";
+  save();
+  render();
+}
+
+function showHint(){
+  document.getElementById("hintBox").textContent = "💡 " + questions[current].hint;
+}
+
+function nextQuestion(){
+  if(current < questions.length - 1){
+    current++;
+  }else{
+    current = 0;
+  }
+  save();
+  render();
+}
+
+render();
 </script>
 
 </body>
