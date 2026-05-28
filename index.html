@@ -514,7 +514,13 @@ body{
 
 </div>
 
-<script>
+<script type="module">
+import {
+  loadCurriculum,
+  getAllUnits,
+  getAllLessons,
+  getCurriculumStats
+} from "./engine/curriculumEngine.js";
 function getNum(key, fallback=0){
   return Number(localStorage.getItem(key) || fallback);
 }
