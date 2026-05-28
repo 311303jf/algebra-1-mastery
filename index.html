@@ -438,8 +438,18 @@ function getNum(key, fallback=0){
 }
 
 function lesson11Mastery(){
-  const correct = getNum("lesson11_correct",0);
-  return Math.round((correct / 5) * 100);
+  const saved = localStorage.getItem("algebra_session_1.1");
+
+  if(!saved){
+    return 0;
+  }
+
+  try{
+    const session = JSON.parse(saved);
+    return session.mastery || 0;
+  }catch(error){
+    return 0;
+  }
 }
 
   function buildCurriculumUI(curriculum){
@@ -552,6 +562,7 @@ function resetProgress(){
     localStorage.removeItem("lesson11_correct");
     localStorage.removeItem("lesson11_answered");
     localStorage.removeItem("algebra_xp");
+    localStorage.removeItem("algebra_session_1.1");
     renderDashboard();
   }
 }
