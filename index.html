@@ -496,50 +496,30 @@ function lesson11Mastery(){
   });
 }
 function renderDashboard(){
-  try{
   const xp = getNum("algebra_xp",0);
   const l11 = lesson11Mastery();
 
   const topic1 = Math.round(l11 / 5); 
   const course = Math.round(topic1 / 12);
 
-  const l12Unlocked = l11 >= 80;
-
   document.getElementById("xpStat").textContent = xp + " XP";
   document.getElementById("rightXP").textContent = xp;
 
   document.getElementById("topic1Mastery").textContent = topic1 + "%";
   document.getElementById("rightTopic1").textContent = topic1 + "%";
-  document.getElementById("topic1Pill").textContent = topic1 + "%";
-  document.getElementById("topic1Bar").style.width = topic1 + "%";
 
   document.getElementById("courseMastery").textContent = course + "%";
   document.getElementById("globalText").textContent = course + "%";
   document.getElementById("globalFill").style.width = course + "%";
 
   if(l11 >= 80){
-    document.getElementById("lesson11Status").textContent = "Complete";
-    document.getElementById("lesson11Status").className = "status done";
-    document.getElementById("lesson11Sub").textContent = "Mastery reached: " + l11 + "%";
-    document.getElementById("node11").className = "node done-node";
-    document.getElementById("tree11Status").textContent = "Complete";
-    document.getElementById("tree11Status").className = "status done";
     document.getElementById("badgeText").textContent = "Equation Apprentice";
-  }else if(l11 > 0){
-    document.getElementById("lesson11Sub").textContent = "In progress: " + l11 + "% mastery";
-  }
-
-  if(l12Unlocked){
-    document.getElementById("lesson12").classList.remove("locked");
-    document.getElementById("lesson12Status").textContent = "Unlocked";
-    document.getElementById("lesson12Status").className = "status open";
-    document.getElementById("node12").className = "node";
-    document.getElementById("tree12Status").textContent = "Unlocked";
-    document.getElementById("tree12Status").className = "status open";
-    document.getElementById("coachMessage").textContent = "Great job. Lesson 1.2 is unlocked. You are ready for multi-step equations.";
+    document.getElementById("coachMessage").textContent =
+      "Great job. Lesson 1.2 is ready. Continue your Algebra path.";
   }else{
-    document.getElementById("lesson12").classList.add("locked");
-    document.getElementById("coachMessage").textContent = "Reach 80% mastery in Lesson 1.1 to unlock Lesson 1.2.";
+    document.getElementById("badgeText").textContent = "No badge yet";
+    document.getElementById("coachMessage").textContent =
+      "Start with Lesson 1.1. Your dashboard will update when you earn XP and mastery.";
   }
 
   if(course >= 75){
@@ -551,9 +531,6 @@ function renderDashboard(){
   }else{
     document.getElementById("eocStat").textContent = "Level 1";
   }
-    }catch(error){
-  console.warn("Legacy dashboard elements missing during transition.");
-}
 }
 
 function goLesson(url){
