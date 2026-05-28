@@ -169,12 +169,22 @@ data-correct="${question.answer}"
   function checkAnswer(selected, correct){
 
   const feedback =
-    document.getElementById("feedbackBox");
-    if(feedback.dataset.answered === "true"){
+  document.getElementById("feedbackBox");
+
+if(feedback.dataset.answered === "true"){
   return;
 }
 
 feedback.dataset.answered = "true";
+
+const buttons =
+  document.querySelectorAll("#questionBox button");
+
+buttons.forEach(button => {
+  button.disabled = true;
+  button.style.cursor = "not-allowed";
+  button.style.opacity = "0.65";
+});
 
   if(selected === correct){
 
