@@ -209,3 +209,4 @@ const AlgebraStudentSessionEngine = (() => {
   };
 
 })();
+window.AlgebraStudentSessionEngine = AlgebraStudentSessionEngine;
