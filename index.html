@@ -359,96 +359,8 @@ body{
 
     <h2 class="section-title">Current Learning Path</h2>
 
-    <section class="topic-grid">
-
-      <div class="topic-card">
-        <div class="topic-header">
-          <h3>Topic 1 — Solving Linear Equations</h3>
-          <span class="topic-pill" id="topic1Pill">0%</span>
-        </div>
-
-        <div class="progress-mini"><div id="topic1Bar"></div></div>
-
-        <div class="lesson" onclick="goLesson('lesson-1-1.html')">
-          <div>
-            <div class="lesson-title">1.1 Solving Simple Equations</div>
-            <div class="lesson-sub" id="lesson11Sub">Start here</div>
-          </div>
-          <span class="status open" id="lesson11Status">Open</span>
-        </div>
-
-        <div class="lesson" id="lesson12" onclick="goLessonIfUnlocked('lesson-1-2.html','lesson12')">
-          <div>
-            <div class="lesson-title">1.2 Multi-Step Equations</div>
-            <div class="lesson-sub">Unlock after 80% in Lesson 1.1</div>
-          </div>
-          <span class="status lock" id="lesson12Status">Locked</span>
-        </div>
-
-        <div class="lesson locked">
-          <div>
-            <div class="lesson-title">1.3 Variables on Both Sides</div>
-            <div class="lesson-sub">Coming after 1.2 mastery</div>
-          </div>
-          <span class="status lock">Locked</span>
-        </div>
-
-        <div class="lesson locked">
-          <div>
-            <div class="lesson-title">1.4 Absolute Value Equations</div>
-            <div class="lesson-sub">Coming soon</div>
-          </div>
-          <span class="status lock">Locked</span>
-        </div>
-
-        <div class="lesson locked">
-          <div>
-            <div class="lesson-title">1.5 Rewriting Formulas</div>
-            <div class="lesson-sub">Coming soon</div>
-          </div>
-          <span class="status lock">Locked</span>
-        </div>
-      </div>
-
-      <div class="topic-card">
-        <div class="topic-header">
-          <h3>Topic 2 — Linear Inequalities</h3>
-          <span class="topic-pill">Locked</span>
-        </div>
-
-        <div class="lesson locked">
-          <div>
-            <div class="lesson-title">2.2 Addition & Subtraction</div>
-            <div class="lesson-sub">Unlock after Topic 1</div>
-          </div>
-          <span class="status lock">Locked</span>
-        </div>
-
-        <div class="lesson locked">
-          <div>
-            <div class="lesson-title">2.3 Multiplication & Division</div>
-            <div class="lesson-sub">Unlock after Topic 1</div>
-          </div>
-          <span class="status lock">Locked</span>
-        </div>
-      </div>
-
-      <div class="topic-card">
-        <div class="topic-header">
-          <h3>Topic 3 — Graphing Linear Functions</h3>
-          <span class="topic-pill">Locked</span>
-        </div>
-
-        <div class="lesson locked">
-          <div>
-            <div class="lesson-title">3.1 Functions</div>
-            <div class="lesson-sub">Unlock later in course path</div>
-          </div>
-          <span class="status lock">Locked</span>
-        </div>
-      </div>
-
-    </section>
+    <section class="topic-grid" id="dynamicTopicGrid">
+</section>
 
     <h2 class="section-title">Skill Tree</h2>
 
@@ -530,6 +442,59 @@ function lesson11Mastery(){
   return Math.round((correct / 5) * 100);
 }
 
+  function buildCurriculumUI(curriculum){
+
+  const topicGrid = document.getElementById("dynamicTopicGrid");
+
+  if(!topicGrid) return;
+
+  topicGrid.innerHTML = "";
+
+  const units = getAllUnits(curriculum);
+
+  units.forEach(unit => {
+
+    const card = document.createElement("div");
+    card.className = "topic-card";
+
+    let lessonsHTML = "";
+
+    unit.lessons.forEach(lesson => {
+
+      lessonsHTML += `
+        <div class="lesson">
+          <div>
+            <div class="lesson-title">
+              ${lesson.id} ${lesson.title}
+            </div>
+
+            <div class="lesson-sub">
+              ${lesson.objective}
+            </div>
+          </div>
+
+          <span class="status open">
+            Open
+          </span>
+        </div>
+      `;
+    });
+
+    card.innerHTML = `
+      <div class="topic-header">
+        <h3>${unit.title}</h3>
+
+        <span class="topic-pill">
+          ${unit.quarter}
+        </span>
+      </div>
+
+      ${lessonsHTML}
+    `;
+
+    topicGrid.appendChild(card);
+  });
+}
 function renderDashboard(){
   const xp = getNum("algebra_xp",0);
   const l11 = lesson11Mastery();
@@ -618,7 +583,8 @@ async function startApp(){
     console.log("Curriculum loaded:", curriculum);
     console.log("Curriculum stats:", stats);
 
-    renderDashboard();
+    buildCurriculumUI(curriculum);
+renderDashboard();
 
   }catch(error){
     console.error(error);
