@@ -386,6 +386,7 @@ button.secondary{
         </div>
 
         <div id="feedback" class="feedback"></div>
+        <div id="solverSteps" class="feedback" style="display:none;"></div>
         <div id="xpPop" class="xp-pop">🎉 +25 XP earned!</div>
       </div>
     </div>
@@ -479,6 +480,7 @@ function renderQuestion(){
   document.getElementById("dokTag").textContent = "DOK " + q.dok + " · " + q.type.replaceAll("_"," ");
   document.getElementById("feedback").style.display = "none";
   document.getElementById("xpPop").style.display = "none";
+  document.getElementById("solverSteps").style.display = "none";
   document.getElementById("hintBox").textContent = "💡 Hint will appear here.";
   hintLevel = 0;
 
@@ -521,6 +523,7 @@ localStorage.setItem(
 );
     fb.className = "feedback correct";
     fb.textContent = "✅ Correct. " + q.explanation;
+    showSolverSteps(q);
 
     if(!answeredKeys.includes(key)){
       correct++;
@@ -620,7 +623,22 @@ function updateStats(){
     document.getElementById("coachText").textContent = "Excellent. Lesson 1.2 is ready to unlock from the dashboard.";
   }
 }
+function showSolverSteps(q){
+  const steps =
+    AlgebraSolverEngine.buildSteps(q);
 
+  const box =
+    document.getElementById("solverSteps");
+
+  box.className = "feedback correct";
+  box.style.display = "block";
+
+  box.innerHTML =
+    "<strong>Step-by-step solution:</strong><br><br>" +
+    steps.map((step, index) =>
+      "Step " + (index + 1) + ": " + step
+    ).join("<br>");
+}
 newPracticeSet();
 </script>
 </body>
