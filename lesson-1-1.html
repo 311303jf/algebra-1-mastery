@@ -426,13 +426,14 @@ button:hover{filter:brightness(.96)}
 <script src="engine/questionFactory.js"></script> 
   
 <script>
-const questions = [
-  { text:"x − 8 = 15", answer:23, hint:"Since 8 is subtracted from x, add 8 to both sides." },
-  { text:"x + 6 = 19", answer:13, hint:"Since 6 is added to x, subtract 6 from both sides." },
-  { text:"x ÷ 4 = 9", answer:36, hint:"Since x is divided by 4, multiply both sides by 4." },
-  { text:"3x = 24", answer:8, hint:"Since x is multiplied by 3, divide both sides by 3." },
-  { text:"x − 11 = 4", answer:15, hint:"Add 11 to both sides to isolate x." }
-];
+let questions =
+  AlgebraQuestionFactory.generateSet(
+    "1.1",
+    5,
+    {
+      difficulty: "core"
+    }
+  );
 
 let current = Number(localStorage.getItem("lesson11_current") || 0);
 let correct = Number(localStorage.getItem("lesson11_correct") || 0);
