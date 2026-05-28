@@ -1,153 +1,285 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <title>Algebra 1 Mastery</title>
+<title>Algebra 1 Mastery</title>
 
-  <style>
+<style>
 
-    *{
-      margin:0;
-      padding:0;
-      box-sizing:border-box;
-    }
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
 
-    body{
-      font-family:Arial, Helvetica, sans-serif;
-      background:#f4f7fb;
-      color:#1e293b;
-    }
+body{
+  font-family:Arial, Helvetica, sans-serif;
+  background:#f3f6fb;
+  display:flex;
+  height:100vh;
+  overflow:hidden;
+}
 
-    header{
-      background:#111827;
-      color:white;
-      padding:20px;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-    }
+/* SIDEBAR */
 
-    header h1{
-      font-size:28px;
-    }
+.sidebar{
+  width:260px;
+  background:#0f172a;
+  color:white;
+  padding:30px 20px;
+  display:flex;
+  flex-direction:column;
+}
 
-    .hero{
-      padding:50px 30px;
-      text-align:center;
-      background:linear-gradient(to right,#2563eb,#1d4ed8);
-      color:white;
-    }
+.logo{
+  font-size:28px;
+  font-weight:bold;
+  margin-bottom:40px;
+}
 
-    .hero h2{
-      font-size:42px;
-      margin-bottom:15px;
-    }
+.menu-item{
+  padding:14px 18px;
+  border-radius:12px;
+  margin-bottom:10px;
+  cursor:pointer;
+  transition:0.3s;
+}
 
-    .hero p{
-      font-size:18px;
-      opacity:0.9;
-    }
+.menu-item:hover{
+  background:#1e293b;
+}
 
-    .dashboard{
-      max-width:1200px;
-      margin:auto;
-      padding:40px 20px;
-    }
+.active{
+  background:#2563eb;
+}
 
-    .section-title{
-      font-size:28px;
-      margin-bottom:25px;
-    }
+/* MAIN */
 
-    .topic-grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-      gap:25px;
-    }
+.main{
+  flex:1;
+  padding:35px;
+  overflow-y:auto;
+}
 
-    .topic-card{
-      background:white;
-      border-radius:18px;
-      padding:25px;
-      box-shadow:0 4px 12px rgba(0,0,0,0.08);
-      transition:0.3s;
-    }
+.hero{
+  background:linear-gradient(to right,#2563eb,#1d4ed8);
+  color:white;
+  padding:35px;
+  border-radius:24px;
+  margin-bottom:30px;
+}
 
-    .topic-card:hover{
-      transform:translateY(-5px);
-    }
+.hero h1{
+  font-size:42px;
+  margin-bottom:10px;
+}
 
-    .topic-card h3{
-      margin-bottom:15px;
-      color:#2563eb;
-    }
+.hero p{
+  opacity:0.9;
+  font-size:18px;
+}
 
-    .lesson{
-      background:#eff6ff;
-      padding:10px;
-      border-radius:10px;
-      margin-bottom:10px;
-    }
+.stats-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:20px;
+  margin-bottom:35px;
+}
 
-    .lesson:hover{
-      background:#dbeafe;
-      cursor:pointer;
-    }
+.stat-card{
+  background:white;
+  padding:25px;
+  border-radius:20px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+}
 
-    .progress-section{
-      margin-top:50px;
-    }
+.stat-card h2{
+  color:#2563eb;
+  margin-top:10px;
+}
 
-    .progress-card{
-      background:white;
-      padding:25px;
-      border-radius:18px;
-      box-shadow:0 4px 12px rgba(0,0,0,0.08);
-    }
+.section-title{
+  font-size:28px;
+  margin-bottom:20px;
+}
 
-    .progress-bar{
-      width:100%;
-      height:25px;
-      background:#e5e7eb;
-      border-radius:20px;
-      overflow:hidden;
-      margin-top:15px;
-    }
+.topic-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+  gap:25px;
+}
 
-    .progress-fill{
-      width:18%;
-      height:100%;
-      background:#22c55e;
-    }
+.topic-card{
+  background:white;
+  padding:25px;
+  border-radius:20px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+  transition:0.3s;
+}
 
-    footer{
-      text-align:center;
-      padding:30px;
-      color:#64748b;
-    }
+.topic-card:hover{
+  transform:translateY(-5px);
+}
 
-  </style>
+.topic-card h3{
+  color:#2563eb;
+  margin-bottom:18px;
+}
+
+.lesson{
+  background:#eff6ff;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:10px;
+  transition:0.3s;
+}
+
+.lesson:hover{
+  background:#dbeafe;
+  cursor:pointer;
+}
+
+/* RIGHT PANEL */
+
+.right-panel{
+  width:320px;
+  background:white;
+  padding:30px 20px;
+  border-left:1px solid #e2e8f0;
+  overflow-y:auto;
+}
+
+.ai-card{
+  background:#eff6ff;
+  padding:20px;
+  border-radius:20px;
+  margin-bottom:20px;
+}
+
+.ai-card h3{
+  color:#2563eb;
+  margin-bottom:15px;
+}
+
+.tip{
+  background:white;
+  padding:14px;
+  border-radius:12px;
+  margin-top:12px;
+}
+
+.progress-container{
+  margin-top:20px;
+}
+
+.progress-bar{
+  width:100%;
+  height:22px;
+  background:#e2e8f0;
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.progress-fill{
+  width:18%;
+  height:100%;
+  background:#22c55e;
+}
+
+.badge{
+  background:#fef3c7;
+  padding:10px 14px;
+  border-radius:12px;
+  display:inline-block;
+  margin-top:10px;
+}
+
+</style>
 </head>
 
 <body>
 
-<header>
-  <h1>Algebra 1 Mastery</h1>
-  <div>MDCPS EOC Platform</div>
-</header>
+<!-- SIDEBAR -->
 
-<section class="hero">
-  <h2>Master Algebra 1</h2>
-  <p>
-    Adaptive learning aligned to the MDCPS pacing guide and Algebra 1 EOC.
-  </p>
-</section>
+<div class="sidebar">
 
-<section class="dashboard">
+  <div class="logo">
+    Algebra OS
+  </div>
 
-  <h2 class="section-title">Current Topics</h2>
+  <div class="menu-item active">
+    🏠 Dashboard
+  </div>
+
+  <div class="menu-item">
+    📚 Learn
+  </div>
+
+  <div class="menu-item">
+    🧠 Practice
+  </div>
+
+  <div class="menu-item">
+    🎯 EOC Prep
+  </div>
+
+  <div class="menu-item">
+    📈 Progress
+  </div>
+
+  <div class="menu-item">
+    🏆 Achievements
+  </div>
+
+  <div class="menu-item">
+    ⚙️ Settings
+  </div>
+
+</div>
+
+<!-- MAIN -->
+
+<div class="main">
+
+  <div class="hero">
+
+    <h1>Master Algebra 1</h1>
+
+    <p>
+      Adaptive learning platform aligned to MDCPS pacing guide and EOC standards.
+    </p>
+
+  </div>
+
+  <div class="stats-grid">
+
+    <div class="stat-card">
+      <p>Course Mastery</p>
+      <h2>18%</h2>
+    </div>
+
+    <div class="stat-card">
+      <p>Current Streak</p>
+      <h2>🔥 5 Days</h2>
+    </div>
+
+    <div class="stat-card">
+      <p>XP Earned</p>
+      <h2>2,450 XP</h2>
+    </div>
+
+    <div class="stat-card">
+      <p>Predicted EOC</p>
+      <h2>Level 4</h2>
+    </div>
+
+  </div>
+
+  <h2 class="section-title">
+    Current Topics
+  </h2>
 
   <div class="topic-grid">
 
@@ -155,11 +287,25 @@
 
       <h3>Topic 1 — Solving Linear Equations</h3>
 
-      <div class="lesson">1.1 Solving Simple Equations</div>
-      <div class="lesson">1.2 Solving Multi-Step Equations</div>
-      <div class="lesson">1.3 Variables on Both Sides</div>
-      <div class="lesson">1.4 Absolute Value Equations</div>
-      <div class="lesson">1.5 Rewriting Formulas</div>
+      <div class="lesson">
+        1.1 Solving Simple Equations
+      </div>
+
+      <div class="lesson">
+        1.2 Multi-Step Equations
+      </div>
+
+      <div class="lesson">
+        1.3 Variables on Both Sides
+      </div>
+
+      <div class="lesson">
+        1.4 Absolute Value Equations
+      </div>
+
+      <div class="lesson">
+        1.5 Rewriting Formulas
+      </div>
 
     </div>
 
@@ -167,10 +313,21 @@
 
       <h3>Topic 2 — Linear Inequalities</h3>
 
-      <div class="lesson">2.2 Addition & Subtraction</div>
-      <div class="lesson">2.3 Multiplication & Division</div>
-      <div class="lesson">2.4 Multi-Step Inequalities</div>
-      <div class="lesson">2.5 Compound Inequalities</div>
+      <div class="lesson">
+        2.2 Addition & Subtraction
+      </div>
+
+      <div class="lesson">
+        2.3 Multiplication & Division
+      </div>
+
+      <div class="lesson">
+        2.4 Multi-Step Inequalities
+      </div>
+
+      <div class="lesson">
+        2.5 Compound Inequalities
+      </div>
 
     </div>
 
@@ -178,40 +335,76 @@
 
       <h3>Topic 3 — Graphing Linear Functions</h3>
 
-      <div class="lesson">3.1 Functions</div>
-      <div class="lesson">3.2 Characteristics of Functions</div>
-      <div class="lesson">3.3 Linear Functions</div>
-      <div class="lesson">3.4 Function Notation</div>
+      <div class="lesson">
+        3.1 Functions
+      </div>
+
+      <div class="lesson">
+        3.2 Characteristics
+      </div>
+
+      <div class="lesson">
+        3.3 Linear Functions
+      </div>
+
+      <div class="lesson">
+        3.4 Function Notation
+      </div>
 
     </div>
 
   </div>
 
-  <div class="progress-section">
+</div>
 
-    <h2 class="section-title">Student Progress</h2>
+<!-- RIGHT PANEL -->
 
-    <div class="progress-card">
+<div class="right-panel">
 
-      <h3>Overall Mastery</h3>
+  <div class="ai-card">
+
+    <h3>🤖 Algebra Coach</h3>
+
+    <p>
+      You're improving steadily. Focus on solving equations using inverse operations.
+    </p>
+
+    <div class="tip">
+      💡 Tip:
+      Always isolate the variable first.
+    </div>
+
+  </div>
+
+  <div class="ai-card">
+
+    <h3>📈 Mastery Progress</h3>
+
+    <div class="progress-container">
 
       <div class="progress-bar">
         <div class="progress-fill"></div>
       </div>
 
-      <p style="margin-top:15px;">
-        18% Course Mastery
+      <p style="margin-top:12px;">
+        18% Complete
       </p>
 
     </div>
 
   </div>
 
-</section>
+  <div class="ai-card">
 
-<footer>
-  Algebra 1 Mastery © 2026
-</footer>
+    <h3>🏆 Latest Achievement</h3>
+
+    <div class="badge">
+      Equation Apprentice
+    </div>
+
+  </div>
+
+</div>
 
 </body>
 </html>
