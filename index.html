@@ -470,6 +470,25 @@ function lesson11Mastery(){
     let lessonsHTML = "";
 
     unit.lessons.forEach(lesson => {
+      const session = JSON.parse(
+  localStorage.getItem(`algebra_session_${lesson.id}`) || "{}"
+);
+
+const mastery = session.mastery || 0;
+
+let statusText = "Open";
+let statusClass = "open";
+
+if(mastery >= 85){
+  statusText = "Mastered";
+  statusClass = "done";
+}else if(mastery >= 70){
+  statusText = "Proficient";
+  statusClass = "done";
+}else if(session.attempted > 0){
+  statusText = "In Progress";
+  statusClass = "open";
+}
 
       lessonsHTML += `
         <div class="lesson" onclick="window.location.href='lesson.html?id=${lesson.id}'"> 
@@ -483,9 +502,9 @@ function lesson11Mastery(){
             </div>
           </div>
 
-          <span class="status open">
-            Open
-          </span>
+<span class="status ${statusClass}">
+  ${statusText}
+</span>
         </div>
       `;
     });
