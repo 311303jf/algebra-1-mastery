@@ -430,7 +430,25 @@ let answeredKeys = JSON.parse(localStorage.getItem("lesson11_answered_keys") || 
 
 function newPracticeSet(){
   AlgebraQuestionFactory.resetSession();
-  questions = AlgebraQuestionFactory.generateSet("1.1", 5, { difficulty: "core" });
+  const profile =
+  AlgebraAdaptiveEngine.createAdaptiveProfile(
+    correct,
+    attempted
+  );
+
+questions =
+  AlgebraQuestionFactory.generateSet(
+    "1.1",
+    5,
+    {
+      difficulty:
+        profile.difficulty
+    }
+  );
+
+document.getElementById("coachText")
+  .textContent =
+  profile.coachMessage;
   current = 0;
   answeredKeys = [];
   localStorage.setItem("lesson11_answered_keys", JSON.stringify(answeredKeys));
