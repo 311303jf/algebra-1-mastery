@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Lesson 1.1 — Solving Simple Equations</title>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:Arial, Helvetica, sans-serif;
+  background:#f3f6fb;
+  color:#1e293b;
+}
+
+/* HEADER */
+
+header{
+  background:#2563eb;
+  color:white;
+  padding:25px 40px;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+header h1{
+  font-size:32px;
+}
+
+.back-btn{
+  background:white;
+  color:#2563eb;
+  padding:10px 18px;
+  border-radius:12px;
+  text-decoration:none;
+  font-weight:bold;
+}
+
+/* MAIN */
+
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:40px 20px;
+}
+
+.lesson-card{
+  background:white;
+  border-radius:24px;
+  padding:30px;
+  margin-bottom:30px;
+  box-shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+
+.lesson-card h2{
+  color:#2563eb;
+  margin-bottom:20px;
+}
+
+.objective{
+  font-size:18px;
+  line-height:1.6;
+}
+
+/* EXAMPLES */
+
+.example-box{
+  background:#eff6ff;
+  padding:25px;
+  border-radius:18px;
+  margin-top:20px;
+}
+
+.math{
+  font-size:32px;
+  font-weight:bold;
+  margin:20px 0;
+  color:#1d4ed8;
+}
+
+/* PRACTICE */
+
+.practice-question{
+  font-size:28px;
+  font-weight:bold;
+  margin:25px 0;
+  color:#1d4ed8;
+}
+
+input{
+  width:140px;
+  padding:14px;
+  font-size:20px;
+  border-radius:12px;
+  border:1px solid #cbd5e1;
+}
+
+button{
+  padding:14px 22px;
+  background:#2563eb;
+  color:white;
+  border:none;
+  border-radius:12px;
+  font-size:16px;
+  cursor:pointer;
+  margin-left:10px;
+  transition:0.3s;
+}
+
+button:hover{
+  background:#1d4ed8;
+}
+
+/* FEEDBACK */
+
+.feedback{
+  margin-top:20px;
+  font-size:20px;
+  font-weight:bold;
+}
+
+.correct{
+  color:#16a34a;
+}
+
+.wrong{
+  color:#dc2626;
+}
+
+/* PROGRESS */
+
+.progress-section{
+  margin-top:30px;
+}
+
+.progress-bar{
+  width:100%;
+  height:24px;
+  background:#e2e8f0;
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.progress-fill{
+  width:0%;
+  height:100%;
+  background:#22c55e;
+  transition:0.4s;
+}
+
+.mastery{
+  margin-top:12px;
+  font-weight:bold;
+}
+
+/* XP */
+
+.xp-box{
+  background:#fef3c7;
+  padding:18px;
+  border-radius:18px;
+  margin-top:25px;
+  font-size:18px;
+  font-weight:bold;
+  display:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+
+  <h1>Lesson 1.1 — Solving Simple Equations</h1>
+
+  <a class="back-btn" href="index.html">
+    ← Dashboard
+  </a>
+
+</header>
+
+<div class="container">
+
+  <!-- OBJECTIVE -->
+
+  <div class="lesson-card">
+
+    <h2>🎯 Learning Objective</h2>
+
+    <p class="objective">
+      Solve one-step equations using inverse operations and isolate the variable correctly.
+    </p>
+
+  </div>
+
+  <!-- LEARN -->
+
+  <div class="lesson-card">
+
+    <h2>📚 Learn</h2>
+
+    <div class="example-box">
+
+      <p>
+        To solve an equation, isolate the variable using inverse operations.
+      </p>
+
+      <div class="math">
+        x + 5 = 12
+      </div>
+
+      <p>
+        Subtract 5 from both sides.
+      </p>
+
+      <div class="math">
+        x = 7
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- GUIDED PRACTICE -->
+
+  <div class="lesson-card">
+
+    <h2>🧠 Guided Practice</h2>
+
+    <p>Solve the equation:</p>
+
+    <div class="practice-question">
+      x − 8 = 15
+    </div>
+
+    <input
+      id="answer"
+      type="number"
+      placeholder="Answer"
+    >
+
+    <button onclick="checkAnswer()">
+      Check Answer
+    </button>
+
+    <div id="feedback" class="feedback"></div>
+
+    <div class="progress-section">
+
+      <div class="progress-bar">
+        <div id="progressFill" class="progress-fill"></div>
+      </div>
+
+      <div id="masteryText" class="mastery">
+        Mastery: 0%
+      </div>
+
+    </div>
+
+    <div id="xpBox" class="xp-box">
+      🎉 +25 XP Earned!
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+let mastery = 0;
+
+function checkAnswer(){
+
+  const answer =
+    document.getElementById("answer").value;
+
+  const feedback =
+    document.getElementById("feedback");
+
+  const xpBox =
+    document.getElementById("xpBox");
+
+  if(answer == 23){
+
+    feedback.innerHTML =
+      "✅ Excellent! You solved the equation correctly.";
+
+    feedback.className =
+      "feedback correct";
+
+    mastery += 25;
+
+    xpBox.style.display = "block";
+
+  }else{
+
+    feedback.innerHTML =
+      "❌ Incorrect. Remember to use inverse operations.";
+
+    feedback.className =
+      "feedback wrong";
+
+    xpBox.style.display = "none";
+  }
+
+  if(mastery > 100){
+    mastery = 100;
+  }
+
+  document.getElementById("progressFill")
+    .style.width = mastery + "%";
+
+  document.getElementById("masteryText")
+    .innerHTML =
+    "Mastery: " + mastery + "%";
+
+}
+
+</script>
+
+</body>
+</html>
