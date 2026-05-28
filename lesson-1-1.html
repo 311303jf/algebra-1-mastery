@@ -418,11 +418,13 @@ button.secondary{
 </div>
 
 <script src="engine/questionFactory.js"></script>
+<script src="engine/adaptiveEngine.js"></script>  
 
 <script>
 let questions = [];
 let current = 0;
 let correct = Number(localStorage.getItem("lesson11_correct") || 0);
+  let attempted = 0;
 let xp = Number(localStorage.getItem("algebra_xp") || 0);
 let answeredKeys = JSON.parse(localStorage.getItem("lesson11_answered_keys") || "[]");
 
@@ -465,6 +467,7 @@ function renderQuestion(){
 }
 
 function checkAnswer(selected){
+  attempted++;
   const q = questions[current];
   const fb = document.getElementById("feedback");
   const xpPop = document.getElementById("xpPop");
@@ -489,6 +492,15 @@ function checkAnswer(selected){
 
   fb.style.display = "block";
   saveProgress();
+  const profile =
+  AlgebraAdaptiveEngine.createAdaptiveProfile(
+    correct,
+    attempted
+  );
+
+document.getElementById("coachText")
+  .textContent =
+  profile.coachMessage;
   updateStats();
 }
 
