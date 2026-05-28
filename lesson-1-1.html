@@ -488,11 +488,21 @@ function renderQuestion(){
 function checkAnswer(selected){
   attempted++;
   const q = questions[current];
+  const profile =
+  AlgebraAdaptiveEngine.createAdaptiveProfile(
+    correct,
+    correct + Number(localStorage.getItem("lesson11_wrong") || 0)
+  );
   const fb = document.getElementById("feedback");
   const xpPop = document.getElementById("xpPop");
   const key = questionKey(q);
 
   if(selected === q.answer){
+    AlgebraStudentSessionEngine.recordAttempt(
+  "1.1",
+  true,
+  profile.difficulty
+);
     fb.className = "feedback correct";
     fb.textContent = "✅ Correct. " + q.explanation;
 
@@ -504,6 +514,16 @@ function checkAnswer(selected){
     }
 
   }else{
+    AlgebraStudentSessionEngine.recordAttempt(
+  "1.1",
+  false,
+  profile.difficulty
+);
+
+localStorage.setItem(
+  "lesson11_wrong",
+  Number(localStorage.getItem("lesson11_wrong") || 0) + 1
+);
     fb.className = "feedback wrong";
     fb.textContent = "❌ Not yet. " + q.explanation;
     xpPop.style.display = "none";
