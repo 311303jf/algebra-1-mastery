@@ -170,6 +170,11 @@ data-correct="${question.answer}"
 
   const feedback =
     document.getElementById("feedbackBox");
+    if(feedback.dataset.answered === "true"){
+  return;
+}
+
+feedback.dataset.answered = "true";
 
   if(selected === correct){
 
