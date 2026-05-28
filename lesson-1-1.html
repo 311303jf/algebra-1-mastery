@@ -543,8 +543,9 @@ localStorage.setItem(
   }
 
   fb.style.display = "block";
-  saveProgress();
-  const profile =
+ saveProgress();
+
+const updatedProfile =
   AlgebraAdaptiveEngine.createAdaptiveProfile(
     correct,
     attempted
@@ -552,8 +553,9 @@ localStorage.setItem(
 
 document.getElementById("coachText")
   .textContent =
-  profile.coachMessage;
-  updateStats();
+  updatedProfile.coachMessage;
+
+updateStats();
 }
 
 function showHint(){
