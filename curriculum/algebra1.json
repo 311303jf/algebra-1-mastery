@@ -1,87 +1,72 @@
 {
-  "course": "Algebra 1",
-  "schoolYear": "2025-2026",
-  "district": "MDCPS",
-  "topics": [
+  "course": {
+    "id": "algebra-1",
+    "title": "Algebra 1",
+    "state": "Florida BEST",
+    "platform": "Algebra OS",
+    "version": "1.0.0"
+  },
+  "units": [
     {
-      "topic": "1",
-      "title": "Solving Linear Equations",
-      "weeks": "08/14 - 09/02",
-      "benchmark": [
-        "MA.912.AR.1.2",
-        "MA.912.AR.2.1",
-        "MA.912.AR.4.1",
-        "MA.912.FL.3.2"
-      ],
+      "id": "unit-1",
+      "title": "Expressions, Equations, and Inequalities",
+      "quarter": "Q1",
+      "order": 1,
       "lessons": [
         {
-          "lesson": "1.1",
-          "title": "Solving Simple Equations",
-          "difficultyLevels": [
-            "support",
-            "core",
-            "challenge"
+          "id": "1.1",
+          "title": "Solving One-Step Equations",
+          "standard": "MA.912.AR.2.2",
+          "objective": "Students will solve one-step linear equations using inverse operations.",
+          "essentialQuestion": "How can inverse operations help solve equations?",
+          "skills": [
+            "identify the operation in an equation",
+            "apply inverse operations",
+            "solve one-step equations",
+            "check solutions"
           ],
           "problemTypes": [
-            "one_step_equations",
-            "integer_operations",
-            "inverse_operations"
-          ]
+            "one_step_addition_equation",
+            "one_step_subtraction_equation",
+            "one_step_multiplication_equation",
+            "one_step_division_equation"
+          ],
+          "dokLevels": [1, 2],
+          "difficultyRange": {
+            "min": 1,
+            "max": 3
+          },
+          "realWorldRequired": true,
+          "eocRigor": "foundational",
+          "prerequisites": [],
+          "unlockAfter": null
         },
         {
-          "lesson": "1.2",
+          "id": "1.2",
           "title": "Solving Multi-Step Equations",
-          "difficultyLevels": [
-            "support",
-            "core",
-            "challenge"
+          "standard": "MA.912.AR.2.2",
+          "objective": "Students will solve multi-step linear equations using properties of equality.",
+          "essentialQuestion": "How can multi-step equations be solved efficiently?",
+          "skills": [
+            "combine like terms",
+            "use the distributive property",
+            "isolate the variable",
+            "check solutions"
           ],
           "problemTypes": [
-            "multi_step_equations",
-            "combine_like_terms",
-            "distributive_property"
-          ]
-        },
-        {
-          "lesson": "1.3",
-          "title": "Solving Equations with Variables on Both Sides",
-          "difficultyLevels": [
-            "support",
-            "core",
-            "challenge"
+            "multi_step_equation",
+            "combine_like_terms_equation",
+            "distributive_property_equation"
           ],
-          "problemTypes": [
-            "variables_both_sides",
-            "multi_step_variables",
-            "real_world_equations"
-          ]
-        },
-        {
-          "lesson": "1.4",
-          "title": "Solving Absolute Value Equations",
-          "difficultyLevels": [
-            "support",
-            "core",
-            "challenge"
-          ],
-          "problemTypes": [
-            "absolute_value",
-            "two_solution_equations"
-          ]
-        },
-        {
-          "lesson": "1.5",
-          "title": "Rewriting Equations and Formulas",
-          "difficultyLevels": [
-            "support",
-            "core",
-            "challenge"
-          ],
-          "problemTypes": [
-            "literal_equations",
-            "formula_rewriting",
-            "isolate_variable"
-          ]
+          "dokLevels": [1, 2, 3],
+          "difficultyRange": {
+            "min": 2,
+            "max": 4
+          },
+          "realWorldRequired": true,
+          "eocRigor": "medium",
+          "prerequisites": ["1.1"],
+          "unlockAfter": "1.1"
         }
       ]
     }
