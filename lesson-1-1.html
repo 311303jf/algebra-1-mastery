@@ -479,6 +479,7 @@ function renderQuestion(){
   document.getElementById("feedback").style.display = "none";
   document.getElementById("xpPop").style.display = "none";
   document.getElementById("hintBox").textContent = "💡 Hint will appear here.";
+  hintLevel = 0;
 
   const choicesBox = document.getElementById("choicesBox");
   choicesBox.innerHTML = "";
@@ -559,9 +560,34 @@ document.getElementById("coachText")
 updateStats();
 }
 
+let hintLevel = 0;
+
 function showHint(){
   const q = questions[current];
-  document.getElementById("hintBox").textContent = "💡 " + q.hint;
+
+  const hint =
+    AlgebraHintEngine.getHint(
+      q,
+      hintLevel
+    );
+
+  document.getElementById("hintBox")
+    .textContent =
+    "💡 Hint " +
+    (hintLevel + 1) +
+    ": " +
+    hint;
+
+  AlgebraStudentSessionEngine.recordHint("1.1");
+
+  hintLevel++;
+
+  const totalHints =
+    AlgebraHintEngine.getTotalHints(q);
+
+  if (hintLevel >= totalHints) {
+    hintLevel = totalHints - 1;
+  }
 }
 
 function nextQuestion(){
