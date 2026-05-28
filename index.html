@@ -462,7 +462,7 @@ function lesson11Mastery(){
     unit.lessons.forEach(lesson => {
 
       lessonsHTML += `
-        <div class="lesson">
+        <div class="lesson" onclick="window.location.href='lesson.html?id=${lesson.id}'">
           <div>
             <div class="lesson-title">
               ${lesson.id} ${lesson.title}
