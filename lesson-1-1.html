@@ -424,10 +424,18 @@ button.secondary{
 <script>
 let questions = [];
 let current = 0;
-let correct = Number(localStorage.getItem("lesson11_correct") || 0);
-  let attempted = 0;
-let xp = Number(localStorage.getItem("algebra_xp") || 0);
-let answeredKeys = JSON.parse(localStorage.getItem("lesson11_answered_keys") || "[]");
+
+let correct =
+  Number(localStorage.getItem("lesson11_correct") || 0);
+
+let attempted =
+  Number(localStorage.getItem("lesson11_attempted") || 0);
+
+let xp =
+  Number(localStorage.getItem("algebra_xp") || 0);
+
+let answeredKeys =
+  JSON.parse(localStorage.getItem("lesson11_answered_keys") || "[]");
 
 function newPracticeSet(){
   AlgebraQuestionFactory.resetSession();
@@ -487,6 +495,11 @@ function renderQuestion(){
 
 function checkAnswer(selected){
   attempted++;
+
+localStorage.setItem(
+  "lesson11_attempted",
+  attempted
+);
   const q = questions[current];
   const profile =
   AlgebraAdaptiveEngine.createAdaptiveProfile(
