@@ -131,7 +131,9 @@ function generatePracticeQuestion(){
 
 ${question.choices.map(choice => `
   <button
-    onclick="checkAnswer(${choice}, ${question.answer})"
+    onclick="checkAnswer(Number(this.dataset.choice), Number(this.dataset.correct))"
+data-choice="${choice}"
+data-correct="${question.answer}"
     style="
       width:100%;
       text-align:left;
