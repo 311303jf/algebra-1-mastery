@@ -1,1 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Algebra OS | Lesson</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f5f7fb;margin:0;color:#0f172a}
+.page{max-width:1000px;margin:auto;padding:30px}
+.card{background:white;border-radius:24px;padding:28px;margin-bottom:20px;box-shadow:0 12px 35px rgba(15,23,42,.08)}
+.hero{background:linear-gradient(135deg,#2563eb,#7c3aed);color:white}
+h1{margin-bottom:10px}
+.badge{display:inline-block;background:#dbeafe;color:#1d4ed8;padding:8px 12px;border-radius:999px;font-weight:bold;margin:5px}
+.btn{background:#2563eb;color:white;border:none;padding:12px 18px;border-radius:12px;font-weight:bold;cursor:pointer}
+</style>
+</head>
 
+<body>
+<div class="page">
+
+  <button class="btn" onclick="window.location.href='index.html'">← Back to Dashboard</button>
+
+  <section class="card hero">
+    <h1 id="lessonTitle">Loading lesson...</h1>
+    <p id="lessonObjective"></p>
+  </section>
+
+  <section class="card">
+    <h2>🎯 Learning Objective</h2>
+    <p id="objectiveText"></p>
+  </section>
+
+  <section class="card">
+    <h2>🧠 Skills</h2>
+    <div id="skillsList"></div>
+  </section>
+
+  <section class="card">
+    <h2>📊 Lesson Metadata</h2>
+    <p><strong>Standard:</strong> <span id="standardText"></span></p>
+    <p><strong>DOK Levels:</strong> <span id="dokText"></span></p>
+    <p><strong>EOC Rigor:</strong> <span id="rigorText"></span></p>
+    <p><strong>Real-World Required:</strong> <span id="realWorldText"></span></p>
+  </section>
+
+  <section class="card">
+    <h2>🧪 Question Engine Preview</h2>
+    <p>This lesson will generate questions using these problem types:</p>
+    <div id="problemTypes"></div>
+  </section>
+
+</div>
+
+<script type="module">
+import {
+  loadCurriculum,
+  getLessonById
+} from "./engine/curriculumEngine.js";
+
+function getLessonIdFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  return params.get("id") || "1.1";
+}
+
+function renderLesson(lesson){
+  document.getElementById("lessonTitle").textContent =
+    lesson.id + " — " + lesson.title;
+
+  document.getElementById("lessonObjective").textContent =
+    lesson.essentialQuestion || "";
+
+  document.getElementById("objectiveText").textContent =
+    lesson.objective || "";
+
+  document.getElementById("standardText").textContent =
+    lesson.standard || "Not listed";
+
+  document.getElementById("dokText").textContent =
+    (lesson.dokLevels || []).join(", ");
+
+  document.getElementById("rigorText").textContent =
+    lesson.eocRigor || "Not listed";
+
+  document.getElementById("realWorldText").textContent =
+    lesson.realWorldRequired ? "Yes" : "No";
+
+  document.getElementById("skillsList").innerHTML =
+    (lesson.skills || []).map(skill =>
+      `<span class="badge">${skill}</span>`
+    ).join("");
+
+  document.getElementById("problemTypes").innerHTML =
+    (lesson.problemTypes || []).map(type =>
+      `<span class="badge">${type}</span>`
+    ).join("");
+}
+
+async function startLesson(){
+  const curriculum = await loadCurriculum();
+  const lessonId = getLessonIdFromUrl();
+  const lesson = getLessonById(curriculum, lessonId);
+
+  if(!lesson){
+    document.getElementById("lessonTitle").textContent = "Lesson not found";
+    document.getElementById("lessonObjective").textContent =
+      "Check the lesson ID in the URL.";
+    return;
+  }
+
+  console.log("Dynamic lesson loaded:", lesson);
+  renderLesson(lesson);
+}
+
+startLesson();
+</script>
+</body>
+</html>
