@@ -557,3 +557,4 @@ const type =
   };
 
 })();
+window.AlgebraQuestionFactory = AlgebraQuestionFactory;
