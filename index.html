@@ -610,7 +610,23 @@ function resetProgress(){
   }
 }
 
-renderDashboard();
+async function startApp(){
+  try{
+    const curriculum = await loadCurriculum();
+    const stats = getCurriculumStats(curriculum);
+
+    console.log("Curriculum loaded:", curriculum);
+    console.log("Curriculum stats:", stats);
+
+    renderDashboard();
+
+  }catch(error){
+    console.error(error);
+    alert("Curriculum could not be loaded. Check curriculum/algebra1.json");
+  }
+}
+
+startApp();
 </script>
 </body>
 </html>
