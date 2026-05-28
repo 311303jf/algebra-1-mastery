@@ -422,9 +422,21 @@ function createChoices(answer) {
 
     }
 
-    const type =
-      options.type ||
-      choice(config.allowedProblemTypes);
+const curriculumProblemTypes =
+  options.problemTypes || config.allowedProblemTypes;
+
+const normalizedTypes = curriculumProblemTypes.map(type =>
+  type
+    .replace("_equation", "")
+    .replace("one_step_addition", "one_step_addition")
+    .replace("one_step_subtraction", "one_step_subtraction")
+    .replace("one_step_multiplication", "one_step_multiplication")
+    .replace("one_step_division", "one_step_division")
+);
+
+const type =
+  options.type ||
+  choice(normalizedTypes);
 
     let generator;
 
