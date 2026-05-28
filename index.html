@@ -496,6 +496,7 @@ function lesson11Mastery(){
   });
 }
 function renderDashboard(){
+  try{
   const xp = getNum("algebra_xp",0);
   const l11 = lesson11Mastery();
 
@@ -550,6 +551,9 @@ function renderDashboard(){
   }else{
     document.getElementById("eocStat").textContent = "Level 1";
   }
+    }catch(error){
+  console.warn("Legacy dashboard elements missing during transition.");
+}
 }
 
 function goLesson(url){
