@@ -6,6 +6,7 @@
 const AlgebraQuestionFactory = (() => {
 
   const usedQuestions = new Set();
+  const usedFingerprints = new Set();
 
   const LESSON_CONFIG = {
 
@@ -88,6 +89,24 @@ const AlgebraQuestionFactory = (() => {
     return q.prompt + "|" + q.answer;
 
   }
+  function questionFingerprint(q) {
+  return [
+    q.lesson,
+    q.type,
+    q.dok,
+    q.difficulty
+  ].join("|");
+}
+
+function isTooSimilar(q) {
+  const fingerprint = questionFingerprint(q);
+  return usedFingerprints.has(fingerprint);
+}
+
+function rememberQuestion(q) {
+  usedQuestions.add(uniqueKey(q));
+  usedFingerprints.add(questionFingerprint(q));
+}
 
 function createChoices(answer) {
 
@@ -499,13 +518,16 @@ const type =
       const key =
         uniqueKey(question);
 
-      if (!usedQuestions.has(key)) {
+     if (
+  !usedQuestions.has(key) &&
+  !isTooSimilar(question)
+) {
 
-        usedQuestions.add(key);
+  rememberQuestion(question);
 
-        return question;
+  return question;
 
-      }
+}
 
       attempts++;
 
@@ -541,6 +563,7 @@ const type =
   function resetSession() {
 
     usedQuestions.clear();
+usedFingerprints.clear();
 
   }
 
