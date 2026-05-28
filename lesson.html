@@ -153,6 +153,8 @@ function generatePracticeQuestion(){
     </div>
   `;
 }
+  window.generatePracticeQuestion =
+  generatePracticeQuestion;
   
 async function startLesson(){
   const curriculum = await loadCurriculum();
