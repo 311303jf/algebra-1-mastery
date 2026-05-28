@@ -515,9 +515,13 @@ if(mastery >= 85){
               ${lesson.id} ${lesson.title}
             </div>
 
-            <div class="lesson-sub">
-              ${lesson.objective}
-            </div>
+<div class="lesson-sub">
+  ${lesson.objective}
+</div>
+
+<div class="lesson-sub">
+  Mastery: ${mastery}% · Attempts: ${session.attempted || 0} · Accuracy: ${session.accuracy || 0}%
+</div>
           </div>
 
 <span class="status ${statusClass}">
@@ -542,12 +546,42 @@ if(mastery >= 85){
     topicGrid.appendChild(card);
   });
 }
-function renderDashboard(){
-  const xp = getNum("algebra_xp",0);
-  const l11 = lesson11Mastery();
+function getLessonSession(lessonId){
+  try{
+    return JSON.parse(
+      localStorage.getItem(`algebra_session_${lessonId}`) || "{}"
+    );
+  }catch(error){
+    return {};
+  }
+}
 
-  const topic1 = Math.round(l11 / 5); 
-  const course = Math.round(topic1 / 12);
+function getLessonMastery(lessonId){
+  const session = getLessonSession(lessonId);
+  return session.mastery || 0;
+}
+
+function calculateAverage(numbers){
+  if(!numbers.length) return 0;
+  return Math.round(
+    numbers.reduce((sum, value) => sum + value, 0) / numbers.length
+  );
+}
+
+function renderDashboard(curriculum){
+  const xp = getNum("algebra_xp",0);
+
+  const allLessons = getAllLessons(curriculum);
+  const allMasteries = allLessons.map(lesson => getLessonMastery(lesson.id));
+
+  const course = calculateAverage(allMasteries);
+
+  const firstUnit = curriculum.units[0];
+  const topic1Masteries = firstUnit.lessons.map(lesson =>
+    getLessonMastery(lesson.id)
+  );
+
+  const topic1 = calculateAverage(topic1Masteries);
 
   document.getElementById("xpStat").textContent = xp + " XP";
   document.getElementById("rightXP").textContent = xp;
@@ -558,16 +592,6 @@ function renderDashboard(){
   document.getElementById("courseMastery").textContent = course + "%";
   document.getElementById("globalText").textContent = course + "%";
   document.getElementById("globalFill").style.width = course + "%";
-
-  if(l11 >= 80){
-    document.getElementById("badgeText").textContent = "Equation Apprentice";
-    document.getElementById("coachMessage").textContent =
-      "Great job. Lesson 1.2 is ready. Continue your Algebra path.";
-  }else{
-    document.getElementById("badgeText").textContent = "No badge yet";
-    document.getElementById("coachMessage").textContent =
-      "Start with Lesson 1.1. Your dashboard will update when you earn XP and mastery.";
-  }
 
   if(course >= 75){
     document.getElementById("eocStat").textContent = "Level 4";
@@ -613,7 +637,7 @@ async function startApp(){
     console.log("Curriculum stats:", stats);
 
     buildCurriculumUI(curriculum);
-renderDashboard();
+renderDashboard(curriculum);
 
   }catch(error){
     console.error(error);
