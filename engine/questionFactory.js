@@ -89,50 +89,71 @@ const AlgebraQuestionFactory = (() => {
 
   }
 
-  function createChoices(answer) {
+function createChoices(answer) {
 
-    const distractors = new Set();
+  const choices = new Set();
 
-    distractors.add(answer + 1);
-    distractors.add(answer - 1);
-    distractors.add(-answer);
+  // Always include correct answer first
+  choices.add(answer);
 
-    if (answer !== 0) {
+  const candidates = [
+    answer + 1,
+    answer - 1,
+    answer + 2,
+    answer - 2,
+    -answer,
+    answer + 5,
+    answer - 5
+  ];
 
-      distractors.add(answer + 2);
-
-    } else {
-
-      distractors.add(2);
-
+  for (const candidate of candidates) {
+    if (
+      candidate !== answer &&
+      Number.isFinite(candidate)
+    ) {
+      choices.add(candidate);
     }
 
-    const choices = shuffle([
-      answer,
-      ...Array.from(distractors)
-    ])
-    .filter(
-      (v, i, arr) =>
-        arr.indexOf(v) === i
-    )
-    .slice(0, 4);
-
-    while (choices.length < 4) {
-
-      const extra =
-        answer + randInt(-6, 6);
-
-      if (!choices.includes(extra)) {
-
-        choices.push(extra);
-
-      }
-
+    if (choices.size === 4) {
+      break;
     }
-
-    return shuffle(choices);
-
   }
+
+  while (choices.size < 4) {
+    const extra =
+      answer + randInt(-10, 10);
+
+    if (
+      extra !== answer &&
+      Number.isFinite(extra)
+    ) {
+      choices.add(extra);
+    }
+  }
+
+  const finalChoices =
+    shuffle(Array.from(choices));
+
+  if (!finalChoices.includes(answer)) {
+    throw new Error(
+      "Quality Control Failed: correct answer missing from choices."
+    );
+  }
+
+  if (new Set(finalChoices).size !== finalChoices.length) {
+    throw new Error(
+      "Quality Control Failed: duplicate answer choices."
+    );
+  }
+
+  if (finalChoices.length !== 4) {
+    throw new Error(
+      "Quality Control Failed: question does not have exactly 4 choices."
+    );
+  }
+
+  return finalChoices;
+}
 
   function oneStepAddition(
     difficulty = "core"
