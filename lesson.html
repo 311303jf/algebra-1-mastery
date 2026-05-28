@@ -47,6 +47,10 @@ h1{margin-bottom:10px}
     <h2>🧪 Question Engine Preview</h2>
     <p>This lesson will generate questions using these problem types:</p>
     <div id="problemTypes"></div>
+    <br>
+<button class="btn" onclick="generatePracticeQuestion()">Generate Practice Question</button>
+
+<div id="questionBox" style="margin-top:20px;"></div>
   </section>
 
 </div>
@@ -57,12 +61,16 @@ import {
   getLessonById
 } from "./engine/curriculumEngine.js";
 
+import "./engine/questionFactory.js";
+
 function getLessonIdFromUrl(){
   const params = new URLSearchParams(window.location.search);
   return params.get("id") || "1.1";
 }
-
+let currentLesson = null;
+  
 function renderLesson(lesson){
+  currentLesson = lesson;
   document.getElementById("lessonTitle").textContent =
     lesson.id + " — " + lesson.title;
 
@@ -94,7 +102,58 @@ function renderLesson(lesson){
       `<span class="badge">${type}</span>`
     ).join("");
 }
+function generatePracticeQuestion(){
 
+  if(!currentLesson){
+    return;
+  }
+
+  const question =
+    AlgebraQuestionFactory.generateOne(
+      currentLesson.id,
+      {
+        problemTypes:
+          currentLesson.problemTypes
+      }
+    );
+
+  document.getElementById("questionBox").innerHTML = `
+    <div style="
+      background:#f8fafc;
+      padding:20px;
+      border-radius:18px;
+      border:1px solid #e2e8f0;
+    ">
+
+      <h3 style="margin-bottom:14px;">
+        ${question.prompt}
+      </h3>
+
+      ${question.choices.map(choice => `
+        <div style="
+          padding:10px;
+          margin-bottom:10px;
+          background:white;
+          border-radius:12px;
+          border:1px solid #cbd5e1;
+          font-weight:bold;
+        ">
+          ${choice}
+        </div>
+      `).join("")}
+
+      <div style="
+        margin-top:18px;
+        color:#475569;
+      ">
+        <strong>Hint:</strong>
+        ${question.hint}
+      </div>
+
+    </div>
+  `;
+}
+  
 async function startLesson(){
   const curriculum = await loadCurriculum();
   const lessonId = getLessonIdFromUrl();
