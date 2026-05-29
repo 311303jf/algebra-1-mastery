@@ -29,6 +29,14 @@ const AlgebraQuestionFactory = (() => {
     }
 
   };
+  "1.2": {
+  objective: "Solve multi-step equations.",
+  allowedProblemTypes: [
+    "multi_step_equation",
+    "combine_like_terms_equation",
+    "distributive_property_equation"
+  ]
+},
 
   function randInt(min, max) {
 
