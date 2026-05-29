@@ -887,42 +887,47 @@ function generateSimpleCompoundInequality(difficulty = 1) {
 }
 
 function generateAbsoluteValueEquation(difficulty = 1) {
+  const mode = pickRandom(["basic", "scaled"]);
+
   const x1 = pickSolution(difficulty);
-  const distance = randInt(2, 10);
-  const center = x1 - distance;
-  const x2 = center - distance;
+  const distance = randInt(2, 9);
 
-  const mode = difficulty >= 4 ? pickRandom(["basic", "coefficient"]) : "basic";
+  const m = pickIntegerCoefficient(difficulty);
+  const b = pickConstant(difficulty);
 
-  if (mode === "coefficient") {
-    const a = pickRandom([2, 3, 4, -2, -3, -4]);
-    const b = -a * center;
-    const rightSide = Math.abs(a * x1 + b);
+  const insideValue = Math.abs(m * x1 + b);
+  const target = insideValue === 0 ? distance : insideValue;
 
+  if (mode === "basic") {
     return buildQuestion({
-      prompt: `Solve the absolute value equation: |${formatTerm(a, "x")} ${formatSigned(b)}| = ${formatNumber(rightSide)}`,
-      answer: `x = ${formatNumber(Math.min(x1, x2))}, x = ${formatNumber(Math.max(x1, x2))}`,
+      prompt: `Solve for x: |${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(target)}`,
+      answer: `x = ${formatNumber((target - b) / m)}, x = ${formatNumber((-target - b) / m)}`,
       problemType: "absolute_value_equations",
       difficulty,
       solutionSteps: [
-        `Original equation: |${formatTerm(a, "x")} ${formatSigned(b)}| = ${formatNumber(rightSide)}`,
-        `Set up two equations: ${formatTerm(a, "x")} ${formatSigned(b)} = ${formatNumber(rightSide)} and ${formatTerm(a, "x")} ${formatSigned(b)} = -${formatNumber(rightSide)}.`,
-        "Solve both equations.",
-        `Solutions: x = ${formatNumber(Math.min(x1, x2))}, x = ${formatNumber(Math.max(x1, x2))}`
+        `Original equation: |${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(target)}`,
+        `Set up two equations: ${formatTerm(m, "x")} ${formatSigned(b)} = ${formatNumber(target)} OR ${formatTerm(m, "x")} ${formatSigned(b)} = ${formatNumber(-target)}`,
+        `Solve both equations.`,
+        `x = ${formatNumber((target - b) / m)}, x = ${formatNumber((-target - b) / m)}`
       ]
     });
   }
 
+  const a = pickRandom([-5, -4, -3, -2, 2, 3, 4, 5]);
+  const c = a * target;
+
   return buildQuestion({
-    prompt: `Solve the absolute value equation: |x ${formatSigned(-center)}| = ${formatNumber(distance)}`,
-    answer: `x = ${formatNumber(Math.min(x1, x2))}, x = ${formatNumber(Math.max(x1, x2))}`,
+    prompt: `Solve for x: ${formatNumber(a)}|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(c)}`,
+    answer: `x = ${formatNumber((target - b) / m)}, x = ${formatNumber((-target - b) / m)}`,
     problemType: "absolute_value_equations",
     difficulty,
     solutionSteps: [
-      `Original equation: |x ${formatSigned(-center)}| = ${formatNumber(distance)}`,
-      `Set up two equations: x ${formatSigned(-center)} = ${formatNumber(distance)} and x ${formatSigned(-center)} = -${formatNumber(distance)}.`,
-      "Solve both equations.",
-      `Solutions: x = ${formatNumber(Math.min(x1, x2))}, x = ${formatNumber(Math.max(x1, x2))}`
+      `Original equation: ${formatNumber(a)}|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(c)}`,
+      `Divide both sides by ${formatNumber(a)}.`,
+      `|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(target)}`,
+      `Set up two equations: ${formatTerm(m, "x")} ${formatSigned(b)} = ${formatNumber(target)} OR ${formatTerm(m, "x")} ${formatSigned(b)} = ${formatNumber(-target)}`,
+      `Solve both equations.`,
+      `x = ${formatNumber((target - b) / m)}, x = ${formatNumber((-target - b) / m)}`
     ]
   });
 }
