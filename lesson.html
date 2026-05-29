@@ -129,7 +129,7 @@ h1{margin-bottom:10px}
 
 .lab-tabs{
   display:grid;
-  grid-template-columns:repeat(3,1fr);
+  grid-template-columns:repeat(4,1fr);
   gap:6px;
   margin-bottom:14px;
 }
@@ -275,6 +275,45 @@ h1{margin-bottom:10px}
 .fact-row strong{color:#0f172a}
 .fact-row span{color:#475569;text-align:right;font-weight:800}
 
+
+/* Formula Sheet */
+.formula-sheet-box{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.formula-item{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  padding:12px;
+}
+
+.formula-title{
+  font-weight:900;
+  color:#1e293b;
+  margin-bottom:6px;
+  font-size:13px;
+}
+
+.formula-equation{
+  font-size:17px;
+  font-weight:900;
+  color:#2563eb;
+  background:white;
+  border-radius:10px;
+  padding:8px;
+  border:1px solid #e2e8f0;
+}
+
+.formula-note{
+  font-size:12px;
+  color:#64748b;
+  margin-top:6px;
+  line-height:1.35;
+}
+
 @media (max-width:1100px){
   .shell{grid-template-columns:1fr;padding:18px}
   .math-lab{position:static;max-width:520px;margin:0 auto 24px;width:100%}
@@ -330,6 +369,7 @@ h1{margin-bottom:10px}
       <button class="lab-tab active" data-lab-tab="calculator">🧮 Calc</button>
       <button class="lab-tab" data-lab-tab="graph">📈 Graph</button>
       <button class="lab-tab" data-lab-tab="stats">📊 Stats</button>
+      <button class="lab-tab" data-lab-tab="formula">📋 Formula</button>
     </div>
 
     <section id="lab-calculator" class="lab-panel active">
@@ -414,6 +454,13 @@ h1{margin-bottom:10px}
       <div id="statsResults" class="stats-results"></div>
       <div class="lab-note">Computes mean, median, mode, range, minimum, maximum, and count.</div>
     </section>
+
+    <section id="lab-formula" class="lab-panel">
+      <div id="formulaSheetBox" class="formula-sheet-box">
+        Loading formulas...
+      </div>
+      <div class="lab-note">Formulas update automatically based on the current lesson problem types.</div>
+    </section>
   </aside>
 </div>
 
@@ -466,6 +513,165 @@ function renderLesson(lesson){
     (lesson.problemTypes || []).map(type =>
       `<span class="badge">${type}</span>`
     ).join("");
+
+  renderFormulaSheet(lesson);
+}
+
+function renderFormulaSheet(lesson){
+  const box = document.getElementById("formulaSheetBox");
+  if(!box) return;
+
+  const types = (lesson.problemTypes || []).map(t => String(t).toLowerCase());
+  const formulas = [];
+
+  function addFormula(title, equation, note){
+    formulas.push({title, equation, note});
+  }
+
+  if(
+    types.includes("one_step_addition") ||
+    types.includes("one_step_addition_equation") ||
+    types.includes("one_step_subtraction") ||
+    types.includes("one_step_subtraction_equation") ||
+    types.includes("one_step_multiplication") ||
+    types.includes("one_step_multiplication_equation") ||
+    types.includes("one_step_division") ||
+    types.includes("one_step_division_equation") ||
+    types.includes("multi_step") ||
+    types.includes("multi_step_equation") ||
+    types.includes("combine_like_terms") ||
+    types.includes("combine_like_terms_equation") ||
+    types.includes("distributive_property") ||
+    types.includes("distributive_property_equation") ||
+    types.includes("variables_both_sides") ||
+    types.includes("multi_step_distributive")
+  ){
+    addFormula(
+      "Equation Solving",
+      "Use inverse operations on both sides.",
+      "Whatever you do to one side of the equation, do to the other side."
+    );
+  }
+
+  if(types.includes("inequalities") || types.includes("inequalities_negative_coefficient")){
+    addFormula(
+      "Inequality Rule",
+      "Divide by a negative → flip the sign.",
+      "Reverse <, >, ≤, or ≥ only when multiplying or dividing by a negative number."
+    );
+  }
+
+  if(
+    types.includes("slope") ||
+    types.includes("slope_from_points") ||
+    types.includes("slope_from_table") ||
+    types.includes("rate_of_change")
+  ){
+    addFormula(
+      "Slope Formula",
+      "m = (y₂ - y₁) ÷ (x₂ - x₁)",
+      "Use this to find the slope between two points."
+    );
+  }
+
+  if(
+    types.includes("slope_intercept") ||
+    types.includes("linear_function_from_table") ||
+    types.includes("real_world_linear") ||
+    types.includes("line_of_fit_prediction")
+  ){
+    addFormula(
+      "Slope-Intercept Form",
+      "y = mx + b",
+      "m is the slope and b is the y-intercept."
+    );
+  }
+
+  if(types.includes("functions") || types.includes("function_evaluate")){
+    addFormula(
+      "Function Evaluation",
+      "f(a) means replace x with a.",
+      "Substitute the input value into the function rule."
+    );
+  }
+
+  if(types.includes("function_or_not")){
+    addFormula(
+      "Function Rule",
+      "Each input has exactly one output.",
+      "If one x-value has two different y-values, it is not a function."
+    );
+  }
+
+  if(types.includes("systems") || types.includes("systems_by_graphing_concept")){
+    addFormula(
+      "Systems of Equations",
+      "solution = point of intersection",
+      "The solution is the ordered pair that satisfies both equations."
+    );
+  }
+
+  if(types.includes("exponent_rules")){
+    addFormula(
+      "Product of Powers",
+      "aᵐ × aⁿ = aᵐ⁺ⁿ",
+      "When multiplying powers with the same base, add the exponents."
+    );
+  }
+
+  if(types.includes("polynomial_add")){
+    addFormula(
+      "Combine Like Terms",
+      "ax + bx = (a + b)x",
+      "Only combine terms with the same variable and exponent."
+    );
+  }
+
+  if(types.includes("factoring")){
+    addFormula(
+      "Factoring Trinomials",
+      "x² + bx + c = (x + r)(x + s)",
+      "Find r and s so that r × s = c and r + s = b."
+    );
+  }
+
+  if(types.includes("quadratics") || types.includes("quadratic_vertex")){
+    addFormula(
+      "Quadratic Formula",
+      "x = (-b ± √(b² - 4ac)) ÷ 2a",
+      "Use this for ax² + bx + c = 0."
+    );
+
+    addFormula(
+      "Vertex Form",
+      "y = a(x - h)² + k",
+      "The vertex is (h, k)."
+    );
+  }
+
+  if(types.includes("scatter_plots")){
+    addFormula(
+      "Scatter Plot Association",
+      "positive, negative, or no association",
+      "Look at the overall direction of the data from left to right."
+    );
+  }
+
+  if(!formulas.length){
+    addFormula(
+      "Algebra Strategy",
+      "Identify → Plan → Solve → Check",
+      "Read the problem, choose a strategy, solve carefully, and check your answer."
+    );
+  }
+
+  box.innerHTML = formulas.map(f => `
+    <div class="formula-item">
+      <div class="formula-title">${f.title}</div>
+      <div class="formula-equation">${f.equation}</div>
+      <div class="formula-note">${f.note}</div>
+    </div>
+  `).join("");
 }
 
 function generatePracticeQuestion(){
@@ -571,7 +777,8 @@ startLesson();
   const panels = {
     calculator: document.getElementById("lab-calculator"),
     graph: document.getElementById("lab-graph"),
-    stats: document.getElementById("lab-stats")
+    stats: document.getElementById("lab-stats"),
+    formula: document.getElementById("lab-formula")
   };
 
   tabs.forEach(tab => {
@@ -581,8 +788,10 @@ startLesson();
       tabs.forEach(t => t.classList.remove("active"));
       tab.classList.add("active");
 
-      Object.values(panels).forEach(panel => panel.classList.remove("active"));
-      panels[target].classList.add("active");
+      Object.values(panels).forEach(panel => {
+        if(panel) panel.classList.remove("active");
+      });
+      if(panels[target]) panels[target].classList.add("active");
 
       if(target === "graph") setTimeout(drawGraph, 50);
       if(target === "stats") computeStats();
