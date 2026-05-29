@@ -139,6 +139,46 @@ const METADATA = {
       "Students often use the same operation instead of the inverse operation."
   },
 
+   one_step_addition_equation: {
+  hintSteps: [
+    "Identify the number being added to x.",
+    "Use subtraction to undo addition.",
+    "Subtract the same number from both sides."
+  ],
+  misconception:
+    "Students often add again instead of subtracting to undo addition."
+},
+
+one_step_subtraction_equation: {
+  hintSteps: [
+    "Identify the number being subtracted from x.",
+    "Use addition to undo subtraction.",
+    "Add the same number to both sides."
+  ],
+  misconception:
+    "Students often subtract again instead of adding to undo subtraction."
+},
+
+one_step_multiplication_equation: {
+  hintSteps: [
+    "Identify the coefficient multiplying x.",
+    "Use division to undo multiplication.",
+    "Divide both sides by the coefficient."
+  ],
+  misconception:
+    "Students often multiply again instead of dividing to isolate x."
+},
+
+one_step_division_equation: {
+  hintSteps: [
+    "Identify the number x is divided by.",
+    "Use multiplication to undo division.",
+    "Multiply both sides by the divisor."
+  ],
+  misconception:
+    "Students often divide again instead of multiplying to isolate x."
+},
+
   two_step_equation: {
     hintSteps: [
       "Undo addition or subtraction first.",
@@ -331,7 +371,7 @@ function generateOneStepAdditionEquation(difficulty = 1) {
   return buildQuestion({
     prompt: `Solve for x: x + ${b} = ${result}`,
     answer: `x = ${x}`,
-    problemType: "one_step_equation",
+    problemType: "one_step_addition_equation",
     difficulty,
     solutionSteps: [
       `Original equation: x + ${b} = ${result}`,
@@ -350,7 +390,7 @@ function generateOneStepSubtractionEquation(difficulty = 1) {
   return buildQuestion({
     prompt: `Solve for x: x - ${b} = ${result}`,
     answer: `x = ${x}`,
-    problemType: "one_step_equation",
+    problemType: "one_step_subtraction_equation",
     difficulty,
     solutionSteps: [
       `Original equation: x - ${b} = ${result}`,
@@ -369,7 +409,7 @@ function generateOneStepMultiplicationEquation(difficulty = 1) {
   return buildQuestion({
     prompt: `Solve for x: ${a}x = ${result}`,
     answer: `x = ${x}`,
-    problemType: "one_step_equation",
+    problemType: "one_step_multiplication_equation",
     difficulty,
     solutionSteps: [
       `Original equation: ${a}x = ${result}`,
@@ -388,7 +428,7 @@ function generateOneStepDivisionEquation(difficulty = 1) {
   return buildQuestion({
     prompt: `Solve for x: x ÷ ${a} = ${result}`,
     answer: `x = ${x}`,
-    problemType: "one_step_equation",
+    problemType: "one_step_division_equation",
     difficulty,
     solutionSteps: [
       `Original equation: x ÷ ${a} = ${result}`,
