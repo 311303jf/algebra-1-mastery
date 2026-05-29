@@ -616,6 +616,7 @@ import {
 } from "./engine/questionFactory.js";
 import "./engine/studentSessionEngine.js";
 import "./engine/formulaEngine.js";
+  import "./engine/misconceptionEngine.js";
 
 function getLessonIdFromUrl(){
   const params = new URLSearchParams(window.location.search);
@@ -887,7 +888,17 @@ if(!hintUsedForCurrentQuestion){
   else{
     console.log("Assisted practice: attempt not recorded for mastery.");
   }
+if(!isCorrect && !hintUsedForCurrentQuestion){
+  if(window.AlgebraMisconceptionEngine){
+    const data = AlgebraMisconceptionEngine.record(
+      currentLesson.id,
+      currentQuestion.problemType,
+      currentQuestion.misconception
+    );
 
+    console.log("Misconception updated:", data);
+  }
+}
   if(isCorrect){
     feedback.innerHTML = `
       <div style="background:${hintUsedForCurrentQuestion ? "#fef3c7" : "#dcfce7"};color:${hintUsedForCurrentQuestion ? "#92400e" : "#166534"};padding:14px;border-radius:14px;font-weight:bold;">
