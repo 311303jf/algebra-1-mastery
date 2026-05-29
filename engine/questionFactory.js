@@ -915,7 +915,28 @@ function generateAbsoluteValueEquation(difficulty = 1) {
 
   const a = pickRandom([-5, -4, -3, -2, 2, 3, 4, 5]);
   const c = a * target;
+   const createNoSolution = Math.random() < 0.15;
 
+if (createNoSolution) {
+  const badC = a > 0
+    ? -Math.abs(c)
+    : Math.abs(c);
+
+  return buildQuestion({
+    prompt: `Solve for x: ${formatNumber(a)}|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(badC)}`,
+    answer: "No Solution",
+    problemType: "absolute_value_equations",
+    difficulty,
+    solutionSteps: [
+      `Original equation: ${formatNumber(a)}|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(badC)}`,
+      `Divide both sides by ${formatNumber(a)}.`,
+      `|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(badC / a)}`,
+      "Absolute value can never equal a negative number.",
+      "No Solution"
+    ]
+  });
+}
+  
   return buildQuestion({
     prompt: `Solve for x: ${formatNumber(a)}|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(c)}`,
     answer: `x = ${formatNumber((target - b) / m)}, x = ${formatNumber((-target - b) / m)}`,
@@ -1404,6 +1425,14 @@ function isQualityQuestion(q) {
 
 function generateChoices(answer, problemType) {
   if (typeof answer !== "string") answer = String(answer);
+   if (answer === "No Solution") {
+  return shuffle([
+    "No Solution",
+    "x = 0",
+    "x = 1",
+    "All Real Numbers"
+  ]);
+}
 
   const distractors = new Set();
 
