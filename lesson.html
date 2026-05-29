@@ -1019,6 +1019,39 @@ window.generatePracticeQuestion = generatePracticeQuestion;
   console.log("PASSED:", count, "questions validated.");
   return true;
 };
+  window.testProblemTypes = function(count = 50){
+
+  const summary = {};
+
+  for(let i = 0; i < count; i++){
+
+    const q = generateQuestionForLesson(currentLesson);
+
+    const prompt = q.prompt;
+
+    let detected = "unknown";
+
+    if(prompt.includes(" + ")){
+      detected = "addition";
+    }
+    else if(prompt.includes(" - ")){
+      detected = "subtraction";
+    }
+    else if(prompt.includes("÷")){
+      detected = "division";
+    }
+    else if(prompt.match(/\d+x/)){
+      detected = "multiplication";
+    }
+
+    summary[detected] =
+      (summary[detected] || 0) + 1;
+  }
+
+  console.table(summary);
+
+  return summary;
+};
 
 function checkAnswer(selected, correct){
   const feedback = document.getElementById("feedbackBox");
