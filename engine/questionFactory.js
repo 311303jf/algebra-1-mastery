@@ -1,5 +1,5 @@
 /* ============================================================
-   Algebra OS — Question Factory 2.1.1
+   Algebra OS — Question Factory 2.0
    File: engine/questionFactory.js
 
    PURPOSE:
@@ -31,7 +31,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (!Array.isArray(problemTypes) || problemTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 2.1.1: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
+      "QuestionFactory 2.0: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
     );
   }
 
@@ -41,7 +41,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (availableTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 2.1.1: No supported generators found for this lesson. Add generators for: " +
+      "QuestionFactory 2.0: No supported generators found for this lesson. Add generators for: " +
       problemTypes.join(", ")
     );
   }
@@ -73,7 +73,7 @@ export function generateQuestionsForLesson(lesson, count = 10, options = {}) {
 
   if (questions.length < count) {
     throw new Error(
-      "QuestionFactory 2.1.1: Could not generate enough unique quality questions. Generated " +
+      "QuestionFactory 2.0: Could not generate enough unique quality questions. Generated " +
       questions.length +
       " of " +
       count +
@@ -93,31 +93,37 @@ export function generateQuestionsForLesson(lesson, count = 10, options = {}) {
 
 const GENERATORS = {
   one_step_equation: generateOneStepEquation,
-  one_step_addition_equation: generateOneStepAdditionEquation,
-  one_step_subtraction_equation: generateOneStepSubtractionEquation,
-  one_step_multiplication_equation: generateOneStepMultiplicationEquation,
-  one_step_division_equation: generateOneStepDivisionEquation,
+one_step_addition_equation: generateOneStepAdditionEquation,
+one_step_subtraction_equation: generateOneStepSubtractionEquation,
+one_step_multiplication_equation: generateOneStepMultiplicationEquation,
+one_step_division_equation: generateOneStepDivisionEquation,
 
   two_step_equation: generateTwoStepEquation,
   multi_step_equation: generateMultiStepEquation,
   variables_both_sides: generateVariablesBothSides,
-
   distributive_property: generateDistributivePropertyEquation,
-  distributive_property_equation: generateDistributivePropertyEquation,
-
   combine_like_terms: generateCombineLikeTermsEquation,
-  combine_like_terms_equation: generateCombineLikeTermsEquation,
 
   inequality: generateOneStepInequality,
   inequalities: generateOneStepInequality,
+  one_step_inequality: generateOneStepInequality,
+  one_step_inequalities: generateOneStepInequality,
   multi_step_inequality: generateMultiStepInequality,
   multi_step_inequalities: generateMultiStepInequality,
 
   function_evaluation: generateFunctionEvaluation,
   functions: generateFunctionEvaluation,
+  relations_functions: generateRelationsFunctions,
+  function_notation: generateFunctionNotation,
+  domain_range: generateDomainRange,
+  multiple_representations: generateMultipleRepresentations,
+  rate_of_change: generateRateOfChange,
 
   slope: generateSlope,
+  slope_from_graph: generateSlopeFromGraph,
+  slope_from_table: generateSlopeFromTable,
   slope_intercept: generateSlopeIntercept,
+  graph_linear_function: generateGraphLinearFunction,
 
   systems: generateSystems,
   scatter_plots: generateScatterPlot,
@@ -143,7 +149,7 @@ const METADATA = {
       "Students often use the same operation instead of the inverse operation."
   },
 
-  one_step_addition_equation: {
+   one_step_addition_equation: {
   hintSteps: [
     "Identify the number being added to x.",
     "Use subtraction to undo addition.",
@@ -153,7 +159,7 @@ const METADATA = {
     "Students often add again instead of subtracting to undo addition."
 },
 
-  one_step_subtraction_equation: {
+one_step_subtraction_equation: {
   hintSteps: [
     "Identify the number being subtracted from x.",
     "Use addition to undo subtraction.",
@@ -163,7 +169,7 @@ const METADATA = {
     "Students often subtract again instead of adding to undo subtraction."
 },
 
-  one_step_multiplication_equation: {
+one_step_multiplication_equation: {
   hintSteps: [
     "Identify the coefficient multiplying x.",
     "Use division to undo multiplication.",
@@ -173,7 +179,7 @@ const METADATA = {
     "Students often multiply again instead of dividing to isolate x."
 },
 
-  one_step_division_equation: {
+one_step_division_equation: {
   hintSteps: [
     "Identify the number x is divided by.",
     "Use multiplication to undo division.",
@@ -223,27 +229,7 @@ const METADATA = {
       "Students often distribute to the first term only and forget the second term."
   },
 
-  distributive_property_equation: {
-    hintSteps: [
-      "Distribute the number outside the parentheses.",
-      "Combine like terms if needed.",
-      "Use inverse operations to isolate the variable."
-    ],
-    misconception:
-      "Students often distribute to the first term only and forget the second term."
-  },
-
   combine_like_terms: {
-    hintSteps: [
-      "Combine variable terms with variable terms.",
-      "Combine constants with constants.",
-      "Then solve the simplified equation."
-    ],
-    misconception:
-      "Students often combine unlike terms, such as variable terms and constants."
-  },
-
-  combine_like_terms_equation: {
     hintSteps: [
       "Combine variable terms with variable terms.",
       "Combine constants with constants.",
@@ -271,6 +257,56 @@ const METADATA = {
     ],
     misconception:
       "Students often confuse the input value with the output value."
+  },
+
+  relations_functions: {
+    hintSteps: [
+      "Check whether each input has exactly one output.",
+      "If an input repeats with different outputs, the relation is not a function.",
+      "If every input has only one output, the relation is a function."
+    ],
+    misconception:
+      "Students often think repeated outputs make a relation not a function, but repeated inputs are what matter."
+  },
+
+  function_notation: {
+    hintSteps: [
+      "Identify the input inside the parentheses.",
+      "Substitute that value for x.",
+      "Simplify to find the output."
+    ],
+    misconception:
+      "Students often treat f(x) as multiplication instead of function notation."
+  },
+
+  domain_range: {
+    hintSteps: [
+      "Domain is the set of input values.",
+      "Range is the set of output values.",
+      "List each value only once."
+    ],
+    misconception:
+      "Students often switch domain and range."
+  },
+
+  multiple_representations: {
+    hintSteps: [
+      "Identify the rule or pattern.",
+      "Match the same input-output pairs across representations.",
+      "Check that the table, equation, graph, or description represent the same relationship."
+    ],
+    misconception:
+      "Students often match by appearance instead of checking input-output values."
+  },
+
+  rate_of_change: {
+    hintSteps: [
+      "Find the change in y.",
+      "Find the change in x.",
+      "Divide change in y by change in x."
+    ],
+    misconception:
+      "Students often reverse the ratio and calculate change in x over change in y."
   },
 
   slope: {
@@ -554,7 +590,7 @@ function generateDistributivePropertyEquation(difficulty = 1) {
   return buildQuestion({
     prompt,
     answer: `x = ${x}`,
-    problemType: "distributive_property_equation",
+    problemType: "distributive_property",
     difficulty,
     solutionSteps: [
       `Original equation: ${a}(x ${formatSigned(b)}) ${formatSigned(c)} = ${result}`,
@@ -581,7 +617,7 @@ function generateCombineLikeTermsEquation(difficulty = 1) {
   return buildQuestion({
     prompt,
     answer: `x = ${x}`,
-    problemType: "combine_like_terms_equation",
+    problemType: "combine_like_terms",
     difficulty,
     solutionSteps: [
       `Original equation: ${a}x + ${b}x ${formatSigned(c)} = ${result}`,
@@ -675,6 +711,153 @@ function generateFunctionEvaluation(difficulty = 1) {
 }
 
 
+
+function generateRelationsFunctions(difficulty = 1) {
+  const isFunction = Math.random() < 0.65;
+
+  let pairs;
+
+  if (isFunction) {
+    const x1 = randInt(-5, 5);
+    const x2 = randInt(-5, 5, [x1]);
+    const x3 = randInt(-5, 5, [x1, x2]);
+    pairs = [
+      [x1, randInt(-8, 8)],
+      [x2, randInt(-8, 8)],
+      [x3, randInt(-8, 8)]
+    ];
+  } else {
+    const repeatedX = randInt(-5, 5);
+    pairs = [
+      [repeatedX, randInt(-8, 8)],
+      [repeatedX, randInt(-8, 8)],
+      [randInt(-5, 5, [repeatedX]), randInt(-8, 8)]
+    ];
+
+    if (pairs[0][1] === pairs[1][1]) {
+      pairs[1][1] += 1;
+    }
+  }
+
+  const pairText = pairs.map(([x, y]) => `(${x}, ${y})`).join(", ");
+  const answer = isFunction ? "Function" : "Not a function";
+
+  return buildQuestion({
+    prompt: `Determine whether the relation is a function: ${pairText}`,
+    answer,
+    problemType: "relations_functions",
+    difficulty,
+    solutionSteps: [
+      "A relation is a function if each input has exactly one output.",
+      `The ordered pairs are: ${pairText}`,
+      isFunction
+        ? "No input is paired with two different outputs."
+        : "At least one input is paired with two different outputs.",
+      `Answer: ${answer}`
+    ]
+  });
+}
+
+
+function generateFunctionNotation(difficulty = 1) {
+  const m = randInt(-6, 6, [0]);
+  const b = randInt(-10, 10);
+  const x = randInt(-6, 6);
+  const y = m * x + b;
+
+  return buildQuestion({
+    prompt: `If f(x) = ${m}x ${formatSigned(b)}, find f(${x}).`,
+    answer: `${y}`,
+    problemType: "function_notation",
+    difficulty,
+    solutionSteps: [
+      `Original function: f(x) = ${m}x ${formatSigned(b)}`,
+      `Substitute ${x} for x.`,
+      `f(${x}) = ${m}(${x}) ${formatSigned(b)}`,
+      `f(${x}) = ${m * x} ${formatSigned(b)}`,
+      `f(${x}) = ${y}`
+    ]
+  });
+}
+
+
+function generateDomainRange(difficulty = 1) {
+  const pairs = [];
+  const usedX = new Set();
+
+  while (pairs.length < 4) {
+    const x = randInt(-6, 6);
+    if (usedX.has(x)) continue;
+    usedX.add(x);
+    pairs.push([x, randInt(-8, 8)]);
+  }
+
+  const askDomain = Math.random() < 0.5;
+  const pairText = pairs.map(([x, y]) => `(${x}, ${y})`).join(", ");
+  const values = pairs.map(([x, y]) => askDomain ? x : y);
+  const uniqueValues = [...new Set(values)].join(", ");
+  const answer = `{${uniqueValues}}`;
+
+  return buildQuestion({
+    prompt: `Given the relation ${pairText}, what is the ${askDomain ? "domain" : "range"}?`,
+    answer,
+    problemType: "domain_range",
+    difficulty,
+    solutionSteps: [
+      "Domain means input values. Range means output values.",
+      `The relation is: ${pairText}`,
+      askDomain
+        ? "Use the x-values from the ordered pairs."
+        : "Use the y-values from the ordered pairs.",
+      `Answer: ${answer}`
+    ]
+  });
+}
+
+
+function generateMultipleRepresentations(difficulty = 1) {
+  const m = randInt(-4, 4, [0]);
+  const b = randInt(-6, 6);
+  const x = randInt(-4, 4);
+  const y = m * x + b;
+
+  return buildQuestion({
+    prompt: `Which equation matches a linear relationship with slope ${m} and y-intercept ${b}?`,
+    answer: `y = ${m}x ${formatSigned(b)}`,
+    problemType: "multiple_representations",
+    difficulty,
+    solutionSteps: [
+      "Slope-intercept form is y = mx + b.",
+      `The slope is ${m}, so m = ${m}.`,
+      `The y-intercept is ${b}, so b = ${b}.`,
+      `Equation: y = ${m}x ${formatSigned(b)}`
+    ]
+  });
+}
+
+
+function generateRateOfChange(difficulty = 1) {
+  const x1 = randInt(-5, 5);
+  const x2 = randInt(-5, 5, [x1]);
+  const rate = randInt(-6, 6, [0]);
+  const y1 = randInt(-10, 10);
+  const y2 = y1 + rate * (x2 - x1);
+
+  return buildQuestion({
+    prompt: `Find the rate of change between (${x1}, ${y1}) and (${x2}, ${y2}).`,
+    answer: `${rate}`,
+    problemType: "rate_of_change",
+    difficulty,
+    solutionSteps: [
+      "Rate of change = change in y ÷ change in x.",
+      `Change in y = ${y2} - ${y1} = ${y2 - y1}`,
+      `Change in x = ${x2} - ${x1} = ${x2 - x1}`,
+      `Rate of change = ${y2 - y1} ÷ ${x2 - x1} = ${rate}`
+    ]
+  });
+}
+
+
 function generateSlope(difficulty = 1) {
   let x1 = randInt(-8, 8);
   let x2 = randInt(-8, 8, [x1]);
@@ -694,6 +877,77 @@ function generateSlope(difficulty = 1) {
       `slope = (${y2} - ${y1}) ÷ (${x2} - ${x1})`,
       `slope = ${y2 - y1} ÷ ${x2 - x1}`,
       `slope = ${slope}`
+    ]
+  });
+}
+
+
+
+function generateSlopeFromGraph(difficulty = 1) {
+  const x1 = randInt(-6, 6);
+  const x2 = randInt(-6, 6, [x1]);
+  const slope = randInt(-5, 5, [0]);
+  const y1 = randInt(-6, 6);
+  const y2 = y1 + slope * (x2 - x1);
+
+  return buildQuestion({
+    prompt: `A line on a graph passes through (${x1}, ${y1}) and (${x2}, ${y2}). What is the slope?`,
+    answer: `${slope}`,
+    problemType: "slope_from_graph",
+    difficulty,
+    solutionSteps: [
+      "Use two points from the graph.",
+      "Slope = (y₂ - y₁) ÷ (x₂ - x₁).",
+      `Slope = (${y2} - ${y1}) ÷ (${x2} - ${x1})`,
+      `Slope = ${y2 - y1} ÷ ${x2 - x1}`,
+      `Slope = ${slope}`
+    ]
+  });
+}
+
+
+function generateSlopeFromTable(difficulty = 1) {
+  const startX = randInt(-4, 2);
+  const step = randInt(1, 4);
+  const slope = randInt(-5, 5, [0]);
+  const b = randInt(-8, 8);
+
+  const x1 = startX;
+  const x2 = startX + step;
+  const x3 = startX + 2 * step;
+  const y1 = slope * x1 + b;
+  const y2 = slope * x2 + b;
+  const y3 = slope * x3 + b;
+
+  return buildQuestion({
+    prompt: `Find the slope from the table: x: ${x1}, ${x2}, ${x3}; y: ${y1}, ${y2}, ${y3}`,
+    answer: `${slope}`,
+    problemType: "slope_from_table",
+    difficulty,
+    solutionSteps: [
+      "Use change in y divided by change in x.",
+      `Change in y = ${y2} - ${y1} = ${y2 - y1}`,
+      `Change in x = ${x2} - ${x1} = ${x2 - x1}`,
+      `Slope = ${y2 - y1} ÷ ${x2 - x1} = ${slope}`
+    ]
+  });
+}
+
+
+function generateGraphLinearFunction(difficulty = 1) {
+  const m = randInt(-5, 5, [0]);
+  const b = randInt(-8, 8);
+
+  return buildQuestion({
+    prompt: `For y = ${m}x ${formatSigned(b)}, what point is the y-intercept?`,
+    answer: `(0, ${b})`,
+    problemType: "graph_linear_function",
+    difficulty,
+    solutionSteps: [
+      "In slope-intercept form, y = mx + b.",
+      "The y-intercept is the point where x = 0.",
+      `Here, b = ${b}.`,
+      `The y-intercept is (0, ${b}).`
     ]
   });
 }
@@ -1009,8 +1263,6 @@ function normalizeMetaType(type) {
   if (type === "multi_step_inequalities") return "inequalities";
   if (type === "inequality") return "inequalities";
   if (type === "function_evaluation") return "functions";
-  if (type === "distributive_property_equation") return "distributive_property";
-  if (type === "combine_like_terms_equation") return "combine_like_terms";
   return type;
 }
 
