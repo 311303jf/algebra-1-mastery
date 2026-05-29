@@ -506,19 +506,15 @@ function distributivePropertyEquation(difficulty = "core") {
     const difficulty =
       options.difficulty || "core";
 
-    const config =
-      LESSON_CONFIG[lessonId];
-
-    if (!config) {
-
-      throw new Error(
-        `No lesson config found for ${lessonId}`
-      );
-
-    }
-
+    
 const curriculumProblemTypes =
-  options.problemTypes || config.allowedProblemTypes;
+  options.problemTypes || [];
+
+    if (!curriculumProblemTypes.length) {
+  throw new Error(
+    `No problem types provided for lesson ${lessonId}`
+  );
+}
 
 const normalizedTypes = curriculumProblemTypes.map(type =>
   type
