@@ -688,6 +688,7 @@ function renderFormulaSheet(lesson){
 
 function renderLesson(lesson){
   currentLesson = lesson;
+  window.currentLesson = lesson;
 
   document.getElementById("lessonTitle").textContent =
     lesson.id + " — " + lesson.title;
