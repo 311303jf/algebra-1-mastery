@@ -479,6 +479,9 @@ h1{margin-bottom:10px}
       <button class="lab-tab" data-lab-tab="stats">📊 Stats</button>
       <button class="lab-tab" data-lab-tab="formula">📋 Formula</button>
       <button class="lab-tab" data-lab-tab="help">💡 Help</button>
+      <button class="lab-tab" data-lab-tab="analytics">
+📈 Analytics
+</button>
     </div>
 
     <section id="lab-calculator" class="lab-panel active">
@@ -602,6 +605,29 @@ h1{margin-bottom:10px}
         <div class="lab-note">Assisted questions do not count toward accuracy, mastery, or XP.</div>
       </div>
     </section>
+    <section id="lab-analytics" class="lab-panel">
+
+  <div class="help-block">
+    <div class="help-title">EOC Readiness</div>
+    <div id="analyticsEOC"></div>
+  </div>
+
+  <div class="help-block">
+    <div class="help-title">Current Streak</div>
+    <div id="analyticsStreak"></div>
+  </div>
+
+  <div class="help-block">
+    <div class="help-title">Strongest Concepts</div>
+    <div id="analyticsStrong"></div>
+  </div>
+
+  <div class="help-block">
+    <div class="help-title">Weakest Concepts</div>
+    <div id="analyticsWeak"></div>
+  </div>
+
+</section>
   </aside>
 </div>
 
@@ -808,6 +834,91 @@ function updateHelpProgress(){
   if(xpEl) xpEl.textContent = xp;
   if(masteryFill) masteryFill.style.width = accuracy + "%";
 }
+  function renderAnalytics(){
+
+  const weakBox =
+    document.getElementById("analyticsWeak");
+
+  const strongBox =
+    document.getElementById("analyticsStrong");
+
+  const streakBox =
+    document.getElementById("analyticsStreak");
+
+  const eocBox =
+    document.getElementById("analyticsEOC");
+
+  if(!weakBox) return;
+
+  let misconceptions = {};
+
+  if(window.AlgebraMisconceptionEngine){
+    misconceptions =
+      AlgebraMisconceptionEngine.getAll();
+  }
+
+  const weak = Object.entries(misconceptions)
+    .sort((a,b)=>
+      (b[1].count||0) -
+      (a[1].count||0)
+    )
+    .slice(0,5);
+
+  weakBox.innerHTML =
+    weak.length
+      ? weak.map(([type,data]) => `
+          <div class="fact-row">
+            <strong>${type}</strong>
+            <span>${data.count} errors</span>
+          </div>
+        `).join("")
+      : "No misconceptions recorded.";
+
+  const accuracy =
+    helpProgress.attempts > 0
+      ? Math.round(
+          (helpProgress.correct /
+          helpProgress.attempts) * 100
+        )
+      : 0;
+
+  let projectedLevel = 1;
+
+  if(accuracy >= 90) projectedLevel = 5;
+  else if(accuracy >= 80) projectedLevel = 4;
+  else if(accuracy >= 70) projectedLevel = 3;
+  else if(accuracy >= 60) projectedLevel = 2;
+
+  eocBox.innerHTML = `
+    <strong>Projected Level ${projectedLevel}</strong>
+    <br>
+    Accuracy: ${accuracy}%
+  `;
+
+  let session = {};
+
+  if(window.AlgebraStudentSessionEngine &&
+      AlgebraStudentSessionEngine.getCurrentSession){
+
+      session =
+      AlgebraStudentSessionEngine
+        .getCurrentSession(
+          currentLesson.id
+        ) || {};
+  }
+
+  streakBox.innerHTML = `
+    Current Streak:
+    <strong>
+      ${session.currentStreak || 0}
+    </strong>
+  `;
+
+  strongBox.innerHTML = `
+    Accuracy:
+    <strong>${accuracy}%</strong>
+  `;
+}
 
 function activateHelpTab(){
   const helpTab = document.querySelector('[data-lab-tab="help"]');
@@ -824,6 +935,7 @@ const question = generateQuestionForLesson(currentLesson);
 
   renderHelpForQuestion(question, false);
   updateHelpProgress();
+  renderAnalytics();
 
   document.getElementById("questionBox").innerHTML = `
     <div class="question-inner">
@@ -955,6 +1067,8 @@ startLesson();
     stats: document.getElementById("lab-stats"),
     formula: document.getElementById("lab-formula"),
     help: document.getElementById("lab-help")
+    analytics:
+document.getElementById("lab-analytics")
   };
 
   tabs.forEach(tab => {
