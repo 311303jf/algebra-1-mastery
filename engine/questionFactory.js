@@ -760,73 +760,105 @@ function generateMultiStepInequality(difficulty = 1) {
 
 
 function generateCompoundInequality(difficulty = 1) {
-  const mode = pickRandom(["and_chain", "or_separate"]);
-  const x = pickSolution(difficulty);
+  const mode = pickRandom(["and_simple", "and_two_step", "or_simple"]);
 
-  if (mode === "and_chain") {
-    const a = pickIntegerCoefficient(difficulty);
-    const b = pickConstant(difficulty);
-    const widthLeft = randInt(2, 8);
-    const widthRight = randInt(2, 8);
-
-    const center = a * x + b;
-    const low = center - widthLeft;
-    const high = center + widthRight;
+  if (mode === "or_simple") {
+    const leftBound = randInt(-12, -2);
+    const rightBound = randInt(2, 12);
 
     const leftSymbol = pickRandom(["<", "≤"]);
-    const rightSymbol = pickRandom(["<", "≤"]);
-
-    const answerLeftSymbol = a > 0 ? leftSymbol : flipInequality(rightSymbol);
-    const answerRightSymbol = a > 0 ? rightSymbol : flipInequality(leftSymbol);
-
-    const lowerSolution = Math.min(
-      (low - b) / a,
-      (high - b) / a
-    );
-    const upperSolution = Math.max(
-      (low - b) / a,
-      (high - b) / a
-    );
-
-    // Because a, low, high, and b are constructed from integer solution x,
-    // endpoints can still be fractional. For now, reject non-integer endpoints
-    // by regenerating a simpler coefficient.
-    if (!Number.isInteger(lowerSolution) || !Number.isInteger(upperSolution)) {
-      return generateSimpleCompoundInequality(difficulty);
-    }
+    const rightSymbol = pickRandom([">", "≥"]);
 
     return buildQuestion({
-      prompt: `Solve the compound inequality: ${formatNumber(low)} ${leftSymbol} ${formatTerm(a, "x")} ${formatSigned(b)} ${rightSymbol} ${formatNumber(high)}`,
-      answer: `${formatNumber(lowerSolution)} ${answerLeftSymbol} x ${answerRightSymbol} ${formatNumber(upperSolution)}`,
+      prompt: `Solve the compound inequality: x ${leftSymbol} ${leftBound} OR x ${rightSymbol} ${rightBound}`,
+      answer: `x ${leftSymbol} ${leftBound} OR x ${rightSymbol} ${rightBound}`,
       problemType: "compound_inequalities",
       difficulty,
       solutionSteps: [
-        `Original compound inequality: ${formatNumber(low)} ${leftSymbol} ${formatTerm(a, "x")} ${formatSigned(b)} ${rightSymbol} ${formatNumber(high)}`,
-        b >= 0 ? `Subtract ${formatNumber(b)} from all three parts.` : `Add ${formatNumber(Math.abs(b))} to all three parts.`,
-        `${formatNumber(low - b)} ${leftSymbol} ${formatTerm(a, "x")} ${rightSymbol} ${formatNumber(high - b)}`,
-        `Divide all three parts by ${formatNumber(a)}.`,
-        a < 0 ? "Because the divisor is negative, reverse both inequality symbols." : "Because the divisor is positive, keep both inequality symbols the same.",
-        `Solution: ${formatNumber(lowerSolution)} ${answerLeftSymbol} x ${answerRightSymbol} ${formatNumber(upperSolution)}`
+        "This is an OR compound inequality.",
+        "OR means the solution includes values that satisfy either inequality.",
+        `The solution is x ${leftSymbol} ${leftBound} OR x ${rightSymbol} ${rightBound}.`
       ]
     });
   }
 
-  const boundary1 = randInt(-10, -1);
-  const boundary2 = randInt(1, 12);
-  const useLessGreater = Math.random() < 0.5;
-  const leftSymbol = useLessGreater ? "<" : "≤";
-  const rightSymbol = useLessGreater ? ">" : "≥";
-  const answer = `x ${leftSymbol} ${formatNumber(boundary1)} OR x ${rightSymbol} ${formatNumber(boundary2)}`;
+  const x = pickSolution(difficulty);
+  const coeff = pickIntegerCoefficient(difficulty);
+  const constant = pickConstant(difficulty);
+
+  const centerValue = coeff * x + constant;
+
+  const lowerOffset = randInt(3, 10);
+  const upperOffset = randInt(3, 10);
+
+  let lower = centerValue - lowerOffset;
+  let upper = centerValue + upperOffset;
+
+  if (lower > upper) {
+    const temp = lower;
+    lower = upper;
+    upper = temp;
+  }
+
+  const leftSymbol = pickRandom(["<", "≤"]);
+  const rightSymbol = pickRandom(["<", "≤"]);
+
+  const finalLeftSymbol =
+    coeff < 0 ? flipInequality(rightSymbol) : leftSymbol;
+
+  const finalRightSymbol =
+    coeff < 0 ? flipInequality(leftSymbol) : rightSymbol;
+
+  const lowerAnswer = coeff < 0
+    ? formatNumber((upper - constant) / coeff)
+    : formatNumber((lower - constant) / coeff);
+
+  const upperAnswer = coeff < 0
+    ? formatNumber((lower - constant) / coeff)
+    : formatNumber((upper - constant) / coeff);
+
+  if (mode === "and_simple") {
+    const shift = pickConstant(difficulty);
+    const low = randInt(-12, 0);
+    const high = randInt(1, 14);
+
+    const left = low;
+    const right = high;
+    const variableExpression = `x ${formatSigned(shift)}`;
+
+    const answerLow = left - shift;
+    const answerHigh = right - shift;
+
+    return buildQuestion({
+      prompt: `Solve the compound inequality: ${left} ${leftSymbol} ${variableExpression} ${rightSymbol} ${right}`,
+      answer: `${formatNumber(answerLow)} ${leftSymbol} x ${rightSymbol} ${formatNumber(answerHigh)}`,
+      problemType: "compound_inequalities",
+      difficulty,
+      solutionSteps: [
+        `Original inequality: ${left} ${leftSymbol} x ${formatSigned(shift)} ${rightSymbol} ${right}`,
+        shift >= 0
+          ? `Subtract ${formatNumber(shift)} from all three parts.`
+          : `Add ${formatNumber(Math.abs(shift))} to all three parts.`,
+        `${formatNumber(answerLow)} ${leftSymbol} x ${rightSymbol} ${formatNumber(answerHigh)}`
+      ]
+    });
+  }
 
   return buildQuestion({
-    prompt: `Solve the compound inequality: x ${leftSymbol} ${formatNumber(boundary1)} OR x ${rightSymbol} ${formatNumber(boundary2)}`,
-    answer,
+    prompt: `Solve the compound inequality: ${formatNumber(lower)} ${leftSymbol} ${formatTerm(coeff, "x")} ${formatSigned(constant)} ${rightSymbol} ${formatNumber(upper)}`,
+    answer: `${lowerAnswer} ${finalLeftSymbol} x ${finalRightSymbol} ${upperAnswer}`,
     problemType: "compound_inequalities",
     difficulty,
     solutionSteps: [
-      "This is an OR compound inequality.",
-      "A value is a solution if it makes either inequality true.",
-      `The solution is ${answer}.`
+      `Original inequality: ${formatNumber(lower)} ${leftSymbol} ${formatTerm(coeff, "x")} ${formatSigned(constant)} ${rightSymbol} ${formatNumber(upper)}`,
+      constant >= 0
+        ? `Subtract ${formatNumber(constant)} from all three parts.`
+        : `Add ${formatNumber(Math.abs(constant))} to all three parts.`,
+      `Divide all three parts by ${formatNumber(coeff)}.`,
+      coeff < 0
+        ? "Because you divided by a negative number, reverse both inequality symbols."
+        : "Because you divided by a positive number, keep the inequality symbols.",
+      `${lowerAnswer} ${finalLeftSymbol} x ${finalRightSymbol} ${upperAnswer}`
     ]
   });
 }
