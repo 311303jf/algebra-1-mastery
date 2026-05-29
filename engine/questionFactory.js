@@ -748,12 +748,20 @@ const AlgebraQuestionFactory = (() => {
     };
   }
 
-  const registry = {
-    one_step_addition: oneStepAddition,
-    one_step_subtraction: oneStepSubtraction,
-    one_step_multiplication: oneStepMultiplication,
-    one_step_division: oneStepDivision,
-    real_world_one_step: realWorldOneStep,
+const registry = {
+  one_step_addition: oneStepAddition,
+  one_step_addition_equation: oneStepAddition,
+
+  one_step_subtraction: oneStepSubtraction,
+  one_step_subtraction_equation: oneStepSubtraction,
+
+  one_step_multiplication: oneStepMultiplication,
+  one_step_multiplication_equation: oneStepMultiplication,
+
+  one_step_division: oneStepDivision,
+  one_step_division_equation: oneStepDivision,
+
+  real_world_one_step: realWorldOneStep,
 
     multi_step: multiStepEquation,
     multi_step_equation: multiStepEquation,
