@@ -892,11 +892,19 @@ function generateAbsoluteValueEquation(difficulty = 1) {
   const x1 = pickSolution(difficulty);
   const distance = randInt(2, 9);
 
-  const m = pickIntegerCoefficient(difficulty);
-  const b = pickConstant(difficulty);
+const m = pickRandom([-5, -4, -3, -2, 2, 3, 4, 5]);
 
-  const insideValue = Math.abs(m * x1 + b);
-  const target = insideValue === 0 ? distance : insideValue;
+const solutionA = pickSolution(difficulty);
+const solutionB = solutionA + pickRandom([2, 4, 6, 8]);
+
+const midpoint = (solutionA + solutionB) / 2;
+const distanceFromMidpoint = Math.abs(solutionA - solutionB) / 2;
+
+const b = -m * midpoint;
+const target = Math.abs(m * distanceFromMidpoint);
+
+  //const insideValue = Math.abs(m * x1 + b);
+  //const target = insideValue === 0 ? distance : insideValue;
 
   if (mode === "basic") {
     return buildQuestion({
