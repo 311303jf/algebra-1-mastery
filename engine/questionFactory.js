@@ -1,6 +1,7 @@
 /*
   Algebra OS — Question Factory Engine
-  Version: 1.0
+  Version: 2.0
+  Curriculum-driven, no hardcoded lesson config
 */
 
 const AlgebraQuestionFactory = (() => {
@@ -8,660 +9,340 @@ const AlgebraQuestionFactory = (() => {
   const usedQuestions = new Set();
   const usedFingerprints = new Set();
 
-  const LESSON_CONFIG = {
-
-    "1.1": {
-
-      title: "Solving Simple Equations",
-
-      objective:
-        "Solve one-step equations using inverse operations.",
-
-      allowedProblemTypes: [
-        "one_step_addition",
-        "one_step_subtraction",
-        "one_step_multiplication",
-        "one_step_division",
-        "one_step_mixed",
-        "real_world_one_step"
-      ]
-
-    }
-
-  };
-  "1.2": {
-  objective: "Solve multi-step equations.",
-  allowedProblemTypes: [
-    "multi_step_equation",
-    "combine_like_terms_equation",
-    "distributive_property_equation"
-  ]
-},
-
   function randInt(min, max) {
-
-    return Math.floor(
-      Math.random() * (max - min + 1)
-    ) + min;
-
+    return Math.floor(Math.random() * (max - min + 1)) + min;
   }
 
   function choice(arr) {
-
-    return arr[
-      Math.floor(Math.random() * arr.length)
-    ];
-
+    return arr[Math.floor(Math.random() * arr.length)];
   }
 
   function shuffle(arr) {
-
-    return [...arr].sort(
-      () => Math.random() - 0.5
-    );
-
+    return [...arr].sort(() => Math.random() - 0.5);
   }
 
   function difficultyRange(difficulty) {
-
     if (difficulty === "support") {
-
-      return {
-        min: 1,
-        max: 12,
-        allowNegative: false
-      };
-
+      return { min: 1, max: 12, allowNegative: false };
     }
 
     if (difficulty === "challenge") {
-
-      return {
-        min: -20,
-        max: 30,
-        allowNegative: true
-      };
-
+      return { min: -20, max: 30, allowNegative: true };
     }
 
-    return {
-      min: -10,
-      max: 20,
-      allowNegative: true
-    };
-
+    return { min: -10, max: 20, allowNegative: true };
   }
 
   function uniqueKey(q) {
-
     return q.prompt + "|" + q.answer;
-
   }
+
   function questionFingerprint(q) {
-  return [
-    q.lesson,
-    q.type,
-    q.dok,
-    q.difficulty
-  ].join("|");
-}
+    return [
+      q.lesson,
+      q.type,
+      q.dok,
+      q.difficulty
+    ].join("|");
+  }
 
-function isTooSimilar(q) {
-  const fingerprint = questionFingerprint(q);
-  return usedFingerprints.has(fingerprint);
-}
+  function isTooSimilar(q) {
+    return usedFingerprints.has(questionFingerprint(q));
+  }
 
-function rememberQuestion(q) {
-  usedQuestions.add(uniqueKey(q));
-  usedFingerprints.add(questionFingerprint(q));
-}
+  function rememberQuestion(q) {
+    usedQuestions.add(uniqueKey(q));
+    usedFingerprints.add(questionFingerprint(q));
+  }
 
-function createChoices(answer) {
+  function createChoices(answer) {
+    const choices = new Set();
+    choices.add(answer);
 
-  const choices = new Set();
+    const candidates = [
+      answer + 1,
+      answer - 1,
+      answer + 2,
+      answer - 2,
+      -answer,
+      answer + 5,
+      answer - 5
+    ];
 
-  // Always include correct answer first
-  choices.add(answer);
+    for (const candidate of candidates) {
+      if (candidate !== answer && Number.isFinite(candidate)) {
+        choices.add(candidate);
+      }
 
-  const candidates = [
-    answer + 1,
-    answer - 1,
-    answer + 2,
-    answer - 2,
-    -answer,
-    answer + 5,
-    answer - 5
-  ];
-
-  for (const candidate of candidates) {
-    if (
-      candidate !== answer &&
-      Number.isFinite(candidate)
-    ) {
-      choices.add(candidate);
+      if (choices.size === 4) break;
     }
 
-    if (choices.size === 4) {
-      break;
+    while (choices.size < 4) {
+      const extra = answer + randInt(-10, 10);
+
+      if (extra !== answer && Number.isFinite(extra)) {
+        choices.add(extra);
+      }
     }
-  }
 
-  while (choices.size < 4) {
-    const extra =
-      answer + randInt(-10, 10);
+    const finalChoices = shuffle(Array.from(choices));
 
-    if (
-      extra !== answer &&
-      Number.isFinite(extra)
-    ) {
-      choices.add(extra);
+    if (!finalChoices.includes(answer)) {
+      throw new Error("Quality Control Failed: correct answer missing.");
     }
+
+    if (new Set(finalChoices).size !== finalChoices.length) {
+      throw new Error("Quality Control Failed: duplicate choices.");
+    }
+
+    if (finalChoices.length !== 4) {
+      throw new Error("Quality Control Failed: must have 4 choices.");
+    }
+
+    return finalChoices;
   }
 
-  const finalChoices =
-    shuffle(Array.from(choices));
-
-  if (!finalChoices.includes(answer)) {
-    throw new Error(
-      "Quality Control Failed: correct answer missing from choices."
-    );
+  function normalizeType(type) {
+    return type.replace("_equation", "");
   }
 
-  if (new Set(finalChoices).size !== finalChoices.length) {
-    throw new Error(
-      "Quality Control Failed: duplicate answer choices."
-    );
-  }
-
-  if (finalChoices.length !== 4) {
-    throw new Error(
-      "Quality Control Failed: question does not have exactly 4 choices."
-    );
-  }
-
-  return finalChoices;
-}
-
-  function oneStepAddition(
-    difficulty = "core"
-  ) {
-
-    const r =
-      difficultyRange(difficulty);
-
-    const answer =
-      randInt(r.min, r.max);
-
+  function oneStepAddition(difficulty = "core", lessonId = "1.1") {
+    const r = difficultyRange(difficulty);
+    const answer = randInt(r.min, r.max);
     const b = randInt(2, 15);
-
     const c = answer + b;
 
     return {
-
-      lesson: "1.1",
-
+      lesson: lessonId,
       type: "one_step_addition",
-
       dok: 1,
-
       difficulty,
-
-      prompt:
-        `Solve: x + ${b} = ${c}`,
-
-      equation:
-        `x + ${b} = ${c}`,
-
+      prompt: `Solve: x + ${b} = ${c}`,
+      equation: `x + ${b} = ${c}`,
       answer,
-
-      choices:
-        createChoices(answer),
-
-      hint:
-        `Subtract ${b} from both sides.`,
-
-      explanation:
-        `x + ${b} = ${c}. Subtract ${b} from both sides, so x = ${answer}.`
-
+      choices: createChoices(answer),
+      hint: `Subtract ${b} from both sides.`,
+      explanation: `Subtract ${b} from both sides. x = ${answer}.`
     };
-
   }
 
-  function oneStepSubtraction(
-    difficulty = "core"
-  ) {
-
-    const r =
-      difficultyRange(difficulty);
-
-    const answer =
-      randInt(r.min, r.max);
-
+  function oneStepSubtraction(difficulty = "core", lessonId = "1.1") {
+    const r = difficultyRange(difficulty);
+    const answer = randInt(r.min, r.max);
     const b = randInt(2, 15);
-
     const c = answer - b;
 
     return {
-
-      lesson: "1.1",
-
+      lesson: lessonId,
       type: "one_step_subtraction",
-
       dok: 1,
-
       difficulty,
-
-      prompt:
-        `Solve: x - ${b} = ${c}`,
-
-      equation:
-        `x - ${b} = ${c}`,
-
+      prompt: `Solve: x - ${b} = ${c}`,
+      equation: `x - ${b} = ${c}`,
       answer,
-
-      choices:
-        createChoices(answer),
-
-      hint:
-        `Add ${b} to both sides.`,
-
-      explanation:
-        `x - ${b} = ${c}. Add ${b} to both sides, so x = ${answer}.`
-
+      choices: createChoices(answer),
+      hint: `Add ${b} to both sides.`,
+      explanation: `Add ${b} to both sides. x = ${answer}.`
     };
-
   }
 
-  function oneStepMultiplication(
-    difficulty = "core"
-  ) {
+  function oneStepMultiplication(difficulty = "core", lessonId = "1.1") {
+    const r = difficultyRange(difficulty);
+    let answer = randInt(r.min, r.max);
+    if (answer === 0) answer = randInt(2, 10);
 
-    const r =
-      difficultyRange(difficulty);
-
-    let answer =
-      randInt(r.min, r.max);
-
-    if (answer === 0) {
-
-      answer = randInt(2, 10);
-
-    }
-
-    const coefficient =
-      choice([2,3,4,5,6,7,8,9]);
-
-    const product =
-      coefficient * answer;
+    const coefficient = choice([2,3,4,5,6,7,8,9]);
+    const product = coefficient * answer;
 
     return {
-
-      lesson: "1.1",
-
+      lesson: lessonId,
       type: "one_step_multiplication",
-
       dok: 1,
-
       difficulty,
-
-      prompt:
-        `Solve: ${coefficient}x = ${product}`,
-
-      equation:
-        `${coefficient}x = ${product}`,
-
+      prompt: `Solve: ${coefficient}x = ${product}`,
+      equation: `${coefficient}x = ${product}`,
       answer,
-
-      choices:
-        createChoices(answer),
-
-      hint:
-        `Divide both sides by ${coefficient}.`,
-
-      explanation:
-        `${coefficient}x = ${product}. Divide both sides by ${coefficient}, so x = ${answer}.`
-
+      choices: createChoices(answer),
+      hint: `Divide both sides by ${coefficient}.`,
+      explanation: `Divide both sides by ${coefficient}. x = ${answer}.`
     };
-
   }
 
-  function oneStepDivision(
-    difficulty = "core"
-  ) {
+  function oneStepDivision(difficulty = "core", lessonId = "1.1") {
+    const r = difficultyRange(difficulty);
+    let answer = randInt(r.min, r.max);
+    if (answer === 0) answer = randInt(2, 10);
 
-    const r =
-      difficultyRange(difficulty);
-
-    let answer =
-      randInt(r.min, r.max);
-
-    if (answer === 0) {
-
-      answer = randInt(2, 10);
-
-    }
-
-    const divisor =
-      choice([2,3,4,5,6,7,8,9]);
+    const divisor = choice([2,3,4,5,6,7,8,9]);
+    const dividend = answer * divisor;
 
     return {
-
-      lesson: "1.1",
-
+      lesson: lessonId,
       type: "one_step_division",
-
       dok: 1,
-
       difficulty,
-
-      prompt:
-        `Solve: x ÷ ${divisor} = ${answer}`,
-
-      equation:
-        `x ÷ ${divisor} = ${answer}`,
-
-      answer:
-        answer * divisor,
-
-      choices:
-        createChoices(answer * divisor),
-
-      hint:
-        `Multiply both sides by ${divisor}.`,
-
-      explanation:
-        `x ÷ ${divisor} = ${answer}. Multiply both sides by ${divisor}, so x = ${answer * divisor}.`
-
+      prompt: `Solve: x ÷ ${divisor} = ${answer}`,
+      equation: `x ÷ ${divisor} = ${answer}`,
+      answer: dividend,
+      choices: createChoices(dividend),
+      hint: `Multiply both sides by ${divisor}.`,
+      explanation: `Multiply both sides by ${divisor}. x = ${dividend}.`
     };
-
   }
 
-  function realWorldOneStep(
-    difficulty = "core"
-  ) {
+  function realWorldOneStep(difficulty = "core", lessonId = "1.1") {
+    const answer = randInt(5, 25);
+    const added = randInt(3, 15);
+    const total = answer + added;
 
-    const scenarios = [
-
-      () => {
-
-        const answer =
-          randInt(5, 25);
-
-        const added =
-          randInt(3, 15);
-
-        const total =
-          answer + added;
-
-        return {
-
-          lesson: "1.1",
-
-          type: "real_world_one_step",
-
-          dok: 2,
-
-          difficulty,
-
-          prompt:
-            `A student had some points in a math game. After earning ${added} more points, the student had ${total} points. How many points did the student have at first?`,
-
-          equation:
-            `x + ${added} = ${total}`,
-
-          answer,
-
-          choices:
-            createChoices(answer),
-
-          hint:
-            `Write an equation: x + ${added} = ${total}.`,
-
-          explanation:
-            `Let x be the starting points. Subtract ${added} from both sides.`
-
-        };
-
-      }
-
-    ];
-
-    return choice(scenarios)();
-
+    return {
+      lesson: lessonId,
+      type: "real_world_one_step",
+      dok: 2,
+      difficulty,
+      prompt: `A student had some points in a math game. After earning ${added} more points, the student had ${total} points. How many points did the student have at first?`,
+      equation: `x + ${added} = ${total}`,
+      answer,
+      choices: createChoices(answer),
+      hint: `Write an equation: x + ${added} = ${total}.`,
+      explanation: `Subtract ${added} from both sides. x = ${answer}.`
+    };
   }
 
-  function multiStepEquation(difficulty = "core") {
-  const r = difficultyRange(difficulty);
+  function multiStepEquation(difficulty = "core", lessonId = "1.2") {
+    const r = difficultyRange(difficulty);
+    const answer = randInt(r.min, r.max);
+    const a = choice([2,3,4,5,6,7,8]);
+    const b = randInt(2, 15);
+    const c = a * answer + b;
 
-  const answer = randInt(r.min, r.max);
-  const a = choice([2,3,4,5,6,7,8]);
-  const b = randInt(2, 15);
-  const c = a * answer + b;
+    return {
+      lesson: lessonId,
+      type: "multi_step_equation",
+      dok: 2,
+      difficulty,
+      prompt: `Solve: ${a}x + ${b} = ${c}`,
+      equation: `${a}x + ${b} = ${c}`,
+      answer,
+      choices: createChoices(answer),
+      hint: `First subtract ${b}, then divide by ${a}.`,
+      explanation: `Subtract ${b}: ${a}x = ${c - b}. Divide by ${a}. x = ${answer}.`
+    };
+  }
 
-  return {
-    lesson: "1.2",
-    type: "multi_step_equation",
-    dok: 2,
-    difficulty,
-    prompt: `Solve: ${a}x + ${b} = ${c}`,
-    equation: `${a}x + ${b} = ${c}`,
-    answer,
-    choices: createChoices(answer),
-    hint: `First subtract ${b} from both sides, then divide by ${a}.`,
-    explanation: `${a}x + ${b} = ${c}. Subtract ${b}: ${a}x = ${c - b}. Divide by ${a}, so x = ${answer}.`
-  };
-}
+  function combineLikeTermsEquation(difficulty = "core", lessonId = "1.2") {
+    const r = difficultyRange(difficulty);
+    const answer = randInt(r.min, r.max);
+    const a = choice([2,3,4,5,6]);
+    const b = choice([2,3,4,5,6]);
+    const c = randInt(2, 12);
+    const combined = a + b;
+    const total = combined * answer + c;
 
-function combineLikeTermsEquation(difficulty = "core") {
-  const r = difficultyRange(difficulty);
+    return {
+      lesson: lessonId,
+      type: "combine_like_terms_equation",
+      dok: 2,
+      difficulty,
+      prompt: `Solve: ${a}x + ${b}x + ${c} = ${total}`,
+      equation: `${a}x + ${b}x + ${c} = ${total}`,
+      answer,
+      choices: createChoices(answer),
+      hint: `Combine like terms first: ${a}x + ${b}x = ${combined}x.`,
+      explanation: `Combine like terms: ${combined}x + ${c} = ${total}. Then solve. x = ${answer}.`
+    };
+  }
 
-  const answer = randInt(r.min, r.max);
-  const a = choice([2,3,4,5,6]);
-  const b = choice([2,3,4,5,6]);
-  const c = randInt(2, 12);
-  const combined = a + b;
-  const total = combined * answer + c;
+  function distributivePropertyEquation(difficulty = "core", lessonId = "1.2") {
+    const r = difficultyRange(difficulty);
+    const answer = randInt(r.min, r.max);
+    const a = choice([2,3,4,5]);
+    const b = randInt(2, 8);
+    const c = a * (answer + b);
 
-  return {
-    lesson: "1.2",
-    type: "combine_like_terms_equation",
-    dok: 2,
-    difficulty,
-    prompt: `Solve: ${a}x + ${b}x + ${c} = ${total}`,
-    equation: `${a}x + ${b}x + ${c} = ${total}`,
-    answer,
-    choices: createChoices(answer),
-    hint: `First combine like terms: ${a}x + ${b}x = ${combined}x.`,
-    explanation: `${a}x + ${b}x + ${c} = ${total}. Combine like terms: ${combined}x + ${c} = ${total}. Subtract ${c}, then divide by ${combined}. x = ${answer}.`
-  };
-}
+    return {
+      lesson: lessonId,
+      type: "distributive_property_equation",
+      dok: 2,
+      difficulty,
+      prompt: `Solve: ${a}(x + ${b}) = ${c}`,
+      equation: `${a}(x + ${b}) = ${c}`,
+      answer,
+      choices: createChoices(answer),
+      hint: `Divide both sides by ${a}, then subtract ${b}.`,
+      explanation: `Divide by ${a}: x + ${b} = ${c / a}. Subtract ${b}. x = ${answer}.`
+    };
+  }
 
-function distributivePropertyEquation(difficulty = "core") {
-  const r = difficultyRange(difficulty);
+  function getGenerator(type) {
+    const normalized = normalizeType(type);
 
-  const answer = randInt(r.min, r.max);
-  const a = choice([2,3,4,5]);
-  const b = randInt(2, 8);
-  const c = a * (answer + b);
+    if (normalized === "one_step_addition") return oneStepAddition;
+    if (normalized === "one_step_subtraction") return oneStepSubtraction;
+    if (normalized === "one_step_multiplication") return oneStepMultiplication;
+    if (normalized === "one_step_division") return oneStepDivision;
+    if (normalized === "real_world_one_step") return realWorldOneStep;
 
-  return {
-    lesson: "1.2",
-    type: "distributive_property_equation",
-    dok: 2,
-    difficulty,
-    prompt: `Solve: ${a}(x + ${b}) = ${c}`,
-    equation: `${a}(x + ${b}) = ${c}`,
-    answer,
-    choices: createChoices(answer),
-    hint: `First divide both sides by ${a}, then subtract ${b}.`,
-    explanation: `${a}(x + ${b}) = ${c}. Divide by ${a}: x + ${b} = ${c / a}. Subtract ${b}, so x = ${answer}.`
-  };
-}
+    if (normalized === "multi_step") return multiStepEquation;
+    if (normalized === "multi_step_equation") return multiStepEquation;
+    if (normalized === "combine_like_terms") return combineLikeTermsEquation;
+    if (normalized === "combine_like_terms_equation") return combineLikeTermsEquation;
+    if (normalized === "distributive_property") return distributivePropertyEquation;
+    if (normalized === "distributive_property_equation") return distributivePropertyEquation;
 
-  function generateOne(
-    lessonId = "1.1",
-    options = {}
-  ) {
+    throw new Error(`Unsupported problem type: ${type}`);
+  }
 
-    const difficulty =
-      options.difficulty || "core";
-
-    
-const curriculumProblemTypes =
-  options.problemTypes || [];
+  function generateOne(lessonId = "1.1", options = {}) {
+    const difficulty = options.difficulty || "core";
+    const curriculumProblemTypes = options.problemTypes || [];
 
     if (!curriculumProblemTypes.length) {
-  throw new Error(
-    `No problem types provided for lesson ${lessonId}`
-  );
-}
-
-const normalizedTypes = curriculumProblemTypes.map(type =>
-  type
-    .replace("_equation", "")
-    .replace("one_step_addition", "one_step_addition")
-    .replace("one_step_subtraction", "one_step_subtraction")
-    .replace("one_step_multiplication", "one_step_multiplication")
-    .replace("one_step_division", "one_step_division")
-);
-
-const type =
-  options.type ||
-  choice(normalizedTypes);
-
-    let generator;
-
-    if (type === "one_step_addition") {
-
-      generator = oneStepAddition;
-
-    }
-
-    else if (type === "one_step_subtraction") {
-
-      generator = oneStepSubtraction;
-
-    }
-
-    else if (type === "one_step_multiplication") {
-
-      generator = oneStepMultiplication;
-
-    }
-
-    else if (type === "one_step_division") {
-
-      generator = oneStepDivision;
-
-    }
-
-    else if (type === "real_world_one_step") {
-
-      generator = realWorldOneStep;
-
-    }
-      else if (type === "multi_step_equation") {
-  generator = multiStepEquation;
-}
-
-else if (type === "combine_like_terms_equation") {
-  generator = combineLikeTermsEquation;
-}
-
-else if (type === "distributive_property_equation") {
-  generator = distributivePropertyEquation;
-}
-
-    else if (type === "one_step_mixed") {
-
-      generator = choice([
-        oneStepAddition,
-        oneStepSubtraction,
-        oneStepMultiplication,
-        oneStepDivision
-      ]);
-
-    }
-      
-
-    else {
-
-      throw new Error(
-        `Unsupported type: ${type}`
-      );
-
+      throw new Error(`No problem types provided for lesson ${lessonId}`);
     }
 
     let attempts = 0;
 
     while (attempts < 50) {
+      const type = options.type || choice(curriculumProblemTypes);
+      const generator = getGenerator(type);
+      const question = generator(difficulty, lessonId);
+      const key = uniqueKey(question);
 
-      const question =
-        generator(difficulty);
-
-      const key =
-        uniqueKey(question);
-
-     if (
-  !usedQuestions.has(key) &&
-  !isTooSimilar(question)
-) {
-
-  rememberQuestion(question);
-
-  return question;
-
-}
+      if (!usedQuestions.has(key) && !isTooSimilar(question)) {
+        rememberQuestion(question);
+        return question;
+      }
 
       attempts++;
-
     }
 
-    return generator(difficulty);
-
+    const fallbackType = choice(curriculumProblemTypes);
+    const fallbackGenerator = getGenerator(fallbackType);
+    return fallbackGenerator(difficulty, lessonId);
   }
 
-  function generateSet(
-    lessonId = "1.1",
-    count = 5,
-    options = {}
-  ) {
-
+  function generateSet(lessonId = "1.1", count = 5, options = {}) {
     const questions = [];
 
     for (let i = 0; i < count; i++) {
-
-      questions.push(
-        generateOne(
-          lessonId,
-          options
-        )
-      );
-
+      questions.push(generateOne(lessonId, options));
     }
 
     return questions;
-
   }
 
   function resetSession() {
-
     usedQuestions.clear();
-usedFingerprints.clear();
-
+    usedFingerprints.clear();
   }
 
   return {
-
     generateOne,
-
     generateSet,
-
-    resetSession,
-
-    LESSON_CONFIG
-
+    resetSession
   };
 
 })();
+
 window.AlgebraQuestionFactory = AlgebraQuestionFactory;
