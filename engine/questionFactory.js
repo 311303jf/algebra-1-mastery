@@ -1,5 +1,5 @@
 /* ============================================================
-   Algebra OS — Question Factory 2.1
+   Algebra OS — Question Factory 2.1.1
    File: engine/questionFactory.js
 
    PURPOSE:
@@ -31,7 +31,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (!Array.isArray(problemTypes) || problemTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 2.1: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
+      "QuestionFactory 2.1.1: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
     );
   }
 
@@ -41,7 +41,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (availableTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 2.1: No supported generators found for this lesson. Add generators for: " +
+      "QuestionFactory 2.1.1: No supported generators found for this lesson. Add generators for: " +
       problemTypes.join(", ")
     );
   }
@@ -73,7 +73,7 @@ export function generateQuestionsForLesson(lesson, count = 10, options = {}) {
 
   if (questions.length < count) {
     throw new Error(
-      "QuestionFactory 2.1: Could not generate enough unique quality questions. Generated " +
+      "QuestionFactory 2.1.1: Could not generate enough unique quality questions. Generated " +
       questions.length +
       " of " +
       count +
@@ -101,8 +101,12 @@ const GENERATORS = {
   two_step_equation: generateTwoStepEquation,
   multi_step_equation: generateMultiStepEquation,
   variables_both_sides: generateVariablesBothSides,
+
   distributive_property: generateDistributivePropertyEquation,
+  distributive_property_equation: generateDistributivePropertyEquation,
+
   combine_like_terms: generateCombineLikeTermsEquation,
+  combine_like_terms_equation: generateCombineLikeTermsEquation,
 
   inequality: generateOneStepInequality,
   inequalities: generateOneStepInequality,
@@ -219,7 +223,27 @@ const METADATA = {
       "Students often distribute to the first term only and forget the second term."
   },
 
+  distributive_property_equation: {
+    hintSteps: [
+      "Distribute the number outside the parentheses.",
+      "Combine like terms if needed.",
+      "Use inverse operations to isolate the variable."
+    ],
+    misconception:
+      "Students often distribute to the first term only and forget the second term."
+  },
+
   combine_like_terms: {
+    hintSteps: [
+      "Combine variable terms with variable terms.",
+      "Combine constants with constants.",
+      "Then solve the simplified equation."
+    ],
+    misconception:
+      "Students often combine unlike terms, such as variable terms and constants."
+  },
+
+  combine_like_terms_equation: {
     hintSteps: [
       "Combine variable terms with variable terms.",
       "Combine constants with constants.",
@@ -530,7 +554,7 @@ function generateDistributivePropertyEquation(difficulty = 1) {
   return buildQuestion({
     prompt,
     answer: `x = ${x}`,
-    problemType: "distributive_property",
+    problemType: "distributive_property_equation",
     difficulty,
     solutionSteps: [
       `Original equation: ${a}(x ${formatSigned(b)}) ${formatSigned(c)} = ${result}`,
@@ -557,7 +581,7 @@ function generateCombineLikeTermsEquation(difficulty = 1) {
   return buildQuestion({
     prompt,
     answer: `x = ${x}`,
-    problemType: "combine_like_terms",
+    problemType: "combine_like_terms_equation",
     difficulty,
     solutionSteps: [
       `Original equation: ${a}x + ${b}x ${formatSigned(c)} = ${result}`,
@@ -985,6 +1009,8 @@ function normalizeMetaType(type) {
   if (type === "multi_step_inequalities") return "inequalities";
   if (type === "inequality") return "inequalities";
   if (type === "function_evaluation") return "functions";
+  if (type === "distributive_property_equation") return "distributive_property";
+  if (type === "combine_like_terms_equation") return "combine_like_terms";
   return type;
 }
 
