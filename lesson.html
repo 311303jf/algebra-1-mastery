@@ -4,328 +4,418 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Algebra OS | Lesson</title>
-
 <style>
-:root {
-  --blue: #2563eb;
-  --purple: #7c3aed;
-  --ink: #0f172a;
-  --muted: #475569;
-  --card: #ffffff;
-  --line: #e2e8f0;
-  --soft: #f8fafc;
+:root{
+  --blue:#2563eb;
+  --purple:#7c3aed;
+  --ink:#0f172a;
+  --muted:#64748b;
+  --bg:#f5f7fb;
+  --card:#ffffff;
+  --line:#e2e8f0;
 }
 
-* {
-  box-sizing: border-box;
+*{box-sizing:border-box}
+
+body{
+  font-family:Arial,sans-serif;
+  background:var(--bg);
+  margin:0;
+  color:var(--ink);
 }
 
-body {
-  font-family: Arial, sans-serif;
-  background: #f5f7fb;
-  margin: 0;
-  color: var(--ink);
+.shell{
+  max-width:1280px;
+  margin:auto;
+  padding:30px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 310px;
+  gap:24px;
+  align-items:start;
 }
 
-.page {
-  max-width: 820px;
-  margin: 0 360px 0 auto;
-  padding: 30px;
+.page{max-width:1000px;width:100%}
+
+.card{
+  background:white;
+  border-radius:24px;
+  padding:28px;
+  margin-bottom:20px;
+  box-shadow:0 12px 35px rgba(15,23,42,.08);
 }
 
-.card {
-  background: var(--card);
-  border-radius: 24px;
-  padding: 28px;
-  margin-bottom: 20px;
-  box-shadow: 0 12px 35px rgba(15, 23, 42, 0.08);
+.hero{
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  color:white;
 }
 
-.hero {
-  background: linear-gradient(135deg, var(--blue), var(--purple));
-  color: white;
+h1{margin-bottom:10px}
+
+.badge{
+  display:inline-block;
+  background:#dbeafe;
+  color:#1d4ed8;
+  padding:8px 12px;
+  border-radius:999px;
+  font-weight:bold;
+  margin:5px;
+  font-size:13px;
 }
 
-h1 {
-  margin: 0 0 10px;
+.btn{
+  background:#2563eb;
+  color:white;
+  border:none;
+  padding:12px 18px;
+  border-radius:12px;
+  font-weight:bold;
+  cursor:pointer;
 }
 
-h2 {
-  margin-top: 0;
+.btn:hover{filter:brightness(.95)}
+
+.choice-btn{
+  width:100%;
+  text-align:left;
+  padding:12px;
+  margin-bottom:10px;
+  background:white;
+  border-radius:12px;
+  border:1px solid #cbd5e1;
+  font-weight:bold;
+  cursor:pointer;
 }
 
-.badge {
-  display: inline-block;
-  background: #dbeafe;
-  color: #1d4ed8;
-  padding: 8px 12px;
-  border-radius: 999px;
-  font-weight: bold;
-  margin: 5px;
-  font-size: 13px;
+.choice-btn:hover{background:#f8fafc}
+
+.question-inner{
+  background:#f8fafc;
+  padding:20px;
+  border-radius:18px;
+  border:1px solid #e2e8f0;
 }
 
-.btn {
-  background: var(--blue);
-  color: white;
-  border: none;
-  padding: 12px 18px;
-  border-radius: 12px;
-  font-weight: bold;
-  cursor: pointer;
+/* Student Math Lab */
+.math-lab{
+  position:sticky;
+  top:24px;
+  background:white;
+  border-radius:24px;
+  padding:16px;
+  box-shadow:0 18px 45px rgba(15,23,42,.14);
+  border:1px solid #e5e7eb;
 }
 
-.btn:hover {
-  filter: brightness(0.95);
+.lab-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
 }
 
-.question-card {
-  background: var(--soft);
-  padding: 20px;
-  border-radius: 18px;
-  border: 1px solid var(--line);
+.lab-title{
+  font-weight:900;
+  font-size:15px;
+  line-height:1.2;
 }
 
-.choice-btn {
-  width: 100%;
-  text-align: left;
-  padding: 12px;
-  margin-bottom: 10px;
-  background: white;
-  border-radius: 12px;
-  border: 1px solid #cbd5e1;
-  font-weight: bold;
-  cursor: pointer;
+.lab-brand{
+  font-size:10px;
+  color:#64748b;
+  font-weight:800;
+  letter-spacing:.08em;
 }
 
-.choice-btn:hover {
-  background: #eff6ff;
+.lab-tabs{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:6px;
+  margin-bottom:14px;
 }
 
-.choice-btn:disabled {
-  cursor: not-allowed;
-  opacity: 0.65;
+.lab-tab{
+  border:none;
+  border-radius:12px;
+  padding:9px 6px;
+  font-weight:900;
+  cursor:pointer;
+  background:#eef2ff;
+  color:#1e293b;
+  font-size:12px;
 }
 
-.feedback {
-  margin-top: 16px;
+.lab-tab.active{
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  color:white;
 }
 
-.feedback.correct {
-  background: #dcfce7;
-  color: #166534;
-  padding: 14px;
-  border-radius: 14px;
-  font-weight: bold;
+.lab-panel{display:none}
+.lab-panel.active{display:block}
+
+.lab-note{
+  font-size:11px;
+  color:#64748b;
+  margin-top:10px;
+  line-height:1.35;
 }
 
-.feedback.incorrect {
-  background: #fee2e2;
-  color: #991b1b;
-  padding: 14px;
-  border-radius: 14px;
-  font-weight: bold;
+/* Calculator */
+.aos-calc-display{
+  width:100%;
+  height:58px;
+  border-radius:14px;
+  border:1px solid #cbd5e1;
+  background:#f8fafc;
+  font-size:24px;
+  font-weight:800;
+  text-align:right;
+  padding:10px 12px;
+  margin-bottom:12px;
 }
 
-/* Professional Algebra OS calculator sidebar */
-.aos-calculator {
-  position: fixed;
-  top: 92px;
-  right: 28px;
-  width: 292px;
-  background: #ffffff;
-  border-radius: 24px;
-  padding: 18px;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
-  border: 1px solid #e5e7eb;
-  z-index: 50;
+.aos-calc-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
 }
 
-.aos-calc-title {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 900;
-  color: #111827;
-  margin-bottom: 12px;
+.aos-calc-grid button,
+.graph-controls button,
+.stats-controls button{
+  height:40px;
+  border:none;
+  border-radius:12px;
+  background:#eef2ff;
+  color:#1e293b;
+  font-size:15px;
+  font-weight:900;
+  cursor:pointer;
 }
 
-.aos-calc-subtitle {
-  font-size: 11px;
-  color: #64748b;
-  font-weight: 700;
+.aos-calc-grid button:hover,
+.graph-controls button:hover,
+.stats-controls button:hover{
+  background:#dbeafe;
 }
 
-.aos-calc-display {
-  width: 100%;
-  height: 60px;
-  border-radius: 16px;
-  border: 1px solid #cbd5e1;
-  background: #f8fafc;
-  font-size: 24px;
-  font-weight: 800;
-  text-align: right;
-  padding: 10px 12px;
-  margin-bottom: 14px;
+.aos-calc-grid .equals,
+.graph-controls .primary,
+.stats-controls .primary{
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  color:white;
 }
 
-.aos-calc-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 9px;
+.aos-calc-grid .danger{
+  background:#fee2e2;
+  color:#991b1b;
 }
 
-.aos-calc-grid button {
-  height: 44px;
-  border: none;
-  border-radius: 13px;
-  background: #eef2ff;
-  color: #1e293b;
-  font-size: 16px;
-  font-weight: 800;
-  cursor: pointer;
+/* Graph Explorer */
+.tool-label{
+  font-size:12px;
+  font-weight:900;
+  color:#334155;
+  margin:8px 0 5px;
 }
 
-.aos-calc-grid button:hover {
-  background: #dbeafe;
+.tool-input,
+.tool-select,
+.tool-textarea{
+  width:100%;
+  border:1px solid #cbd5e1;
+  background:#f8fafc;
+  border-radius:12px;
+  padding:10px;
+  font-weight:800;
+  color:#0f172a;
 }
 
-.aos-calc-grid .equals {
-  background: linear-gradient(135deg, #2563eb, #7c3aed);
-  color: white;
+.tool-textarea{min-height:72px;resize:vertical}
+
+.coeff-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
 }
 
-.aos-calc-grid .danger {
-  background: #fee2e2;
-  color: #991b1b;
+.graph-controls,.stats-controls{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin:10px 0;
 }
 
-.aos-calc-grid .operator {
-  background: #e0e7ff;
-  color: #3730a3;
+#graphCanvas{
+  width:100%;
+  height:220px;
+  background:#f8fafc;
+  border:1px solid #cbd5e1;
+  border-radius:16px;
 }
 
-.aos-calc-note {
-  margin-top: 12px;
-  font-size: 11px;
-  line-height: 1.35;
-  color: #64748b;
+.graph-facts,.stats-results{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  padding:10px;
+  font-size:12px;
+  line-height:1.45;
 }
 
-@media (max-width: 1200px) {
-  .page {
-    max-width: 900px;
-    margin: auto;
-    padding: 22px;
-  }
-
-  .aos-calculator {
-    position: static;
-    width: auto;
-    max-width: 430px;
-    margin: 0 auto 24px;
-  }
+.fact-row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  border-bottom:1px solid #e2e8f0;
+  padding:5px 0;
 }
 
-@media (max-width: 640px) {
-  .page {
-    padding: 16px;
-  }
+.fact-row:last-child{border-bottom:none}
+.fact-row strong{color:#0f172a}
+.fact-row span{color:#475569;text-align:right;font-weight:800}
 
-  .card {
-    padding: 20px;
-  }
+@media (max-width:1100px){
+  .shell{grid-template-columns:1fr;padding:18px}
+  .math-lab{position:static;max-width:520px;margin:0 auto 24px;width:100%}
 }
 </style>
 </head>
 
 <body>
+<div class="shell">
+  <main class="page">
+    <button class="btn" onclick="window.location.href='index.html'">← Back to Dashboard</button>
 
-<div class="page">
+    <section class="card hero">
+      <h1 id="lessonTitle">Loading lesson...</h1>
+      <p id="lessonObjective"></p>
+    </section>
 
-  <button class="btn" onclick="window.location.href='index.html'">← Back to Dashboard</button>
+    <section class="card">
+      <h2>🎯 Learning Objective</h2>
+      <p id="objectiveText"></p>
+    </section>
 
-  <section class="card hero">
-    <h1 id="lessonTitle">Loading lesson...</h1>
-    <p id="lessonObjective"></p>
-  </section>
+    <section class="card">
+      <h2>🧠 Skills</h2>
+      <div id="skillsList"></div>
+    </section>
 
-  <section class="card">
-    <h2>🎯 Learning Objective</h2>
-    <p id="objectiveText"></p>
-  </section>
+    <section class="card">
+      <h2>📊 Lesson Metadata</h2>
+      <p><strong>Standard:</strong> <span id="standardText"></span></p>
+      <p><strong>DOK Levels:</strong> <span id="dokText"></span></p>
+      <p><strong>EOC Rigor:</strong> <span id="rigorText"></span></p>
+      <p><strong>Real-World Required:</strong> <span id="realWorldText"></span></p>
+    </section>
 
-  <section class="card">
-    <h2>🧠 Skills</h2>
-    <div id="skillsList"></div>
-  </section>
+    <section class="card">
+      <h2>🧪 Question Engine Preview</h2>
+      <p>This lesson will generate questions using these problem types:</p>
+      <div id="problemTypes"></div>
+      <br>
+      <button class="btn" onclick="generatePracticeQuestion()">Generate Practice Question</button>
+      <div id="questionBox" style="margin-top:20px;"></div>
+    </section>
+  </main>
 
-  <section class="card">
-    <h2>📊 Lesson Metadata</h2>
-    <p><strong>Standard:</strong> <span id="standardText"></span></p>
-    <p><strong>DOK Levels:</strong> <span id="dokText"></span></p>
-    <p><strong>EOC Rigor:</strong> <span id="rigorText"></span></p>
-    <p><strong>Real-World Required:</strong> <span id="realWorldText"></span></p>
-  </section>
+  <aside class="math-lab" aria-label="Student Math Lab">
+    <div class="lab-header">
+      <div class="lab-title">🔬 Student Math Lab</div>
+      <div class="lab-brand">ALGEBRA OS</div>
+    </div>
 
-  <section class="card">
-    <h2>🧪 Question Engine Preview</h2>
-    <p>This lesson will generate questions using these problem types:</p>
-    <div id="problemTypes"></div>
-    <br>
-    <button class="btn" onclick="generatePracticeQuestion()">Generate Practice Question</button>
-    <div id="questionBox" style="margin-top:20px;"></div>
-  </section>
+    <div class="lab-tabs">
+      <button class="lab-tab active" data-lab-tab="calculator">🧮 Calc</button>
+      <button class="lab-tab" data-lab-tab="graph">📈 Graph</button>
+      <button class="lab-tab" data-lab-tab="stats">📊 Stats</button>
+    </div>
 
+    <section id="lab-calculator" class="lab-panel active">
+      <input id="calcDisplay" class="aos-calc-display" readonly placeholder="0" />
+
+      <div class="aos-calc-grid">
+        <button data-calc="C" class="danger">C</button>
+        <button data-calc="back">⌫</button>
+        <button data-calc="(">(</button>
+        <button data-calc=")">)</button>
+
+        <button data-calc="7">7</button>
+        <button data-calc="8">8</button>
+        <button data-calc="9">9</button>
+        <button data-calc="/">÷</button>
+
+        <button data-calc="4">4</button>
+        <button data-calc="5">5</button>
+        <button data-calc="6">6</button>
+        <button data-calc="*">×</button>
+
+        <button data-calc="1">1</button>
+        <button data-calc="2">2</button>
+        <button data-calc="3">3</button>
+        <button data-calc="-">−</button>
+
+        <button data-calc="0">0</button>
+        <button data-calc=".">.</button>
+        <button data-calc="=" class="equals">=</button>
+        <button data-calc="+">+</button>
+
+        <button data-calc="square">x²</button>
+        <button data-calc="sqrt">√</button>
+        <button data-calc="pi">π</button>
+        <button data-calc="percent">%</button>
+      </div>
+
+      <div class="lab-note">Built-in classroom tool for arithmetic, square roots, exponents, percentages, and π.</div>
+    </section>
+
+    <section id="lab-graph" class="lab-panel">
+      <div class="tool-label">Function Type</div>
+      <select id="graphType" class="tool-select">
+        <option value="linear">Linear: y = mx + b</option>
+        <option value="quadratic">Quadratic: y = ax² + bx + c</option>
+        <option value="exponential">Exponential: y = a·b^x</option>
+      </select>
+
+      <div class="coeff-grid">
+        <div>
+          <div class="tool-label" id="coefALabel">m</div>
+          <input id="coefA" class="tool-input" type="number" step="0.5" value="2" />
+        </div>
+        <div>
+          <div class="tool-label" id="coefBLabel">b</div>
+          <input id="coefB" class="tool-input" type="number" step="0.5" value="1" />
+        </div>
+        <div>
+          <div class="tool-label" id="coefCLabel">c</div>
+          <input id="coefC" class="tool-input" type="number" step="0.5" value="0" />
+        </div>
+      </div>
+
+      <div class="graph-controls">
+        <button class="primary" onclick="drawGraph()">Graph</button>
+        <button onclick="resetGraphTool()">Reset</button>
+      </div>
+
+      <canvas id="graphCanvas" width="560" height="420"></canvas>
+      <div id="graphFacts" class="graph-facts" style="margin-top:10px;"></div>
+    </section>
+
+    <section id="lab-stats" class="lab-panel">
+      <div class="tool-label">Data Values</div>
+      <textarea id="statsInput" class="tool-textarea" placeholder="Example: 12, 15, 18, 22, 10">12, 15, 18, 22, 10</textarea>
+
+      <div class="stats-controls">
+        <button class="primary" onclick="computeStats()">Compute</button>
+        <button onclick="resetStatsTool()">Reset</button>
+      </div>
+
+      <div id="statsResults" class="stats-results"></div>
+      <div class="lab-note">Computes mean, median, mode, range, minimum, maximum, and count.</div>
+    </section>
+  </aside>
 </div>
-
-<!-- Algebra OS Calculator Sidebar -->
-<aside class="aos-calculator">
-  <div class="aos-calc-title">
-    <span>🧮 Scientific Calculator</span>
-    <span class="aos-calc-subtitle">Algebra OS</span>
-  </div>
-
-  <input id="calcDisplay" class="aos-calc-display" readonly placeholder="0" />
-
-  <div class="aos-calc-grid">
-    <button data-calc="C" class="danger">C</button>
-    <button data-calc="back">⌫</button>
-    <button data-calc="(" class="operator">(</button>
-    <button data-calc=")" class="operator">)</button>
-
-    <button data-calc="7">7</button>
-    <button data-calc="8">8</button>
-    <button data-calc="9">9</button>
-    <button data-calc="/" class="operator">÷</button>
-
-    <button data-calc="4">4</button>
-    <button data-calc="5">5</button>
-    <button data-calc="6">6</button>
-    <button data-calc="*" class="operator">×</button>
-
-    <button data-calc="1">1</button>
-    <button data-calc="2">2</button>
-    <button data-calc="3">3</button>
-    <button data-calc="-" class="operator">−</button>
-
-    <button data-calc="0">0</button>
-    <button data-calc=".">.</button>
-    <button data-calc="=" class="equals">=</button>
-    <button data-calc="+" class="operator">+</button>
-
-    <button data-calc="square">x²</button>
-    <button data-calc="sqrt">√</button>
-    <button data-calc="pi">π</button>
-    <button data-calc="percent">%</button>
-  </div>
-
-  <div class="aos-calc-note">
-    Built-in classroom tool for arithmetic, square roots, exponents, percentages, and π.
-  </div>
-</aside>
 
 <script type="module">
 import {
@@ -336,23 +426,14 @@ import {
 import "./engine/questionFactory.js";
 import "./engine/studentSessionEngine.js";
 
-function getLessonIdFromUrl() {
+function getLessonIdFromUrl(){
   const params = new URLSearchParams(window.location.search);
   return params.get("id") || "1.1";
 }
 
-function escapeHtml(value) {
-  return String(value)
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-}
-
 let currentLesson = null;
 
-function renderLesson(lesson) {
+function renderLesson(lesson){
   currentLesson = lesson;
 
   document.getElementById("lessonTitle").textContent =
@@ -378,53 +459,42 @@ function renderLesson(lesson) {
 
   document.getElementById("skillsList").innerHTML =
     (lesson.skills || []).map(skill =>
-      `<span class="badge">${escapeHtml(skill)}</span>`
+      `<span class="badge">${skill}</span>`
     ).join("");
 
   document.getElementById("problemTypes").innerHTML =
     (lesson.problemTypes || []).map(type =>
-      `<span class="badge">${escapeHtml(type)}</span>`
+      `<span class="badge">${type}</span>`
     ).join("");
 }
 
-function generatePracticeQuestion() {
-  if (!currentLesson) return;
+function generatePracticeQuestion(){
+  if(!currentLesson) return;
 
-  const question =
-    AlgebraQuestionFactory.generateOne(
-      currentLesson.id,
-      {
-        problemTypes: currentLesson.problemTypes
-      }
-    );
-
-  const choicesHtml = question.choices.map(choice => {
-    const safeChoice = escapeHtml(choice);
-    const encodedChoice = encodeURIComponent(String(choice));
-    const encodedCorrect = encodeURIComponent(String(question.answer));
-
-    return `
-      <button
-        class="choice-btn"
-        onclick="checkAnswer(decodeURIComponent(this.dataset.choice), decodeURIComponent(this.dataset.correct))"
-        data-choice="${encodedChoice}"
-        data-correct="${encodedCorrect}"
-      >
-        ${safeChoice}
-      </button>
-    `;
-  }).join("");
+  const question = AlgebraQuestionFactory.generateOne(
+    currentLesson.id,
+    { problemTypes: currentLesson.problemTypes }
+  );
 
   document.getElementById("questionBox").innerHTML = `
-    <div class="question-card">
-      <h3 style="margin-bottom:14px;">${escapeHtml(question.prompt)}</h3>
+    <div class="question-inner">
+      <h3 style="margin-bottom:14px;">${question.prompt}</h3>
 
-      ${choicesHtml}
+      ${question.choices.map(choice => `
+        <button
+          class="choice-btn"
+          onclick="checkAnswer(this.dataset.choice, this.dataset.correct)"
+          data-choice="${String(choice).replace(/"/g, '&quot;')}"
+          data-correct="${String(question.answer).replace(/"/g, '&quot;')}"
+        >
+          ${choice}
+        </button>
+      `).join("")}
 
       <div id="feedbackBox" style="margin-top:16px;"></div>
 
       <div style="margin-top:18px;color:#475569;">
-        <strong>Hint:</strong> ${escapeHtml(question.hint)}
+        <strong>Hint:</strong> ${question.hint}
       </div>
     </div>
   `;
@@ -432,15 +502,13 @@ function generatePracticeQuestion() {
 
 window.generatePracticeQuestion = generatePracticeQuestion;
 
-function checkAnswer(selected, correct) {
+function checkAnswer(selected, correct){
   const feedback = document.getElementById("feedbackBox");
-
-  if (!feedback || feedback.dataset.answered === "true") return;
+  if(feedback.dataset.answered === "true") return;
 
   feedback.dataset.answered = "true";
 
   const buttons = document.querySelectorAll("#questionBox button");
-
   buttons.forEach(button => {
     button.disabled = true;
     button.style.cursor = "not-allowed";
@@ -449,18 +517,17 @@ function checkAnswer(selected, correct) {
 
   const isCorrect = String(selected) === String(correct);
 
-  const session =
-    AlgebraStudentSessionEngine.recordAttempt(
-      currentLesson.id,
-      isCorrect,
-      "core"
-    );
+  const session = AlgebraStudentSessionEngine.recordAttempt(
+    currentLesson.id,
+    isCorrect,
+    "core"
+  );
 
   console.log("Session updated:", session);
 
-  if (isCorrect) {
+  if(isCorrect){
     feedback.innerHTML = `
-      <div class="feedback correct">
+      <div style="background:#dcfce7;color:#166534;padding:14px;border-radius:14px;font-weight:bold;">
         ✅ Correct!
       </div>
     `;
@@ -468,11 +535,10 @@ function checkAnswer(selected, correct) {
     let xp = Number(localStorage.getItem("algebra_xp") || 0);
     xp += 10;
     localStorage.setItem("algebra_xp", xp);
-
-  } else {
+  }else{
     feedback.innerHTML = `
-      <div class="feedback incorrect">
-        ❌ Incorrect. Correct answer: ${escapeHtml(correct)}
+      <div style="background:#fee2e2;color:#991b1b;padding:14px;border-radius:14px;font-weight:bold;">
+        ❌ Incorrect. Correct answer: ${correct}
       </div>
     `;
   }
@@ -480,12 +546,12 @@ function checkAnswer(selected, correct) {
 
 window.checkAnswer = checkAnswer;
 
-async function startLesson() {
+async function startLesson(){
   const curriculum = await loadCurriculum();
   const lessonId = getLessonIdFromUrl();
   const lesson = getLessonById(curriculum, lessonId);
 
-  if (!lesson) {
+  if(!lesson){
     document.getElementById("lessonTitle").textContent = "Lesson not found";
     document.getElementById("lessonObjective").textContent =
       "Check the lesson ID in the URL.";
@@ -500,13 +566,37 @@ startLesson();
 </script>
 
 <script>
-(function setupAlgebraCalculator() {
+(function setupMathLabTabs(){
+  const tabs = document.querySelectorAll("[data-lab-tab]");
+  const panels = {
+    calculator: document.getElementById("lab-calculator"),
+    graph: document.getElementById("lab-graph"),
+    stats: document.getElementById("lab-stats")
+  };
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.labTab;
+
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+
+      Object.values(panels).forEach(panel => panel.classList.remove("active"));
+      panels[target].classList.add("active");
+
+      if(target === "graph") setTimeout(drawGraph, 50);
+      if(target === "stats") computeStats();
+    });
+  });
+})();
+
+(function setupAlgebraCalculator(){
   const display = document.getElementById("calcDisplay");
-  if (!display) return;
+  if(!display) return;
 
   let expression = "";
 
-  function pretty(value) {
+  function prettyExpression(value){
     return value
       .replaceAll("Math.PI", "π")
       .replaceAll("Math.sqrt", "√")
@@ -519,74 +609,285 @@ startLesson();
     btn.addEventListener("click", () => {
       const value = btn.getAttribute("data-calc");
 
-      if (value === "C") {
+      if(value === "C"){
         expression = "";
         display.value = "";
         return;
       }
 
-      if (value === "back") {
-        expression = expression.slice(0, -1);
-        display.value = pretty(expression);
+      if(value === "back"){
+        expression = expression.slice(0,-1);
+        display.value = prettyExpression(expression);
         return;
       }
 
-      if (value === "sqrt") {
+      if(value === "sqrt"){
         expression += "Math.sqrt(";
-        display.value = pretty(expression);
+        display.value = prettyExpression(expression);
         return;
       }
 
-      if (value === "square") {
+      if(value === "square"){
         expression += "**2";
-        display.value = pretty(expression);
+        display.value = prettyExpression(expression);
         return;
       }
 
-      if (value === "pi") {
+      if(value === "pi"){
         expression += "Math.PI";
-        display.value = pretty(expression);
+        display.value = prettyExpression(expression);
         return;
       }
 
-      if (value === "percent") {
+      if(value === "percent"){
         expression += "/100";
-        display.value = pretty(expression);
+        display.value = prettyExpression(expression);
         return;
       }
 
-      if (value === "=") {
-        try {
-          if (!/^[0-9+\-*/().\sMathPIsqrt]+$/.test(expression)) {
+      if(value === "="){
+        try{
+          if(!/^[0-9+\-*/().\sMathPIsqrt]+$/.test(expression)){
             throw new Error("Invalid expression");
           }
 
           const result = Function('"use strict"; return (' + expression + ')')();
+          if(!Number.isFinite(result)) throw new Error("Math error");
 
-          if (!Number.isFinite(result)) {
-            throw new Error("Math error");
-          }
-
-          display.value = Number.isInteger(result)
-            ? result
-            : Number(result.toFixed(6));
-
+          display.value = Number.isInteger(result) ? result : Number(result.toFixed(6));
           expression = String(display.value);
-
-        } catch (err) {
+        }catch{
           display.value = "Error";
           expression = "";
         }
-
         return;
       }
 
       expression += value;
-      display.value = pretty(expression);
+      display.value = prettyExpression(expression);
     });
   });
 })();
-</script>
 
+function getGraphFunction(type,a,b,c){
+  if(type === "linear") return x => a*x + b;
+  if(type === "quadratic") return x => a*x*x + b*x + c;
+  if(type === "exponential") return x => a*Math.pow(b,x);
+  return x => x;
+}
+
+function updateGraphLabels(){
+  const type = document.getElementById("graphType").value;
+  const aLabel = document.getElementById("coefALabel");
+  const bLabel = document.getElementById("coefBLabel");
+  const cLabel = document.getElementById("coefCLabel");
+  const cInput = document.getElementById("coefC");
+
+  if(type === "linear"){
+    aLabel.textContent = "m";
+    bLabel.textContent = "b";
+    cLabel.textContent = "unused";
+    cInput.disabled = true;
+    cInput.style.opacity = .45;
+  }else if(type === "quadratic"){
+    aLabel.textContent = "a";
+    bLabel.textContent = "b";
+    cLabel.textContent = "c";
+    cInput.disabled = false;
+    cInput.style.opacity = 1;
+  }else{
+    aLabel.textContent = "a";
+    bLabel.textContent = "base";
+    cLabel.textContent = "unused";
+    cInput.disabled = true;
+    cInput.style.opacity = .45;
+  }
+}
+
+function drawGraph(){
+  updateGraphLabels();
+
+  const canvas = document.getElementById("graphCanvas");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width;
+  const H = canvas.height;
+  const type = document.getElementById("graphType").value;
+  const a = Number(document.getElementById("coefA").value || 0);
+  const b = Number(document.getElementById("coefB").value || 0);
+  const c = Number(document.getElementById("coefC").value || 0);
+  const f = getGraphFunction(type,a,b,c);
+
+  const xMin = -10, xMax = 10, yMin = -10, yMax = 10;
+  const xToPx = x => ((x - xMin) / (xMax - xMin)) * W;
+  const yToPx = y => H - ((y - yMin) / (yMax - yMin)) * H;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = "#f8fafc";
+  ctx.fillRect(0,0,W,H);
+
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.lineWidth = 1;
+  for(let x = xMin; x <= xMax; x++){
+    ctx.beginPath();
+    ctx.moveTo(xToPx(x),0);
+    ctx.lineTo(xToPx(x),H);
+    ctx.stroke();
+  }
+  for(let y = yMin; y <= yMax; y++){
+    ctx.beginPath();
+    ctx.moveTo(0,yToPx(y));
+    ctx.lineTo(W,yToPx(y));
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = "#0f172a";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(xToPx(0),0);
+  ctx.lineTo(xToPx(0),H);
+  ctx.moveTo(0,yToPx(0));
+  ctx.lineTo(W,yToPx(0));
+  ctx.stroke();
+
+  ctx.strokeStyle = "#2563eb";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+
+  let started = false;
+  for(let px = 0; px <= W; px++){
+    const x = xMin + (px / W) * (xMax - xMin);
+    const y = f(x);
+    const py = yToPx(y);
+
+    if(Number.isFinite(y) && py > -1000 && py < H + 1000){
+      if(!started){
+        ctx.moveTo(px,py);
+        started = true;
+      }else{
+        ctx.lineTo(px,py);
+      }
+    }else{
+      started = false;
+    }
+  }
+  ctx.stroke();
+
+  renderGraphFacts(type,a,b,c);
+}
+
+function renderGraphFacts(type,a,b,c){
+  const box = document.getElementById("graphFacts");
+  let rows = [];
+
+  if(type === "linear"){
+    rows = [
+      ["Equation", `y = ${a}x ${b >= 0 ? "+" : "-"} ${Math.abs(b)}`],
+      ["Slope", a],
+      ["y-intercept", `(0, ${b})`],
+      ["Behavior", a > 0 ? "increasing" : a < 0 ? "decreasing" : "constant"]
+    ];
+  }else if(type === "quadratic"){
+    const h = a !== 0 ? -b/(2*a) : 0;
+    const k = a*h*h + b*h + c;
+    rows = [
+      ["Equation", `y = ${a}x² ${b >= 0 ? "+" : "-"} ${Math.abs(b)}x ${c >= 0 ? "+" : "-"} ${Math.abs(c)}`],
+      ["Vertex", `(${round(h)}, ${round(k)})`],
+      ["Axis", `x = ${round(h)}`],
+      ["Opens", a >= 0 ? "up" : "down"]
+    ];
+  }else{
+    rows = [
+      ["Equation", `y = ${a}·${b}^x`],
+      ["Initial value", a],
+      ["Base", b],
+      ["Type", b > 1 ? "growth" : b > 0 && b < 1 ? "decay" : "check base"]
+    ];
+  }
+
+  box.innerHTML = rows.map(([label,value]) => `
+    <div class="fact-row"><strong>${label}</strong><span>${value}</span></div>
+  `).join("");
+}
+
+function resetGraphTool(){
+  document.getElementById("graphType").value = "linear";
+  document.getElementById("coefA").value = 2;
+  document.getElementById("coefB").value = 1;
+  document.getElementById("coefC").value = 0;
+  drawGraph();
+}
+
+function round(n){
+  return Number.isInteger(n) ? n : Number(n.toFixed(2));
+}
+
+function computeStats(){
+  const input = document.getElementById("statsInput").value;
+  const values = input
+    .split(/[,\s]+/)
+    .map(Number)
+    .filter(n => Number.isFinite(n));
+
+  const box = document.getElementById("statsResults");
+
+  if(!values.length){
+    box.innerHTML = "Enter numbers separated by commas.";
+    return;
+  }
+
+  const sorted = [...values].sort((a,b) => a-b);
+  const count = values.length;
+  const sum = values.reduce((a,b) => a+b,0);
+  const mean = sum/count;
+  const median = count % 2
+    ? sorted[Math.floor(count/2)]
+    : (sorted[count/2 - 1] + sorted[count/2]) / 2;
+  const min = sorted[0];
+  const max = sorted[sorted.length-1];
+  const range = max - min;
+
+  const freq = new Map();
+  values.forEach(v => freq.set(v,(freq.get(v)||0)+1));
+  const maxFreq = Math.max(...freq.values());
+  const modes = maxFreq > 1
+    ? [...freq.entries()].filter(([_,f]) => f === maxFreq).map(([v]) => v)
+    : [];
+
+  const rows = [
+    ["Count", count],
+    ["Mean", round(mean)],
+    ["Median", round(median)],
+    ["Mode", modes.length ? modes.join(", ") : "none"],
+    ["Range", round(range)],
+    ["Min", min],
+    ["Max", max]
+  ];
+
+  box.innerHTML = rows.map(([label,value]) => `
+    <div class="fact-row"><strong>${label}</strong><span>${value}</span></div>
+  `).join("");
+}
+
+function resetStatsTool(){
+  document.getElementById("statsInput").value = "12, 15, 18, 22, 10";
+  computeStats();
+}
+
+document.getElementById("graphType").addEventListener("change", drawGraph);
+document.getElementById("coefA").addEventListener("input", drawGraph);
+document.getElementById("coefB").addEventListener("input", drawGraph);
+document.getElementById("coefC").addEventListener("input", drawGraph);
+document.getElementById("statsInput").addEventListener("input", computeStats);
+
+window.drawGraph = drawGraph;
+window.resetGraphTool = resetGraphTool;
+window.computeStats = computeStats;
+window.resetStatsTool = resetStatsTool;
+
+setTimeout(() => {
+  drawGraph();
+  computeStats();
+}, 100);
+</script>
 </body>
 </html>
