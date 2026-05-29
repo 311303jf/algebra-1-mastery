@@ -29,7 +29,7 @@ body{
   margin:auto;
   padding:30px;
   display:grid;
-  grid-template-columns:minmax(0,1fr) 310px;
+  grid-template-columns:minmax(0,1fr) 340px;
   gap:24px;
   align-items:start;
 }
@@ -129,7 +129,7 @@ h1{margin-bottom:10px}
 
 .lab-tabs{
   display:grid;
-  grid-template-columns:repeat(4,1fr);
+  grid-template-columns:repeat(5,1fr);
   gap:6px;
   margin-bottom:14px;
 }
@@ -142,7 +142,7 @@ h1{margin-bottom:10px}
   cursor:pointer;
   background:#eef2ff;
   color:#1e293b;
-  font-size:11px;
+  font-size:10px;
 }
 
 .lab-tab.active{
@@ -314,6 +314,30 @@ h1{margin-bottom:10px}
   line-height:1.35;
 }
 
+
+/* Help Panel */
+.help-block{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  padding:12px;
+  margin-bottom:12px;
+}
+.help-title{font-size:12px;font-weight:900;color:#0f172a;margin-bottom:8px}
+.help-muted{color:#64748b;font-size:12px;line-height:1.35}
+.help-steps{margin:0;padding-left:20px;color:#334155;font-size:12px;line-height:1.5}
+.help-steps li{margin-bottom:6px}
+.help-feedback{border-radius:14px;padding:12px;font-size:12px;font-weight:900;line-height:1.35}
+.help-feedback.neutral{background:#eff6ff;color:#1d4ed8}
+.help-feedback.correct{background:#dcfce7;color:#166534}
+.help-feedback.incorrect{background:#fee2e2;color:#991b1b}
+.progress-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.progress-stat{background:white;border:1px solid #e2e8f0;border-radius:12px;padding:9px}
+.progress-stat span{display:block;color:#64748b;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.04em}
+.progress-stat strong{display:block;color:#0f172a;font-size:18px;margin-top:3px}
+.mastery-bar{width:100%;height:10px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-top:8px}
+.mastery-fill{height:100%;width:0%;background:linear-gradient(135deg,#2563eb,#7c3aed);border-radius:999px;transition:width .25s ease}
+
 @media (max-width:1100px){
   .shell{grid-template-columns:1fr;padding:18px}
   .math-lab{position:static;max-width:520px;margin:0 auto 24px;width:100%}
@@ -370,6 +394,7 @@ h1{margin-bottom:10px}
       <button class="lab-tab" data-lab-tab="graph">📈 Graph</button>
       <button class="lab-tab" data-lab-tab="stats">📊 Stats</button>
       <button class="lab-tab" data-lab-tab="formula">📋 Formula</button>
+      <button class="lab-tab" data-lab-tab="help">💡 Help</button>
     </div>
 
     <section id="lab-calculator" class="lab-panel active">
@@ -464,6 +489,35 @@ h1{margin-bottom:10px}
       </div>
       <div class="lab-note">Formulas update automatically based on the current lesson problem types.</div>
     </section>
+
+    <section id="lab-help" class="lab-panel">
+      <div class="help-block">
+        <div class="help-title">Current Hint</div>
+        <div id="helpHintBox" class="help-muted">Generate a question to see step-by-step hints.</div>
+      </div>
+
+      <div class="help-block">
+        <div class="help-title">Full Solution</div>
+        <div id="helpSolutionBox" class="help-muted">The full solution appears after you answer.</div>
+      </div>
+
+      <div class="help-block">
+        <div class="help-title">Feedback</div>
+        <div id="helpFeedbackBox" class="help-feedback neutral">No answer submitted yet.</div>
+      </div>
+
+      <div class="help-block">
+        <div class="help-title">Progress</div>
+        <div class="progress-grid">
+          <div class="progress-stat"><span>Attempts</span><strong id="helpAttempts">0</strong></div>
+          <div class="progress-stat"><span>Correct</span><strong id="helpCorrect">0</strong></div>
+          <div class="progress-stat"><span>Accuracy</span><strong id="helpAccuracy">0%</strong></div>
+          <div class="progress-stat"><span>XP</span><strong id="helpXP">0</strong></div>
+        </div>
+        <div class="mastery-bar"><div id="helpMasteryFill" class="mastery-fill"></div></div>
+        <div class="lab-note">Lesson mastery is estimated from your current session performance.</div>
+      </div>
+    </section>
   </aside>
 </div>
 
@@ -483,6 +537,7 @@ function getLessonIdFromUrl(){
 }
 
 let currentLesson = null;
+let currentQuestion = null;
 
 function renderFormulaSheet(lesson){
   const container = document.getElementById("formulaContent");
@@ -509,6 +564,81 @@ function renderFormulaSheet(lesson){
       <div class="formula-note">${item.note}</div>
     </div>
   `).join("");
+}
+
+
+function safeList(items, fallbackText){
+  if(Array.isArray(items) && items.length){
+    return `<ol class="help-steps">${items.map(step => `<li>${step}</li>`).join("")}</ol>`;
+  }
+  return `<div class="help-muted">${fallbackText || "No steps available yet."}</div>`;
+}
+
+function buildFallbackHintSteps(question){
+  if(!question) return [];
+  if(question.hintSteps && question.hintSteps.length) return question.hintSteps;
+  if(question.hint) return [question.hint];
+  return ["Identify the operation.", "Use inverse operations.", "Keep both sides balanced."];
+}
+
+function buildFallbackSolutionSteps(question){
+  if(!question) return [];
+  if(question.solutionSteps && question.solutionSteps.length) return question.solutionSteps;
+  if(question.explanation) return [question.explanation];
+  return ["Review the equation.", "Apply the correct inverse operations.", `Answer: ${question.answer}`];
+}
+
+function renderHelpForQuestion(question, showSolution = false){
+  const hintBox = document.getElementById("helpHintBox");
+  const solutionBox = document.getElementById("helpSolutionBox");
+  const feedbackBox = document.getElementById("helpFeedbackBox");
+  if(!hintBox || !solutionBox || !feedbackBox) return;
+
+  hintBox.innerHTML = safeList(buildFallbackHintSteps(question), question?.hint || "Generate a question to see hints.");
+  solutionBox.innerHTML = showSolution
+    ? safeList(buildFallbackSolutionSteps(question), question?.explanation || "Solution not available.")
+    : `<div class="help-muted">Answer the question to unlock the full solution.</div>`;
+
+  feedbackBox.className = "help-feedback neutral";
+  feedbackBox.textContent = "Work through the steps, then choose an answer.";
+}
+
+function updateHelpFeedback(isCorrect, correctAnswer){
+  const feedbackBox = document.getElementById("helpFeedbackBox");
+  if(!feedbackBox) return;
+  feedbackBox.className = "help-feedback " + (isCorrect ? "correct" : "incorrect");
+  feedbackBox.innerHTML = isCorrect
+    ? "✅ Correct! +10 XP. Great job. Continue to the next question."
+    : `❌ Incorrect. Correct answer: ${correctAnswer}. Review the solution steps.`;
+}
+
+function updateHelpProgress(session){
+  const attemptsEl = document.getElementById("helpAttempts");
+  const correctEl = document.getElementById("helpCorrect");
+  const accuracyEl = document.getElementById("helpAccuracy");
+  const xpEl = document.getElementById("helpXP");
+  const masteryFill = document.getElementById("helpMasteryFill");
+
+  const xp = Number(localStorage.getItem("algebra_xp") || 0);
+  let attempts = 0;
+  let correct = 0;
+
+  if(session){
+    attempts = Number(session.attempts || session.totalAttempts || 0);
+    correct = Number(session.correct || session.correctAttempts || 0);
+  }
+
+  const accuracy = attempts > 0 ? Math.round((correct / attempts) * 100) : 0;
+  if(attemptsEl) attemptsEl.textContent = attempts;
+  if(correctEl) correctEl.textContent = correct;
+  if(accuracyEl) accuracyEl.textContent = accuracy + "%";
+  if(xpEl) xpEl.textContent = xp;
+  if(masteryFill) masteryFill.style.width = Math.min(100, Math.max(0, accuracy)) + "%";
+}
+
+function activateHelpTab(){
+  const helpTab = document.querySelector('[data-lab-tab="help"]');
+  if(helpTab) helpTab.click();
 }
 
 function renderLesson(lesson){
@@ -546,6 +676,7 @@ function renderLesson(lesson){
     ).join("");
 
   renderFormulaSheet(lesson);
+  updateHelpProgress();
 }
 
 function generatePracticeQuestion(){
@@ -555,6 +686,10 @@ function generatePracticeQuestion(){
     currentLesson.id,
     { problemTypes: currentLesson.problemTypes }
   );
+
+  currentQuestion = question;
+  renderHelpForQuestion(question, false);
+  updateHelpProgress();
 
   document.getElementById("questionBox").innerHTML = `
     <div class="question-inner">
@@ -574,10 +709,12 @@ function generatePracticeQuestion(){
       <div id="feedbackBox" style="margin-top:16px;"></div>
 
       <div style="margin-top:18px;color:#475569;">
-        <strong>Hint:</strong> ${question.hint}
+        <strong>Hint:</strong> Open the 💡 Help tab for step-by-step guidance.
       </div>
     </div>
   `;
+
+  activateHelpTab();
 }
 
 window.generatePracticeQuestion = generatePracticeQuestion;
@@ -622,6 +759,11 @@ function checkAnswer(selected, correct){
       </div>
     `;
   }
+
+  renderHelpForQuestion(currentQuestion, true);
+  updateHelpFeedback(isCorrect, correct);
+  updateHelpProgress(session);
+  activateHelpTab();
 }
 
 window.checkAnswer = checkAnswer;
@@ -652,7 +794,8 @@ startLesson();
     calculator: document.getElementById("lab-calculator"),
     graph: document.getElementById("lab-graph"),
     stats: document.getElementById("lab-stats"),
-    formula: document.getElementById("lab-formula")
+    formula: document.getElementById("lab-formula"),
+    help: document.getElementById("lab-help")
   };
 
   tabs.forEach(tab => {
