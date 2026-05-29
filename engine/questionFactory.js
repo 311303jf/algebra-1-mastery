@@ -1,1277 +1,1266 @@
-/* ============================================================
-   Algebra OS — Question Factory 2.0
-   File: engine/questionFactory.js
-
-   PURPOSE:
-   - Dynamic question generation from curriculum/algebra1.json
-   - NO hardcoded lessons
-   - Every question returns:
-     {
-       id, prompt, choices, answer,
-       problemType, difficulty,
-       hintSteps, solutionSteps, misconception
-     }
-
-   IMPORTANT:
-   - lesson.html should pass lesson.problemTypes or allowedProblemTypes
-   - This factory does NOT depend on lesson numbers like 1.1, 1.2, 1.3
-   ============================================================ */
-
-
-/* ============================================================
-   PUBLIC API
-   ============================================================ */
-
-export function generateQuestionForLesson(lesson, options = {}) {
-  const problemTypes =
-    lesson.problemTypes ||
-    lesson.allowedProblemTypes ||
-    lesson.problem_types ||
-    [];
-
-  if (!Array.isArray(problemTypes) || problemTypes.length === 0) {
-    throw new Error(
-      "QuestionFactory 2.0: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
-    );
-  }
-
-  const difficulty = Number(options.difficulty || lesson.difficulty || 1);
-
-  const availableTypes = problemTypes.filter(type => GENERATORS[type]);
-
-  if (availableTypes.length === 0) {
-    throw new Error(
-      "QuestionFactory 2.0: No supported generators found for this lesson. Add generators for: " +
-      problemTypes.join(", ")
-    );
-  }
-
-  const type = pickRandom(availableTypes);
-  const question = GENERATORS[type](difficulty);
-
-  return normalizeQuestion(question, type, difficulty);
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Algebra OS | Lesson</title>
+<style>
+:root{
+  --blue:#2563eb;
+  --purple:#7c3aed;
+  --ink:#0f172a;
+  --muted:#64748b;
+  --bg:#f5f7fb;
+  --card:#ffffff;
+  --line:#e2e8f0;
 }
 
+*{box-sizing:border-box}
 
-export function generateQuestionsForLesson(lesson, count = 10, options = {}) {
-  const questions = [];
-  const seenPrompts = new Set();
-
-  let safety = 0;
-
-  while (questions.length < count && safety < count * 50) {
-    safety++;
-
-    const q = generateQuestionForLesson(lesson, options);
-
-    if (seenPrompts.has(q.prompt)) continue;
-    if (!isQualityQuestion(q)) continue;
-
-    seenPrompts.add(q.prompt);
-    questions.push(q);
-  }
-
-  if (questions.length < count) {
-    throw new Error(
-      "QuestionFactory 2.0: Could not generate enough unique quality questions. Generated " +
-      questions.length +
-      " of " +
-      count +
-      ". Add more variation to the relevant generators."
-    );
-  }
-
-  return questions;
+body{
+  font-family:Arial,sans-serif;
+  background:var(--bg);
+  margin:0;
+  color:var(--ink);
 }
 
+.shell{
+  max-width:1320px;
+  margin:auto;
+  padding:30px;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) 340px;
+  gap:24px;
+  align-items:start;
+}
 
-/* ============================================================
-   GENERATOR REGISTRY
-   Add new problem types here.
-   These names must match algebra1.json problemTypes.
-   ============================================================ */
+.page{max-width:1000px;width:100%}
 
-const GENERATORS = {
-  one_step_equation: generateOneStepEquation,
-one_step_addition_equation: generateOneStepAdditionEquation,
-one_step_subtraction_equation: generateOneStepSubtractionEquation,
-one_step_multiplication_equation: generateOneStepMultiplicationEquation,
-one_step_division_equation: generateOneStepDivisionEquation,
+.card{
+  background:white;
+  border-radius:24px;
+  padding:28px;
+  margin-bottom:20px;
+  box-shadow:0 12px 35px rgba(15,23,42,.08);
+}
 
-  two_step_equation: generateTwoStepEquation,
-  multi_step_equation: generateMultiStepEquation,
-  variables_both_sides: generateVariablesBothSides,
-  distributive_property: generateDistributivePropertyEquation,
-  combine_like_terms: generateCombineLikeTermsEquation,
+.hero{
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  color:white;
+}
 
-  inequality: generateOneStepInequality,
-  inequalities: generateOneStepInequality,
-  one_step_inequality: generateOneStepInequality,
-  one_step_inequalities: generateOneStepInequality,
-  multi_step_inequality: generateMultiStepInequality,
-  multi_step_inequalities: generateMultiStepInequality,
+h1{margin-bottom:10px}
 
-  function_evaluation: generateFunctionEvaluation,
-  functions: generateFunctionEvaluation,
-  relations_functions: generateRelationsFunctions,
-  function_notation: generateFunctionNotation,
-  domain_range: generateDomainRange,
-  multiple_representations: generateMultipleRepresentations,
-  rate_of_change: generateRateOfChange,
+.badge{
+  display:inline-block;
+  background:#dbeafe;
+  color:#1d4ed8;
+  padding:8px 12px;
+  border-radius:999px;
+  font-weight:bold;
+  margin:5px;
+  font-size:13px;
+}
 
-  slope: generateSlope,
-  slope_from_graph: generateSlopeFromGraph,
-  slope_from_table: generateSlopeFromTable,
-  slope_intercept: generateSlopeIntercept,
-  graph_linear_function: generateGraphLinearFunction,
+.btn{
+  background:#2563eb;
+  color:white;
+  border:none;
+  padding:12px 18px;
+  border-radius:12px;
+  font-weight:bold;
+  cursor:pointer;
+}
 
-  systems: generateSystems,
-  scatter_plots: generateScatterPlot,
-  exponent_rules: generateExponentRules,
-  factoring: generateFactoring,
-  quadratics: generateQuadraticRoots
+.btn:hover{filter:brightness(.95)}
+
+.choice-btn{
+  width:100%;
+  text-align:left;
+  padding:12px;
+  margin-bottom:10px;
+  background:white;
+  border-radius:12px;
+  border:1px solid #cbd5e1;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+.choice-btn:hover{background:#f8fafc}
+
+.question-inner{
+  background:#f8fafc;
+  padding:20px;
+  border-radius:18px;
+  border:1px solid #e2e8f0;
+}
+
+/* Student Math Lab */
+.math-lab{
+  position:sticky;
+  top:24px;
+  background:white;
+  border-radius:24px;
+  padding:16px;
+  box-shadow:0 18px 45px rgba(15,23,42,.14);
+  border:1px solid #e5e7eb;
+}
+
+.lab-header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:10px;
+  margin-bottom:12px;
+}
+
+.lab-title{
+  font-weight:900;
+  font-size:15px;
+  line-height:1.2;
+}
+
+.lab-brand{
+  font-size:10px;
+  color:#64748b;
+  font-weight:800;
+  letter-spacing:.08em;
+}
+
+.lab-tabs{
+  display:grid;
+  grid-template-columns:repeat(5,1fr);
+  gap:6px;
+  margin-bottom:14px;
+}
+
+.lab-tab{
+  border:none;
+  border-radius:12px;
+  padding:9px 4px;
+  font-weight:900;
+  cursor:pointer;
+  background:#eef2ff;
+  color:#1e293b;
+  font-size:10px;
+}
+
+.lab-tab.active{
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  color:white;
+}
+
+.lab-panel{display:none}
+.lab-panel.active{display:block}
+
+.lab-note{
+  font-size:11px;
+  color:#64748b;
+  margin-top:10px;
+  line-height:1.35;
+}
+
+/* Calculator */
+.aos-calc-display{
+  width:100%;
+  height:58px;
+  border-radius:14px;
+  border:1px solid #cbd5e1;
+  background:#f8fafc;
+  font-size:24px;
+  font-weight:800;
+  text-align:right;
+  padding:10px 12px;
+  margin-bottom:12px;
+}
+
+.aos-calc-grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+
+.aos-calc-grid button,
+.graph-controls button,
+.stats-controls button{
+  height:40px;
+  border:none;
+  border-radius:12px;
+  background:#eef2ff;
+  color:#1e293b;
+  font-size:15px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.aos-calc-grid button:hover,
+.graph-controls button:hover,
+.stats-controls button:hover{
+  background:#dbeafe;
+}
+
+.aos-calc-grid .equals,
+.graph-controls .primary,
+.stats-controls .primary{
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  color:white;
+}
+
+.aos-calc-grid .danger{
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+/* Tools */
+.tool-label{
+  font-size:12px;
+  font-weight:900;
+  color:#334155;
+  margin:8px 0 5px;
+}
+
+.tool-input,
+.tool-select,
+.tool-textarea{
+  width:100%;
+  border:1px solid #cbd5e1;
+  background:#f8fafc;
+  border-radius:12px;
+  padding:10px;
+  font-weight:800;
+  color:#0f172a;
+}
+
+.tool-textarea{min-height:72px;resize:vertical}
+
+.coeff-grid{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:8px;
+}
+
+.graph-controls,.stats-controls{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+  margin:10px 0;
+}
+
+#graphCanvas{
+  width:100%;
+  height:220px;
+  background:#f8fafc;
+  border:1px solid #cbd5e1;
+  border-radius:16px;
+}
+
+.graph-facts,.stats-results{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  padding:10px;
+  font-size:12px;
+  line-height:1.45;
+}
+
+.fact-row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  border-bottom:1px solid #e2e8f0;
+  padding:5px 0;
+}
+
+.fact-row:last-child{border-bottom:none}
+.fact-row strong{color:#0f172a}
+.fact-row span{color:#475569;text-align:right;font-weight:800}
+
+/* Formula Sheet */
+.formula-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.formula-card{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  padding:12px;
+}
+
+.formula-card strong{
+  display:block;
+  font-size:12px;
+  color:#0f172a;
+  margin-bottom:8px;
+}
+
+.formula-expression{
+  background:white;
+  border:1px solid #dbeafe;
+  color:#2563eb;
+  border-radius:10px;
+  padding:9px;
+  font-size:15px;
+  font-weight:900;
+  line-height:1.3;
+}
+
+.formula-note{
+  margin-top:7px;
+  color:#64748b;
+  font-size:11px;
+  line-height:1.35;
+}
+
+/* Help Panel */
+.help-block{
+  background:#f8fafc;
+  border:1px solid #e2e8f0;
+  border-radius:16px;
+  padding:12px;
+  margin-bottom:12px;
+}
+
+.help-title{
+  font-size:12px;
+  font-weight:900;
+  color:#0f172a;
+  margin-bottom:8px;
+}
+
+.help-muted{
+  color:#64748b;
+  font-size:12px;
+  line-height:1.35;
+}
+
+.help-steps{
+  margin:0;
+  padding-left:20px;
+  color:#334155;
+  font-size:12px;
+  line-height:1.5;
+}
+
+.help-steps li{
+  margin-bottom:6px;
+}
+
+.help-feedback{
+  border-radius:14px;
+  padding:12px;
+  font-size:12px;
+  font-weight:900;
+  line-height:1.35;
+}
+
+.help-feedback.neutral{
+  background:#eff6ff;
+  color:#1d4ed8;
+}
+
+.help-feedback.correct{
+  background:#dcfce7;
+  color:#166534;
+}
+
+.help-feedback.incorrect{
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+.help-feedback.assisted{
+  background:#fef3c7;
+  color:#92400e;
+}
+
+.progress-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:8px;
+}
+
+.progress-stat{
+  background:white;
+  border:1px solid #e2e8f0;
+  border-radius:12px;
+  padding:9px;
+}
+
+.progress-stat span{
+  display:block;
+  color:#64748b;
+  font-size:10px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+
+.progress-stat strong{
+  display:block;
+  color:#0f172a;
+  font-size:18px;
+  margin-top:3px;
+}
+
+.mastery-bar{
+  width:100%;
+  height:10px;
+  background:#e2e8f0;
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:8px;
+}
+
+.mastery-fill{
+  height:100%;
+  width:0%;
+  background:linear-gradient(135deg,#2563eb,#7c3aed);
+  border-radius:999px;
+  transition:width .25s ease;
+}
+
+@media (max-width:1100px){
+  .shell{grid-template-columns:1fr;padding:18px}
+  .math-lab{position:static;max-width:520px;margin:0 auto 24px;width:100%}
+}
+</style>
+</head>
+
+<body>
+<div class="shell">
+  <main class="page">
+    <button class="btn" onclick="window.location.href='index.html'">← Back to Dashboard</button>
+
+    <section class="card hero">
+      <h1 id="lessonTitle">Loading lesson...</h1>
+      <p id="lessonObjective"></p>
+    </section>
+
+    <section class="card">
+      <h2>🎯 Learning Objective</h2>
+      <p id="objectiveText"></p>
+    </section>
+
+    <section class="card">
+      <h2>🧠 Skills</h2>
+      <div id="skillsList"></div>
+    </section>
+
+    <section class="card">
+      <h2>📊 Lesson Metadata</h2>
+      <p><strong>Standard:</strong> <span id="standardText"></span></p>
+      <p><strong>DOK Levels:</strong> <span id="dokText"></span></p>
+      <p><strong>EOC Rigor:</strong> <span id="rigorText"></span></p>
+      <p><strong>Real-World Required:</strong> <span id="realWorldText"></span></p>
+    </section>
+
+    <section class="card">
+      <h2>🧪 Question Engine Preview</h2>
+      <p>This lesson will generate questions using these problem types:</p>
+      <div id="problemTypes"></div>
+      <br>
+      <button class="btn" onclick="generatePracticeQuestion()">Generate Practice Question</button>
+      <div id="questionBox" style="margin-top:20px;"></div>
+    </section>
+  </main>
+
+  <aside class="math-lab" aria-label="Student Math Lab">
+    <div class="lab-header">
+      <div class="lab-title">🔬 Student Math Lab</div>
+      <div class="lab-brand">ALGEBRA OS</div>
+    </div>
+
+    <div class="lab-tabs">
+      <button class="lab-tab active" data-lab-tab="calculator">🧮 Calc</button>
+      <button class="lab-tab" data-lab-tab="graph">📈 Graph</button>
+      <button class="lab-tab" data-lab-tab="stats">📊 Stats</button>
+      <button class="lab-tab" data-lab-tab="formula">📋 Formula</button>
+      <button class="lab-tab" data-lab-tab="help">💡 Help</button>
+    </div>
+
+    <section id="lab-calculator" class="lab-panel active">
+      <input id="calcDisplay" class="aos-calc-display" readonly placeholder="0" />
+
+      <div class="aos-calc-grid">
+        <button data-calc="C" class="danger">C</button>
+        <button data-calc="back">⌫</button>
+        <button data-calc="(">(</button>
+        <button data-calc=")">)</button>
+
+        <button data-calc="7">7</button>
+        <button data-calc="8">8</button>
+        <button data-calc="9">9</button>
+        <button data-calc="/">÷</button>
+
+        <button data-calc="4">4</button>
+        <button data-calc="5">5</button>
+        <button data-calc="6">6</button>
+        <button data-calc="*">×</button>
+
+        <button data-calc="1">1</button>
+        <button data-calc="2">2</button>
+        <button data-calc="3">3</button>
+        <button data-calc="-">−</button>
+
+        <button data-calc="0">0</button>
+        <button data-calc=".">.</button>
+        <button data-calc="=" class="equals">=</button>
+        <button data-calc="+">+</button>
+
+        <button data-calc="square">x²</button>
+        <button data-calc="sqrt">√</button>
+        <button data-calc="pi">π</button>
+        <button data-calc="percent">%</button>
+      </div>
+
+      <div class="lab-note">Built-in classroom tool for arithmetic, square roots, exponents, percentages, and π.</div>
+    </section>
+
+    <section id="lab-graph" class="lab-panel">
+      <div class="tool-label">Function Type</div>
+      <select id="graphType" class="tool-select">
+        <option value="linear">Linear: y = mx + b</option>
+        <option value="quadratic">Quadratic: y = ax² + bx + c</option>
+        <option value="exponential">Exponential: y = a·b^x</option>
+      </select>
+
+      <div class="coeff-grid">
+        <div>
+          <div class="tool-label" id="coefALabel">m</div>
+          <input id="coefA" class="tool-input" type="number" step="0.5" value="2" />
+        </div>
+        <div>
+          <div class="tool-label" id="coefBLabel">b</div>
+          <input id="coefB" class="tool-input" type="number" step="0.5" value="1" />
+        </div>
+        <div>
+          <div class="tool-label" id="coefCLabel">c</div>
+          <input id="coefC" class="tool-input" type="number" step="0.5" value="0" />
+        </div>
+      </div>
+
+      <div class="graph-controls">
+        <button class="primary" onclick="drawGraph()">Graph</button>
+        <button onclick="resetGraphTool()">Reset</button>
+      </div>
+
+      <canvas id="graphCanvas" width="560" height="420"></canvas>
+      <div id="graphFacts" class="graph-facts" style="margin-top:10px;"></div>
+    </section>
+
+    <section id="lab-stats" class="lab-panel">
+      <div class="tool-label">Data Values</div>
+      <textarea id="statsInput" class="tool-textarea" placeholder="Example: 12, 15, 18, 22, 10">12, 15, 18, 22, 10</textarea>
+
+      <div class="stats-controls">
+        <button class="primary" onclick="computeStats()">Compute</button>
+        <button onclick="resetStatsTool()">Reset</button>
+      </div>
+
+      <div id="statsResults" class="stats-results"></div>
+      <div class="lab-note">Computes mean, median, mode, range, minimum, maximum, and count.</div>
+    </section>
+
+    <section id="lab-formula" class="lab-panel">
+      <div id="formulaContent" class="formula-list">
+        <div class="formula-card">
+          <strong>Loading formulas...</strong>
+          <div class="formula-expression">Please wait.</div>
+        </div>
+      </div>
+      <div class="lab-note">Formulas update automatically based on the current lesson problem types.</div>
+    </section>
+
+    <section id="lab-help" class="lab-panel">
+      <div class="help-block">
+        <div class="help-title">Current Hint</div>
+        <div id="helpHintBox" class="help-muted">Generate a question to see step-by-step hints.</div>
+      </div>
+
+      <div class="help-block">
+        <div class="help-title">Full Solution</div>
+        <div id="helpSolutionBox" class="help-muted">The full solution appears after you answer.</div>
+      </div>
+
+      <div class="help-block">
+        <div class="help-title">Feedback</div>
+        <div id="helpFeedbackBox" class="help-feedback neutral">No answer submitted yet.</div>
+      </div>
+
+      <div class="help-block">
+        <div class="help-title">Progress</div>
+        <div class="progress-grid">
+          <div class="progress-stat"><span>Attempts</span><strong id="helpAttempts">0</strong></div>
+          <div class="progress-stat"><span>Correct</span><strong id="helpCorrect">0</strong></div>
+          <div class="progress-stat"><span>Accuracy</span><strong id="helpAccuracy">0%</strong></div>
+          <div class="progress-stat"><span>XP</span><strong id="helpXP">0</strong></div>
+        </div>
+        <div class="mastery-bar"><div id="helpMasteryFill" class="mastery-fill"></div></div>
+        <div class="lab-note">Assisted questions do not count toward accuracy, mastery, or XP.</div>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<script type="module">
+import {
+  loadCurriculum,
+  getLessonById
+} from "./engine/curriculumEngine.js";
+
+import "./engine/questionFactory.js";
+import "./engine/studentSessionEngine.js";
+import "./engine/formulaEngine.js";
+
+function getLessonIdFromUrl(){
+  const params = new URLSearchParams(window.location.search);
+  return params.get("id") || "1.1";
+}
+
+let currentLesson = null;
+let currentQuestion = null;
+let hintUsedForCurrentQuestion = false;
+  let helpProgress = {
+  attempts: 0,
+  correct: 0
 };
 
+function renderFormulaSheet(lesson){
+  const container = document.getElementById("formulaContent");
+  if(!container) return;
 
-/* ============================================================
-   QUESTION METADATA
-   Reusable instructional language for Help Panel.
-   ============================================================ */
+  let formulas = [];
 
-const METADATA = {
-  one_step_equation: {
-    hintSteps: [
-      "Identify the operation being done to the variable.",
-      "Use the inverse operation on both sides.",
-      "Check that the variable is isolated."
-    ],
-    misconception:
-      "Students often use the same operation instead of the inverse operation."
-  },
-
-   one_step_addition_equation: {
-  hintSteps: [
-    "Identify the number being added to x.",
-    "Use subtraction to undo addition.",
-    "Subtract the same number from both sides."
-  ],
-  misconception:
-    "Students often add again instead of subtracting to undo addition."
-},
-
-one_step_subtraction_equation: {
-  hintSteps: [
-    "Identify the number being subtracted from x.",
-    "Use addition to undo subtraction.",
-    "Add the same number to both sides."
-  ],
-  misconception:
-    "Students often subtract again instead of adding to undo subtraction."
-},
-
-one_step_multiplication_equation: {
-  hintSteps: [
-    "Identify the coefficient multiplying x.",
-    "Use division to undo multiplication.",
-    "Divide both sides by the coefficient."
-  ],
-  misconception:
-    "Students often multiply again instead of dividing to isolate x."
-},
-
-one_step_division_equation: {
-  hintSteps: [
-    "Identify the number x is divided by.",
-    "Use multiplication to undo division.",
-    "Multiply both sides by the divisor."
-  ],
-  misconception:
-    "Students often divide again instead of multiplying to isolate x."
-},
-
-  two_step_equation: {
-    hintSteps: [
-      "Undo addition or subtraction first.",
-      "Then undo multiplication or division.",
-      "Keep the equation balanced by doing the same operation to both sides."
-    ],
-    misconception:
-      "Students often reverse the order of inverse operations."
-  },
-
-  multi_step_equation: {
-    hintSteps: [
-      "Simplify both sides if needed.",
-      "Move constants away from the variable term.",
-      "Divide by the coefficient of the variable."
-    ],
-    misconception:
-      "Students often skip the simplification step before solving."
-    },
-
-  variables_both_sides: {
-    hintSteps: [
-      "Move all variable terms to one side.",
-      "Move all constants to the other side.",
-      "Divide by the remaining coefficient."
-    ],
-    misconception:
-      "Students often move constants before combining variable terms, which can cause sign errors."
-  },
-
-  distributive_property: {
-    hintSteps: [
-      "Distribute the number outside the parentheses.",
-      "Combine like terms if needed.",
-      "Use inverse operations to isolate the variable."
-    ],
-    misconception:
-      "Students often distribute to the first term only and forget the second term."
-  },
-
-  combine_like_terms: {
-    hintSteps: [
-      "Combine variable terms with variable terms.",
-      "Combine constants with constants.",
-      "Then solve the simplified equation."
-    ],
-    misconception:
-      "Students often combine unlike terms, such as variable terms and constants."
-  },
-
-  inequalities: {
-    hintSteps: [
-      "Solve the inequality like an equation.",
-      "Use inverse operations on both sides.",
-      "If you multiply or divide by a negative number, reverse the inequality symbol."
-    ],
-    misconception:
-      "Students often forget to reverse the inequality symbol when multiplying or dividing by a negative number."
-  },
-
-  functions: {
-    hintSteps: [
-      "Replace the input variable with the given value.",
-      "Simplify using the order of operations.",
-      "The final value is the output."
-    ],
-    misconception:
-      "Students often confuse the input value with the output value."
-  },
-
-  relations_functions: {
-    hintSteps: [
-      "Check whether each input has exactly one output.",
-      "If an input repeats with different outputs, the relation is not a function.",
-      "If every input has only one output, the relation is a function."
-    ],
-    misconception:
-      "Students often think repeated outputs make a relation not a function, but repeated inputs are what matter."
-  },
-
-  function_notation: {
-    hintSteps: [
-      "Identify the input inside the parentheses.",
-      "Substitute that value for x.",
-      "Simplify to find the output."
-    ],
-    misconception:
-      "Students often treat f(x) as multiplication instead of function notation."
-  },
-
-  domain_range: {
-    hintSteps: [
-      "Domain is the set of input values.",
-      "Range is the set of output values.",
-      "List each value only once."
-    ],
-    misconception:
-      "Students often switch domain and range."
-  },
-
-  multiple_representations: {
-    hintSteps: [
-      "Identify the rule or pattern.",
-      "Match the same input-output pairs across representations.",
-      "Check that the table, equation, graph, or description represent the same relationship."
-    ],
-    misconception:
-      "Students often match by appearance instead of checking input-output values."
-  },
-
-  rate_of_change: {
-    hintSteps: [
-      "Find the change in y.",
-      "Find the change in x.",
-      "Divide change in y by change in x."
-    ],
-    misconception:
-      "Students often reverse the ratio and calculate change in x over change in y."
-  },
-
-  slope: {
-    hintSteps: [
-      "Use the slope formula.",
-      "Subtract the y-values.",
-      "Subtract the x-values in the same order.",
-      "Simplify the ratio."
-    ],
-    misconception:
-      "Students often subtract coordinates in different orders, which changes the sign of the slope."
-  },
-
-  slope_intercept: {
-    hintSteps: [
-      "Identify the slope m.",
-      "Identify the y-intercept b.",
-      "Write the equation in the form y = mx + b."
-    ],
-    misconception:
-      "Students often confuse the slope with the y-intercept."
-  },
-
-  systems: {
-    hintSteps: [
-      "Look for a variable that can be eliminated or substituted.",
-      "Solve for one variable.",
-      "Substitute that value to find the other variable."
-    ],
-    misconception:
-      "Students often solve for only one variable and forget that the solution is an ordered pair."
-  },
-
-  scatter_plots: {
-    hintSteps: [
-      "Look at the overall direction of the data.",
-      "Decide whether the association is positive, negative, or no association.",
-      "Use the pattern of points to interpret the relationship."
-    ],
-    misconception:
-      "Students often focus on one point instead of the overall trend."
-  },
-
-  exponent_rules: {
-    hintSteps: [
-      "Identify whether the expression uses multiplication, division, or a power of a power.",
-      "Apply the matching exponent rule.",
-      "Simplify the exponent."
-    ],
-    misconception:
-      "Students often multiply exponents when they should add them, or add when they should multiply."
-  },
-
-  factoring: {
-    hintSteps: [
-      "Look for the greatest common factor first.",
-      "For trinomials, find two numbers that multiply to c and add to b.",
-      "Write the expression as a product of factors."
-    ],
-    misconception:
-      "Students often choose factors that multiply correctly but do not add to the middle coefficient."
-  },
-
-  quadratics: {
-    hintSteps: [
-      "Set the quadratic equal to zero.",
-      "Factor if possible.",
-      "Use the zero product property to solve."
-    ],
-    misconception:
-      "Students often factor correctly but forget to set each factor equal to zero."
-  }
-};
-
-
-/* ============================================================
-   GENERATORS — EQUATIONS
-   ============================================================ */
-
-function generateOneStepEquation(difficulty = 1) {
-  const x = randInt(-10, 10, [0]);
-  const a = randInt(2, 12);
-  const useAdd = Math.random() < 0.5;
-
-  let prompt;
-  let solutionSteps;
-
-  if (useAdd) {
-    const b = randInt(-15, 15, [0]);
-    const result = x + b;
-
-    prompt = `Solve for x: x ${formatSigned(b)} = ${result}`;
-    solutionSteps = [
-      `Original equation: x ${formatSigned(b)} = ${result}`,
-      `Use the inverse operation of ${formatSigned(b)}.`,
-      `x = ${result - b}`
-    ];
-  } else {
-    const result = a * x;
-
-    prompt = `Solve for x: ${a}x = ${result}`;
-    solutionSteps = [
-      `Original equation: ${a}x = ${result}`,
-      `Divide both sides by ${a}.`,
-      `x = ${x}`
-    ];
+  if(window.AlgebraFormulaEngine && typeof AlgebraFormulaEngine.getFormulasForLesson === "function"){
+    formulas = AlgebraFormulaEngine.getFormulasForLesson(lesson);
   }
 
-  return buildQuestion({
-    prompt,
-    answer: `x = ${x}`,
-    problemType: "one_step_equation",
-    difficulty,
-    solutionSteps
-  });
-}
-function generateOneStepAdditionEquation(difficulty = 1) {
-  const x = randInt(-10, 10, [0]);
-  const b = randInt(1, 15);
-  const result = x + b;
+  if(!formulas.length){
+    formulas = [{
+      title: "Equation Solving",
+      formula: "Use inverse operations on both sides.",
+      note: "Whatever you do to one side of the equation, do to the other side."
+    }];
+  }
 
-  return buildQuestion({
-    prompt: `Solve for x: x + ${b} = ${result}`,
-    answer: `x = ${x}`,
-    problemType: "one_step_addition_equation",
-    difficulty,
-    solutionSteps: [
-      `Original equation: x + ${b} = ${result}`,
-      `Subtract ${b} from both sides.`,
-      `x = ${result - b}`,
-      `x = ${x}`
-    ]
-  });
+  container.innerHTML = formulas.map(item => `
+    <div class="formula-card">
+      <strong>${item.title}</strong>
+      <div class="formula-expression">${item.formula}</div>
+      <div class="formula-note">${item.note}</div>
+    </div>
+  `).join("");
 }
 
-function generateOneStepSubtractionEquation(difficulty = 1) {
-  const x = randInt(-10, 10, [0]);
-  const b = randInt(1, 15);
-  const result = x - b;
+function renderLesson(lesson){
+  currentLesson = lesson;
 
-  return buildQuestion({
-    prompt: `Solve for x: x - ${b} = ${result}`,
-    answer: `x = ${x}`,
-    problemType: "one_step_subtraction_equation",
-    difficulty,
-    solutionSteps: [
-      `Original equation: x - ${b} = ${result}`,
-      `Add ${b} to both sides.`,
-      `x = ${result + b}`,
-      `x = ${x}`
-    ]
-  });
+  document.getElementById("lessonTitle").textContent =
+    lesson.id + " — " + lesson.title;
+
+  document.getElementById("lessonObjective").textContent =
+    lesson.essentialQuestion || "";
+
+  document.getElementById("objectiveText").textContent =
+    lesson.objective || "";
+
+  document.getElementById("standardText").textContent =
+    lesson.standard || "Not listed";
+
+  document.getElementById("dokText").textContent =
+    (lesson.dokLevels || []).join(", ");
+
+  document.getElementById("rigorText").textContent =
+    lesson.eocRigor || "Not listed";
+
+  document.getElementById("realWorldText").textContent =
+    lesson.realWorldRequired ? "Yes" : "No";
+
+  document.getElementById("skillsList").innerHTML =
+    (lesson.skills || []).map(skill =>
+      `<span class="badge">${skill}</span>`
+    ).join("");
+
+  document.getElementById("problemTypes").innerHTML =
+    (lesson.problemTypes || []).map(type =>
+      `<span class="badge">${type}</span>`
+    ).join("");
+
+  renderFormulaSheet(lesson);
+  updateHelpProgress();
 }
 
-function generateOneStepMultiplicationEquation(difficulty = 1) {
-  const x = randInt(-10, 10, [0]);
-  const a = randInt(2, 12);
-  const result = a * x;
-
-  return buildQuestion({
-    prompt: `Solve for x: ${a}x = ${result}`,
-    answer: `x = ${x}`,
-    problemType: "one_step_multiplication_equation",
-    difficulty,
-    solutionSteps: [
-      `Original equation: ${a}x = ${result}`,
-      `Divide both sides by ${a}.`,
-      `x = ${result / a}`,
-      `x = ${x}`
-    ]
-  });
+function safeList(items, fallbackText){
+  if(Array.isArray(items) && items.length){
+    return `<ol class="help-steps">${items.map(step => `<li>${step}</li>`).join("")}</ol>`;
+  }
+  return `<div class="help-muted">${fallbackText || "No steps available yet."}</div>`;
 }
 
-function generateOneStepDivisionEquation(difficulty = 1) {
-  const a = randInt(2, 12);
-  const result = randInt(-10, 10, [0]);
-  const x = a * result;
-
-  return buildQuestion({
-    prompt: `Solve for x: x ÷ ${a} = ${result}`,
-    answer: `x = ${x}`,
-    problemType: "one_step_division_equation",
-    difficulty,
-    solutionSteps: [
-      `Original equation: x ÷ ${a} = ${result}`,
-      `Multiply both sides by ${a}.`,
-      `x = ${result} × ${a}`,
-      `x = ${x}`
-    ]
-  });
+function buildFallbackHintSteps(question){
+  if(!question) return [];
+  if(Array.isArray(question.hintSteps) && question.hintSteps.length) return question.hintSteps;
+  if(question.hint) return [
+    question.hint,
+    "Use the formula or strategy from the Formula tab.",
+    "Keep both sides balanced and simplify carefully."
+  ];
+  return ["Identify the operation.", "Use inverse operations.", "Keep both sides balanced."];
 }
 
-
-function generateTwoStepEquation(difficulty = 1) {
-  const x = randInt(-8, 8, [0]);
-  const a = randInt(2, 9);
-  const b = randInt(-12, 12, [0]);
-  const result = a * x + b;
-
-  const prompt = `Solve for x: ${a}x ${formatSigned(b)} = ${result}`;
-
-  return buildQuestion({
-    prompt,
-    answer: `x = ${x}`,
-    problemType: "two_step_equation",
-    difficulty,
-    solutionSteps: [
-      `Original equation: ${a}x ${formatSigned(b)} = ${result}`,
-      `Subtract ${b} from both sides.`,
-      `${a}x = ${result - b}`,
-      `Divide both sides by ${a}.`,
-      `x = ${x}`
-    ]
-  });
+function buildFallbackSolutionSteps(question){
+  if(!question) return [];
+  if(Array.isArray(question.solutionSteps) && question.solutionSteps.length) return question.solutionSteps;
+  if(question.explanation) return [
+    question.explanation,
+    `Final answer: ${question.answer}`
+  ];
+  return ["Review the equation.", "Apply the correct inverse operations.", `Answer: ${question.answer}`];
 }
 
+function renderHelpForQuestion(question, showSolution = false){
+  const hintBox = document.getElementById("helpHintBox");
+  const solutionBox = document.getElementById("helpSolutionBox");
+  const feedbackBox = document.getElementById("helpFeedbackBox");
 
-function generateMultiStepEquation(difficulty = 1) {
-  const x = randInt(-8, 8, [0]);
-  const a = randInt(2, 7);
-  const b = randInt(-10, 10, [0]);
-  const c = randInt(-8, 8, [0]);
-  const result = a * x + b + c;
+  if(!hintBox || !solutionBox || !feedbackBox) return;
 
-  const prompt = `Solve for x: ${a}x ${formatSigned(b)} ${formatSigned(c)} = ${result}`;
+  const hintSteps = buildFallbackHintSteps(question);
+  const solutionSteps = buildFallbackSolutionSteps(question);
 
-  return buildQuestion({
-    prompt,
-    answer: `x = ${x}`,
-    problemType: "multi_step_equation",
-    difficulty,
-    solutionSteps: [
-      `Original equation: ${a}x ${formatSigned(b)} ${formatSigned(c)} = ${result}`,
-      `Combine constants: ${b} ${formatSigned(c)} = ${b + c}`,
-      `${a}x ${formatSigned(b + c)} = ${result}`,
-      `Subtract ${b + c} from both sides.`,
-      `${a}x = ${result - (b + c)}`,
-      `Divide both sides by ${a}.`,
-      `x = ${x}`
-    ]
-  });
+  if(!question){
+    hintBox.innerHTML = `<div class="help-muted">Generate a question to see step-by-step hints.</div>`;
+  }else if(!hintUsedForCurrentQuestion){
+    hintBox.innerHTML = `
+      <div class="help-muted">
+        Hint is hidden. Use it only if you need support.
+        If you use the hint, this question becomes assisted practice and will not count toward mastery or XP.
+      </div>
+      <button class="btn" style="margin-top:10px;width:100%;" onclick="showHintSteps()">
+        Show Hint Steps
+      </button>
+    `;
+  }else{
+    hintBox.innerHTML = safeList(hintSteps, question?.hint || "No hint available.");
+  }
+
+  if(showSolution){
+    solutionBox.innerHTML = safeList(solutionSteps, question?.explanation || "Solution not available.");
+  }else{
+    solutionBox.innerHTML = `<div class="help-muted">Answer the question to unlock the full solution.</div>`;
+  }
+
+  feedbackBox.className = "help-feedback " + (hintUsedForCurrentQuestion ? "assisted" : "neutral");
+  feedbackBox.textContent = hintUsedForCurrentQuestion
+    ? "Assisted practice: this question will not count toward mastery or XP."
+    : "Work independently, then choose an answer.";
 }
 
-
-function generateVariablesBothSides(difficulty = 1) {
-  const x = randInt(-8, 8, [0]);
-  const a = randInt(4, 10);
-  const c = randInt(1, a - 1);
-  const b = randInt(-12, 12, [0]);
-  const d = a * x + b - c * x;
-
-  const prompt = `Solve for x: ${a}x ${formatSigned(b)} = ${c}x ${formatSigned(d)}`;
-
-  return buildQuestion({
-    prompt,
-    answer: `x = ${x}`,
-    problemType: "variables_both_sides",
-    difficulty,
-    solutionSteps: [
-      `Original equation: ${a}x ${formatSigned(b)} = ${c}x ${formatSigned(d)}`,
-      `Subtract ${c}x from both sides.`,
-      `${a - c}x ${formatSigned(b)} = ${d}`,
-      `Subtract ${b} from both sides.`,
-      `${a - c}x = ${d - b}`,
-      `Divide both sides by ${a - c}.`,
-      `x = ${x}`
-    ]
-  });
+function showHintSteps(){
+  hintUsedForCurrentQuestion = true;
+  renderHelpForQuestion(currentQuestion, false);
 }
 
+window.showHintSteps = showHintSteps;
 
-function generateDistributivePropertyEquation(difficulty = 1) {
-  const x = randInt(-6, 6, [0]);
-  const a = randInt(2, 6);
-  const b = randInt(-8, 8, [0]);
-  const c = randInt(-10, 10, [0]);
-  const result = a * (x + b) + c;
+function updateHelpFeedback(isCorrect, correctAnswer){
+  const feedbackBox = document.getElementById("helpFeedbackBox");
+  if(!feedbackBox) return;
 
-  const prompt = `Solve for x: ${a}(x ${formatSigned(b)}) ${formatSigned(c)} = ${result}`;
+  if(hintUsedForCurrentQuestion){
+    feedbackBox.className = "help-feedback assisted";
+    feedbackBox.innerHTML = isCorrect
+      ? "🟡 Assisted correct. Good learning, but this question does not count toward mastery or XP."
+      : `🟡 Assisted practice. Correct answer: ${correctAnswer}. Review the solution steps.`;
+    return;
+  }
 
-  return buildQuestion({
-    prompt,
-    answer: `x = ${x}`,
-    problemType: "distributive_property",
-    difficulty,
-    solutionSteps: [
-      `Original equation: ${a}(x ${formatSigned(b)}) ${formatSigned(c)} = ${result}`,
-      `Distribute ${a}: ${a}x ${formatSigned(a * b)} ${formatSigned(c)} = ${result}`,
-      `Combine constants: ${a}x ${formatSigned(a * b + c)} = ${result}`,
-      `Subtract ${a * b + c} from both sides.`,
-      `${a}x = ${result - (a * b + c)}`,
-      `Divide both sides by ${a}.`,
-      `x = ${x}`
-    ]
-  });
+  feedbackBox.className = "help-feedback " + (isCorrect ? "correct" : "incorrect");
+  feedbackBox.innerHTML = isCorrect
+    ? "✅ Correct! +10 XP. Great job. Continue to the next question."
+    : `❌ Incorrect. Correct answer: ${correctAnswer}. Review the solution steps.`;
 }
 
+function updateHelpProgress(){
+  const attemptsEl = document.getElementById("helpAttempts");
+  const correctEl = document.getElementById("helpCorrect");
+  const accuracyEl = document.getElementById("helpAccuracy");
+  const xpEl = document.getElementById("helpXP");
+  const masteryFill = document.getElementById("helpMasteryFill");
 
-function generateCombineLikeTermsEquation(difficulty = 1) {
-  const x = randInt(-7, 7, [0]);
-  const a = randInt(2, 8);
-  const b = randInt(1, 7);
-  const c = randInt(-10, 10, [0]);
-  const result = (a + b) * x + c;
+  const attempts = helpProgress.attempts;
+  const correct = helpProgress.correct;
+  const xp = Number(localStorage.getItem("algebra_xp") || 0);
 
-  const prompt = `Solve for x: ${a}x + ${b}x ${formatSigned(c)} = ${result}`;
+  const accuracy = attempts > 0
+    ? Math.round((correct / attempts) * 100)
+    : 0;
 
-  return buildQuestion({
-    prompt,
-    answer: `x = ${x}`,
-    problemType: "combine_like_terms",
-    difficulty,
-    solutionSteps: [
-      `Original equation: ${a}x + ${b}x ${formatSigned(c)} = ${result}`,
-      `Combine like terms: ${a}x + ${b}x = ${a + b}x`,
-      `${a + b}x ${formatSigned(c)} = ${result}`,
-      `Subtract ${c} from both sides.`,
-      `${a + b}x = ${result - c}`,
-      `Divide both sides by ${a + b}.`,
-      `x = ${x}`
-    ]
-  });
+  if(attemptsEl) attemptsEl.textContent = attempts;
+  if(correctEl) correctEl.textContent = correct;
+  if(accuracyEl) accuracyEl.textContent = accuracy + "%";
+  if(xpEl) xpEl.textContent = xp;
+  if(masteryFill) masteryFill.style.width = accuracy + "%";
 }
 
-
-/* ============================================================
-   GENERATORS — INEQUALITIES
-   ============================================================ */
-
-function generateOneStepInequality(difficulty = 1) {
-  const x = randInt(-10, 10, [0]);
-  const a = randInt(2, 8);
-  const symbol = pickRandom([">", "<", "≥", "≤"]);
-  const result = a * x;
-
-  const prompt = `Solve the inequality: ${a}x ${symbol} ${result}`;
-
-  return buildQuestion({
-    prompt,
-    answer: `x ${symbol} ${x}`,
-    problemType: "inequalities",
-    difficulty,
-    solutionSteps: [
-      `Original inequality: ${a}x ${symbol} ${result}`,
-      `Divide both sides by ${a}.`,
-      `Because ${a} is positive, keep the inequality symbol the same.`,
-      `x ${symbol} ${x}`
-    ]
-  });
+function activateHelpTab(){
+  const helpTab = document.querySelector('[data-lab-tab="help"]');
+  if(helpTab) helpTab.click();
 }
 
+function generatePracticeQuestion(){
+  if(!currentLesson) return;
 
-function generateMultiStepInequality(difficulty = 1) {
-  const x = randInt(-8, 8, [0]);
-  const a = randInt(2, 7);
-  const b = randInt(-10, 10, [0]);
-  const symbol = pickRandom([">", "<", "≥", "≤"]);
-  const result = a * x + b;
+  const question = AlgebraQuestionFactory.generateOne(
+    currentLesson.id,
+    { problemTypes: currentLesson.problemTypes }
+  );
 
-  const prompt = `Solve the inequality: ${a}x ${formatSigned(b)} ${symbol} ${result}`;
+  currentQuestion = question;
+  hintUsedForCurrentQuestion = false;
 
-  return buildQuestion({
-    prompt,
-    answer: `x ${symbol} ${x}`,
-    problemType: "inequalities",
-    difficulty,
-    solutionSteps: [
-      `Original inequality: ${a}x ${formatSigned(b)} ${symbol} ${result}`,
-      `Subtract ${b} from both sides.`,
-      `${a}x ${symbol} ${result - b}`,
-      `Divide both sides by ${a}.`,
-      `x ${symbol} ${x}`
-    ]
-  });
+  renderHelpForQuestion(question, false);
+  updateHelpProgress();
+
+  document.getElementById("questionBox").innerHTML = `
+    <div class="question-inner">
+      <h3 style="margin-bottom:14px;">${question.prompt}</h3>
+
+      ${question.choices.map(choice => `
+        <button
+          class="choice-btn"
+          onclick="checkAnswer(this.dataset.choice, this.dataset.correct)"
+          data-choice="${String(choice).replace(/"/g, '&quot;')}"
+          data-correct="${String(question.answer).replace(/"/g, '&quot;')}"
+        >
+          ${choice}
+        </button>
+      `).join("")}
+
+      <div id="feedbackBox" style="margin-top:16px;"></div>
+
+      <div style="margin-top:18px;color:#475569;">
+        <strong>Hint:</strong> Open the 💡 Help tab. If you use the hint, this question becomes assisted practice.
+      </div>
+    </div>
+  `;
+
+  activateHelpTab();
 }
 
+window.generatePracticeQuestion = generatePracticeQuestion;
 
-/* ============================================================
-   GENERATORS — FUNCTIONS, SLOPE, SYSTEMS
-   ============================================================ */
+function checkAnswer(selected, correct){
+  const feedback = document.getElementById("feedbackBox");
+  if(feedback.dataset.answered === "true") return;
 
-function generateFunctionEvaluation(difficulty = 1) {
-  const m = randInt(-5, 5, [0]);
-  const b = randInt(-10, 10);
-  const x = randInt(-6, 6);
-  const y = m * x + b;
+  feedback.dataset.answered = "true";
 
-  const prompt = `If f(x) = ${m}x ${formatSigned(b)}, find f(${x}).`;
-
-  return buildQuestion({
-    prompt,
-    answer: `${y}`,
-    problemType: "functions",
-    difficulty,
-    solutionSteps: [
-      `Replace x with ${x}.`,
-      `f(${x}) = ${m}(${x}) ${formatSigned(b)}`,
-      `f(${x}) = ${m * x} ${formatSigned(b)}`,
-      `f(${x}) = ${y}`
-    ]
+  const buttons = document.querySelectorAll("#questionBox button");
+  buttons.forEach(button => {
+    button.disabled = true;
+    button.style.cursor = "not-allowed";
+    button.style.opacity = "0.65";
   });
+
+  const isCorrect = String(selected) === String(correct);
+
+  let session = null;
+
+if(!hintUsedForCurrentQuestion){
+  helpProgress.attempts += 1;
+
+  if(isCorrect){
+    helpProgress.correct += 1;
+  }
+
+  session = AlgebraStudentSessionEngine.recordAttempt(
+    currentLesson.id,
+    isCorrect,
+    "core"
+  );
+
+  console.log("Session updated:", session);
+}
+  else{
+    console.log("Assisted practice: attempt not recorded for mastery.");
+  }
+
+  if(isCorrect){
+    feedback.innerHTML = `
+      <div style="background:${hintUsedForCurrentQuestion ? "#fef3c7" : "#dcfce7"};color:${hintUsedForCurrentQuestion ? "#92400e" : "#166534"};padding:14px;border-radius:14px;font-weight:bold;">
+        ${hintUsedForCurrentQuestion ? "🟡 Assisted Correct — not counted for mastery or XP." : "✅ Correct!"}
+      </div>
+    `;
+
+    if(!hintUsedForCurrentQuestion){
+      let xp = Number(localStorage.getItem("algebra_xp") || 0);
+      xp += 10;
+      localStorage.setItem("algebra_xp", xp);
+    }
+  }else{
+    feedback.innerHTML = `
+      <div style="background:#fee2e2;color:#991b1b;padding:14px;border-radius:14px;font-weight:bold;">
+        ❌ Incorrect. Correct answer: ${correct}
+      </div>
+    `;
+  }
+
+  renderHelpForQuestion(currentQuestion, true);
+  updateHelpFeedback(isCorrect, correct);
+  updateHelpProgress(session);
+  activateHelpTab();
 }
 
+window.checkAnswer = checkAnswer;
 
+async function startLesson(){
+  const curriculum = await loadCurriculum();
+  const lessonId = getLessonIdFromUrl();
+  const lesson = getLessonById(curriculum, lessonId);
 
-function generateRelationsFunctions(difficulty = 1) {
-  const isFunction = Math.random() < 0.65;
+  if(!lesson){
+    document.getElementById("lessonTitle").textContent = "Lesson not found";
+    document.getElementById("lessonObjective").textContent =
+      "Check the lesson ID in the URL.";
+    return;
+  }
 
-  let pairs;
+  console.log("Dynamic lesson loaded:", lesson);
+  renderLesson(lesson);
+}
 
-  if (isFunction) {
-    const x1 = randInt(-5, 5);
-    const x2 = randInt(-5, 5, [x1]);
-    const x3 = randInt(-5, 5, [x1, x2]);
-    pairs = [
-      [x1, randInt(-8, 8)],
-      [x2, randInt(-8, 8)],
-      [x3, randInt(-8, 8)]
-    ];
-  } else {
-    const repeatedX = randInt(-5, 5);
-    pairs = [
-      [repeatedX, randInt(-8, 8)],
-      [repeatedX, randInt(-8, 8)],
-      [randInt(-5, 5, [repeatedX]), randInt(-8, 8)]
-    ];
+startLesson();
+</script>
 
-    if (pairs[0][1] === pairs[1][1]) {
-      pairs[1][1] += 1;
+<script>
+(function setupMathLabTabs(){
+  const tabs = document.querySelectorAll("[data-lab-tab]");
+  const panels = {
+    calculator: document.getElementById("lab-calculator"),
+    graph: document.getElementById("lab-graph"),
+    stats: document.getElementById("lab-stats"),
+    formula: document.getElementById("lab-formula"),
+    help: document.getElementById("lab-help")
+  };
+
+  tabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      const target = tab.dataset.labTab;
+
+      tabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+
+      Object.values(panels).forEach(panel => panel.classList.remove("active"));
+      panels[target].classList.add("active");
+
+      if(target === "graph") setTimeout(drawGraph, 50);
+      if(target === "stats") computeStats();
+    });
+  });
+})();
+
+(function setupAlgebraCalculator(){
+  const display = document.getElementById("calcDisplay");
+  if(!display) return;
+
+  let expression = "";
+
+  function prettyExpression(value){
+    return value
+      .replaceAll("Math.PI", "π")
+      .replaceAll("Math.sqrt", "√")
+      .replaceAll("**2", "²")
+      .replaceAll("*", "×")
+      .replaceAll("/", "÷");
+  }
+
+  document.querySelectorAll("[data-calc]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const value = btn.getAttribute("data-calc");
+
+      if(value === "C"){
+        expression = "";
+        display.value = "";
+        return;
+      }
+
+      if(value === "back"){
+        expression = expression.slice(0,-1);
+        display.value = prettyExpression(expression);
+        return;
+      }
+
+      if(value === "sqrt"){
+        expression += "Math.sqrt(";
+        display.value = prettyExpression(expression);
+        return;
+      }
+
+      if(value === "square"){
+        expression += "**2";
+        display.value = prettyExpression(expression);
+        return;
+      }
+
+      if(value === "pi"){
+        expression += "Math.PI";
+        display.value = prettyExpression(expression);
+        return;
+      }
+
+      if(value === "percent"){
+        expression += "/100";
+        display.value = prettyExpression(expression);
+        return;
+      }
+
+      if(value === "="){
+        try{
+          if(!/^[0-9+\-*/().\sMathPIsqrt]+$/.test(expression)){
+            throw new Error("Invalid expression");
+          }
+
+          const result = Function('"use strict"; return (' + expression + ')')();
+          if(!Number.isFinite(result)) throw new Error("Math error");
+
+          display.value = Number.isInteger(result) ? result : Number(result.toFixed(6));
+          expression = String(display.value);
+        }catch{
+          display.value = "Error";
+          expression = "";
+        }
+        return;
+      }
+
+      expression += value;
+      display.value = prettyExpression(expression);
+    });
+  });
+})();
+
+function getGraphFunction(type,a,b,c){
+  if(type === "linear") return x => a*x + b;
+  if(type === "quadratic") return x => a*x*x + b*x + c;
+  if(type === "exponential") return x => a*Math.pow(b,x);
+  return x => x;
+}
+
+function updateGraphLabels(){
+  const type = document.getElementById("graphType").value;
+  const aLabel = document.getElementById("coefALabel");
+  const bLabel = document.getElementById("coefBLabel");
+  const cLabel = document.getElementById("coefCLabel");
+  const cInput = document.getElementById("coefC");
+
+  if(type === "linear"){
+    aLabel.textContent = "m";
+    bLabel.textContent = "b";
+    cLabel.textContent = "unused";
+    cInput.disabled = true;
+    cInput.style.opacity = .45;
+  }else if(type === "quadratic"){
+    aLabel.textContent = "a";
+    bLabel.textContent = "b";
+    cLabel.textContent = "c";
+    cInput.disabled = false;
+    cInput.style.opacity = 1;
+  }else{
+    aLabel.textContent = "a";
+    bLabel.textContent = "base";
+    cLabel.textContent = "unused";
+    cInput.disabled = true;
+    cInput.style.opacity = .45;
+  }
+}
+
+function drawGraph(){
+  updateGraphLabels();
+
+  const canvas = document.getElementById("graphCanvas");
+  const ctx = canvas.getContext("2d");
+  const W = canvas.width;
+  const H = canvas.height;
+  const type = document.getElementById("graphType").value;
+  const a = Number(document.getElementById("coefA").value || 0);
+  const b = Number(document.getElementById("coefB").value || 0);
+  const c = Number(document.getElementById("coefC").value || 0);
+  const f = getGraphFunction(type,a,b,c);
+
+  const xMin = -10, xMax = 10, yMin = -10, yMax = 10;
+  const xToPx = x => ((x - xMin) / (xMax - xMin)) * W;
+  const yToPx = y => H - ((y - yMin) / (yMax - yMin)) * H;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = "#f8fafc";
+  ctx.fillRect(0,0,W,H);
+
+  ctx.strokeStyle = "#e2e8f0";
+  ctx.lineWidth = 1;
+  for(let x = xMin; x <= xMax; x++){
+    ctx.beginPath();
+    ctx.moveTo(xToPx(x),0);
+    ctx.lineTo(xToPx(x),H);
+    ctx.stroke();
+  }
+  for(let y = yMin; y <= yMax; y++){
+    ctx.beginPath();
+    ctx.moveTo(0,yToPx(y));
+    ctx.lineTo(W,yToPx(y));
+    ctx.stroke();
+  }
+
+  ctx.strokeStyle = "#0f172a";
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(xToPx(0),0);
+  ctx.lineTo(xToPx(0),H);
+  ctx.moveTo(0,yToPx(0));
+  ctx.lineTo(W,yToPx(0));
+  ctx.stroke();
+
+  ctx.strokeStyle = "#2563eb";
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+
+  let started = false;
+  for(let px = 0; px <= W; px++){
+    const x = xMin + (px / W) * (xMax - xMin);
+    const y = f(x);
+    const py = yToPx(y);
+
+    if(Number.isFinite(y) && py > -1000 && py < H + 1000){
+      if(!started){
+        ctx.moveTo(px,py);
+        started = true;
+      }else{
+        ctx.lineTo(px,py);
+      }
+    }else{
+      started = false;
     }
   }
+  ctx.stroke();
 
-  const pairText = pairs.map(([x, y]) => `(${x}, ${y})`).join(", ");
-  const answer = isFunction ? "Function" : "Not a function";
-
-  return buildQuestion({
-    prompt: `Determine whether the relation is a function: ${pairText}`,
-    answer,
-    problemType: "relations_functions",
-    difficulty,
-    solutionSteps: [
-      "A relation is a function if each input has exactly one output.",
-      `The ordered pairs are: ${pairText}`,
-      isFunction
-        ? "No input is paired with two different outputs."
-        : "At least one input is paired with two different outputs.",
-      `Answer: ${answer}`
-    ]
-  });
+  renderGraphFacts(type,a,b,c);
 }
 
+function renderGraphFacts(type,a,b,c){
+  const box = document.getElementById("graphFacts");
+  let rows = [];
 
-function generateFunctionNotation(difficulty = 1) {
-  const m = randInt(-6, 6, [0]);
-  const b = randInt(-10, 10);
-  const x = randInt(-6, 6);
-  const y = m * x + b;
-
-  return buildQuestion({
-    prompt: `If f(x) = ${m}x ${formatSigned(b)}, find f(${x}).`,
-    answer: `${y}`,
-    problemType: "function_notation",
-    difficulty,
-    solutionSteps: [
-      `Original function: f(x) = ${m}x ${formatSigned(b)}`,
-      `Substitute ${x} for x.`,
-      `f(${x}) = ${m}(${x}) ${formatSigned(b)}`,
-      `f(${x}) = ${m * x} ${formatSigned(b)}`,
-      `f(${x}) = ${y}`
-    ]
-  });
-}
-
-
-function generateDomainRange(difficulty = 1) {
-  const pairs = [];
-  const usedX = new Set();
-
-  while (pairs.length < 4) {
-    const x = randInt(-6, 6);
-    if (usedX.has(x)) continue;
-    usedX.add(x);
-    pairs.push([x, randInt(-8, 8)]);
+  if(type === "linear"){
+    rows = [
+      ["Equation", `y = ${a}x ${b >= 0 ? "+" : "-"} ${Math.abs(b)}`],
+      ["Slope", a],
+      ["y-intercept", `(0, ${b})`],
+      ["Behavior", a > 0 ? "increasing" : a < 0 ? "decreasing" : "constant"]
+    ];
+  }else if(type === "quadratic"){
+    const h = a !== 0 ? -b/(2*a) : 0;
+    const k = a*h*h + b*h + c;
+    rows = [
+      ["Equation", `y = ${a}x² ${b >= 0 ? "+" : "-"} ${Math.abs(b)}x ${c >= 0 ? "+" : "-"} ${Math.abs(c)}`],
+      ["Vertex", `(${round(h)}, ${round(k)})`],
+      ["Axis", `x = ${round(h)}`],
+      ["Opens", a >= 0 ? "up" : "down"]
+    ];
+  }else{
+    rows = [
+      ["Equation", `y = ${a}·${b}^x`],
+      ["Initial value", a],
+      ["Base", b],
+      ["Type", b > 1 ? "growth" : b > 0 && b < 1 ? "decay" : "check base"]
+    ];
   }
 
-  const askDomain = Math.random() < 0.5;
-  const pairText = pairs.map(([x, y]) => `(${x}, ${y})`).join(", ");
-  const values = pairs.map(([x, y]) => askDomain ? x : y);
-  const uniqueValues = [...new Set(values)].join(", ");
-  const answer = `{${uniqueValues}}`;
-
-  return buildQuestion({
-    prompt: `Given the relation ${pairText}, what is the ${askDomain ? "domain" : "range"}?`,
-    answer,
-    problemType: "domain_range",
-    difficulty,
-    solutionSteps: [
-      "Domain means input values. Range means output values.",
-      `The relation is: ${pairText}`,
-      askDomain
-        ? "Use the x-values from the ordered pairs."
-        : "Use the y-values from the ordered pairs.",
-      `Answer: ${answer}`
-    ]
-  });
+  box.innerHTML = rows.map(([label,value]) => `
+    <div class="fact-row"><strong>${label}</strong><span>${value}</span></div>
+  `).join("");
 }
 
-
-function generateMultipleRepresentations(difficulty = 1) {
-  const m = randInt(-4, 4, [0]);
-  const b = randInt(-6, 6);
-  const x = randInt(-4, 4);
-  const y = m * x + b;
-
-  return buildQuestion({
-    prompt: `Which equation matches a linear relationship with slope ${m} and y-intercept ${b}?`,
-    answer: `y = ${m}x ${formatSigned(b)}`,
-    problemType: "multiple_representations",
-    difficulty,
-    solutionSteps: [
-      "Slope-intercept form is y = mx + b.",
-      `The slope is ${m}, so m = ${m}.`,
-      `The y-intercept is ${b}, so b = ${b}.`,
-      `Equation: y = ${m}x ${formatSigned(b)}`
-    ]
-  });
+function resetGraphTool(){
+  document.getElementById("graphType").value = "linear";
+  document.getElementById("coefA").value = 2;
+  document.getElementById("coefB").value = 1;
+  document.getElementById("coefC").value = 0;
+  drawGraph();
 }
 
-
-function generateRateOfChange(difficulty = 1) {
-  const x1 = randInt(-5, 5);
-  const x2 = randInt(-5, 5, [x1]);
-  const rate = randInt(-6, 6, [0]);
-  const y1 = randInt(-10, 10);
-  const y2 = y1 + rate * (x2 - x1);
-
-  return buildQuestion({
-    prompt: `Find the rate of change between (${x1}, ${y1}) and (${x2}, ${y2}).`,
-    answer: `${rate}`,
-    problemType: "rate_of_change",
-    difficulty,
-    solutionSteps: [
-      "Rate of change = change in y ÷ change in x.",
-      `Change in y = ${y2} - ${y1} = ${y2 - y1}`,
-      `Change in x = ${x2} - ${x1} = ${x2 - x1}`,
-      `Rate of change = ${y2 - y1} ÷ ${x2 - x1} = ${rate}`
-    ]
-  });
+function round(n){
+  return Number.isInteger(n) ? n : Number(n.toFixed(2));
 }
 
+function computeStats(){
+  const input = document.getElementById("statsInput").value;
+  const values = input
+    .split(/[,\s]+/)
+    .map(Number)
+    .filter(n => Number.isFinite(n));
 
-function generateSlope(difficulty = 1) {
-  let x1 = randInt(-8, 8);
-  let x2 = randInt(-8, 8, [x1]);
-  let y1 = randInt(-8, 8);
-  let slope = randInt(-5, 5, [0]);
-  let y2 = y1 + slope * (x2 - x1);
+  const box = document.getElementById("statsResults");
 
-  const prompt = `Find the slope of the line through (${x1}, ${y1}) and (${x2}, ${y2}).`;
-
-  return buildQuestion({
-    prompt,
-    answer: `${slope}`,
-    problemType: "slope",
-    difficulty,
-    solutionSteps: [
-      `Use slope = (y₂ - y₁) ÷ (x₂ - x₁).`,
-      `slope = (${y2} - ${y1}) ÷ (${x2} - ${x1})`,
-      `slope = ${y2 - y1} ÷ ${x2 - x1}`,
-      `slope = ${slope}`
-    ]
-  });
-}
-
-
-
-function generateSlopeFromGraph(difficulty = 1) {
-  const x1 = randInt(-6, 6);
-  const x2 = randInt(-6, 6, [x1]);
-  const slope = randInt(-5, 5, [0]);
-  const y1 = randInt(-6, 6);
-  const y2 = y1 + slope * (x2 - x1);
-
-  return buildQuestion({
-    prompt: `A line on a graph passes through (${x1}, ${y1}) and (${x2}, ${y2}). What is the slope?`,
-    answer: `${slope}`,
-    problemType: "slope_from_graph",
-    difficulty,
-    solutionSteps: [
-      "Use two points from the graph.",
-      "Slope = (y₂ - y₁) ÷ (x₂ - x₁).",
-      `Slope = (${y2} - ${y1}) ÷ (${x2} - ${x1})`,
-      `Slope = ${y2 - y1} ÷ ${x2 - x1}`,
-      `Slope = ${slope}`
-    ]
-  });
-}
-
-
-function generateSlopeFromTable(difficulty = 1) {
-  const startX = randInt(-4, 2);
-  const step = randInt(1, 4);
-  const slope = randInt(-5, 5, [0]);
-  const b = randInt(-8, 8);
-
-  const x1 = startX;
-  const x2 = startX + step;
-  const x3 = startX + 2 * step;
-  const y1 = slope * x1 + b;
-  const y2 = slope * x2 + b;
-  const y3 = slope * x3 + b;
-
-  return buildQuestion({
-    prompt: `Find the slope from the table: x: ${x1}, ${x2}, ${x3}; y: ${y1}, ${y2}, ${y3}`,
-    answer: `${slope}`,
-    problemType: "slope_from_table",
-    difficulty,
-    solutionSteps: [
-      "Use change in y divided by change in x.",
-      `Change in y = ${y2} - ${y1} = ${y2 - y1}`,
-      `Change in x = ${x2} - ${x1} = ${x2 - x1}`,
-      `Slope = ${y2 - y1} ÷ ${x2 - x1} = ${slope}`
-    ]
-  });
-}
-
-
-function generateGraphLinearFunction(difficulty = 1) {
-  const m = randInt(-5, 5, [0]);
-  const b = randInt(-8, 8);
-
-  return buildQuestion({
-    prompt: `For y = ${m}x ${formatSigned(b)}, what point is the y-intercept?`,
-    answer: `(0, ${b})`,
-    problemType: "graph_linear_function",
-    difficulty,
-    solutionSteps: [
-      "In slope-intercept form, y = mx + b.",
-      "The y-intercept is the point where x = 0.",
-      `Here, b = ${b}.`,
-      `The y-intercept is (0, ${b}).`
-    ]
-  });
-}
-
-
-function generateSlopeIntercept(difficulty = 1) {
-  const m = randInt(-6, 6, [0]);
-  const b = randInt(-10, 10);
-
-  const prompt = `Write the equation of a line with slope ${m} and y-intercept ${b}.`;
-
-  return buildQuestion({
-    prompt,
-    answer: `y = ${m}x ${formatSigned(b)}`,
-    problemType: "slope_intercept",
-    difficulty,
-    solutionSteps: [
-      `Slope-intercept form is y = mx + b.`,
-      `m = ${m}`,
-      `b = ${b}`,
-      `Substitute into y = mx + b.`,
-      `y = ${m}x ${formatSigned(b)}`
-    ]
-  });
-}
-
-
-function generateSystems(difficulty = 1) {
-  const x = randInt(-5, 5, [0]);
-  const y = randInt(-5, 5, [0]);
-
-  const a = randInt(1, 5);
-  const b = randInt(1, 5);
-  const c = randInt(1, 5);
-  const d = randInt(1, 5);
-
-  const r1 = a * x + b * y;
-  const r2 = c * x + d * y;
-
-  const prompt =
-    `Solve the system: ${a}x + ${b}y = ${r1}; ${c}x + ${d}y = ${r2}`;
-
-  return buildQuestion({
-    prompt,
-    answer: `(${x}, ${y})`,
-    problemType: "systems",
-    difficulty,
-    solutionSteps: [
-      `The solution is the ordered pair that satisfies both equations.`,
-      `Test x = ${x} and y = ${y}.`,
-      `${a}(${x}) + ${b}(${y}) = ${r1}`,
-      `${c}(${x}) + ${d}(${y}) = ${r2}`,
-      `Both equations are true, so the solution is (${x}, ${y}).`
-    ]
-  });
-}
-
-
-/* ============================================================
-   GENERATORS — LATER CURRICULUM
-   ============================================================ */
-
-function generateScatterPlot(difficulty = 1) {
-  const type = pickRandom(["positive association", "negative association", "no association"]);
-
-  const prompt =
-    `A scatter plot shows data points that generally form a ${type}. What type of association is shown?`;
-
-  return buildQuestion({
-    prompt,
-    answer: type,
-    problemType: "scatter_plots",
-    difficulty,
-    solutionSteps: [
-      `Look at the overall direction of the points.`,
-      `The data pattern shows ${type}.`,
-      `Therefore, the association is ${type}.`
-    ]
-  });
-}
-
-
-function generateExponentRules(difficulty = 1) {
-  const base = pickRandom(["x", "a", "m"]);
-  const p = randInt(2, 6);
-  const q = randInt(2, 6);
-  const prompt = `Simplify: ${base}^${p} × ${base}^${q}`;
-
-  return buildQuestion({
-    prompt,
-    answer: `${base}^${p + q}`,
-    problemType: "exponent_rules",
-    difficulty,
-    solutionSteps: [
-      `When multiplying powers with the same base, add the exponents.`,
-      `${base}^${p} × ${base}^${q} = ${base}^(${p} + ${q})`,
-      `${base}^${p + q}`
-    ]
-  });
-}
-
-
-function generateFactoring(difficulty = 1) {
-  const r = randInt(1, 8);
-  const s = randInt(1, 8);
-  const b = r + s;
-  const c = r * s;
-
-  const prompt = `Factor: x² + ${b}x + ${c}`;
-
-  return buildQuestion({
-    prompt,
-    answer: `(x + ${r})(x + ${s})`,
-    problemType: "factoring",
-    difficulty,
-    solutionSteps: [
-      `Find two numbers that multiply to ${c} and add to ${b}.`,
-      `${r} × ${s} = ${c}`,
-      `${r} + ${s} = ${b}`,
-      `x² + ${b}x + ${c} = (x + ${r})(x + ${s})`
-    ]
-  });
-}
-
-
-function generateQuadraticRoots(difficulty = 1) {
-  const r = randInt(-8, 8, [0]);
-  const s = randInt(-8, 8, [0, r]);
-  const b = -(r + s);
-  const c = r * s;
-
-  const prompt = `Solve: x² ${formatSigned(b)}x ${formatSigned(c)} = 0`;
-
-  return buildQuestion({
-    prompt,
-    answer: `x = ${r}, x = ${s}`,
-    problemType: "quadratics",
-    difficulty,
-    solutionSteps: [
-      `Factor the quadratic.`,
-      `x² ${formatSigned(b)}x ${formatSigned(c)} = (x ${formatSigned(-r)})(x ${formatSigned(-s)})`,
-      `Set each factor equal to zero.`,
-      `x ${formatSigned(-r)} = 0 or x ${formatSigned(-s)} = 0`,
-      `x = ${r} or x = ${s}`
-    ]
-  });
-}
-
-
-/* ============================================================
-   QUALITY CONTROL
-   ============================================================ */
-
-function buildQuestion({ prompt, answer, problemType, difficulty, solutionSteps }) {
-  const meta = METADATA[problemType] || METADATA[normalizeMetaType(problemType)] || {};
-
-  const choices = generateChoices(answer, problemType);
-
-  return {
-    id: createId(),
-    prompt,
-    choices,
-    answer,
-    problemType,
-    difficulty,
-    hintSteps: meta.hintSteps || [
-      "Read the question carefully.",
-      "Identify what the problem is asking.",
-      "Use the correct algebraic procedure."
-    ],
-    solutionSteps: solutionSteps || [],
-    misconception: meta.misconception || "Students often rush and skip the setup step."
-  };
-}
-
-
-function normalizeQuestion(q, problemType, difficulty) {
-  return {
-    id: q.id || createId(),
-    prompt: q.prompt,
-    choices: q.choices,
-    answer: q.answer,
-    problemType: q.problemType || problemType,
-    difficulty: q.difficulty || difficulty,
-    hintSteps: Array.isArray(q.hintSteps) ? q.hintSteps : [],
-    solutionSteps: Array.isArray(q.solutionSteps) ? q.solutionSteps : [],
-    misconception: q.misconception || ""
-  };
-}
-
-
-function isQualityQuestion(q) {
-  if (!q) return false;
-  if (!q.prompt || !q.answer) return false;
-  if (!Array.isArray(q.choices)) return false;
-  if (q.choices.length !== 4) return false;
-
-  const uniqueChoices = new Set(q.choices);
-  if (uniqueChoices.size !== q.choices.length) return false;
-
-  if (!q.choices.includes(q.answer)) return false;
-
-  if (!Array.isArray(q.hintSteps) || q.hintSteps.length === 0) return false;
-  if (!Array.isArray(q.solutionSteps) || q.solutionSteps.length === 0) return false;
-  if (!q.misconception || q.misconception.trim().length < 5) return false;
-
-  return true;
-}
-
-
-function generateChoices(answer, problemType) {
-  if (typeof answer !== "string") answer = String(answer);
-
-  const distractors = new Set();
-
-  if (answer.startsWith("x = ")) {
-    const value = Number(answer.replace("x = ", ""));
-
-    if (!Number.isNaN(value)) {
-      const candidates = [
-        value + 1,
-        value - 1,
-        -value,
-        value + 2,
-        value - 2,
-        value + 3,
-        value - 3
-      ];
-
-      candidates.forEach(n => {
-        const choice = `x = ${n}`;
-        if (choice !== answer) distractors.add(choice);
-      });
-    }
-  } else if (!Number.isNaN(Number(answer))) {
-    const value = Number(answer);
-
-    [value + 1, value - 1, -value, value + 2, value - 2].forEach(n => {
-      const choice = String(n);
-      if (choice !== answer) distractors.add(choice);
-    });
-  } else {
-    [
-      "positive association",
-      "negative association",
-      "no association",
-      "linear relationship",
-      "No solution",
-      "Infinitely many solutions"
-    ].forEach(choice => {
-      if (choice !== answer) distractors.add(choice);
-    });
+  if(!values.length){
+    box.innerHTML = "Enter numbers separated by commas.";
+    return;
   }
 
-  while (distractors.size < 3) {
-    const randomChoice = `x = ${randInt(-12, 12)}`;
-    if (randomChoice !== answer) distractors.add(randomChoice);
-  }
+  const sorted = [...values].sort((a,b) => a-b);
+  const count = values.length;
+  const sum = values.reduce((a,b) => a+b,0);
+  const mean = sum/count;
+  const median = count % 2
+    ? sorted[Math.floor(count/2)]
+    : (sorted[count/2 - 1] + sorted[count/2]) / 2;
+  const min = sorted[0];
+  const max = sorted[sorted.length-1];
+  const range = max - min;
 
-  const finalChoices = [
-    answer,
-    ...shuffle(Array.from(distractors)).slice(0, 3)
+  const freq = new Map();
+  values.forEach(v => freq.set(v,(freq.get(v)||0)+1));
+  const maxFreq = Math.max(...freq.values());
+  const modes = maxFreq > 1
+    ? [...freq.entries()].filter(([_,f]) => f === maxFreq).map(([v]) => v)
+    : [];
+
+  const rows = [
+    ["Count", count],
+    ["Mean", round(mean)],
+    ["Median", round(median)],
+    ["Mode", modes.length ? modes.join(", ") : "none"],
+    ["Range", round(range)],
+    ["Min", min],
+    ["Max", max]
   ];
 
-  return shuffle(finalChoices);
+  box.innerHTML = rows.map(([label,value]) => `
+    <div class="fact-row"><strong>${label}</strong><span>${value}</span></div>
+  `).join("");
 }
 
-
-/* ============================================================
-   UTILITIES
-   ============================================================ */
-
-function randInt(min, max, exclude = []) {
-  let n;
-  let safety = 0;
-
-  do {
-    n = Math.floor(Math.random() * (max - min + 1)) + min;
-    safety++;
-  } while (exclude.includes(n) && safety < 100);
-
-  return n;
+function resetStatsTool(){
+  document.getElementById("statsInput").value = "12, 15, 18, 22, 10";
+  computeStats();
 }
 
+document.getElementById("graphType").addEventListener("change", drawGraph);
+document.getElementById("coefA").addEventListener("input", drawGraph);
+document.getElementById("coefB").addEventListener("input", drawGraph);
+document.getElementById("coefC").addEventListener("input", drawGraph);
+document.getElementById("statsInput").addEventListener("input", computeStats);
 
-function pickRandom(arr) {
-  return arr[Math.floor(Math.random() * arr.length)];
-}
+window.drawGraph = drawGraph;
+window.resetGraphTool = resetGraphTool;
+window.computeStats = computeStats;
+window.resetStatsTool = resetStatsTool;
 
-
-function shuffle(arr) {
-  return [...arr].sort(() => Math.random() - 0.5);
-}
-
-
-function formatSigned(n) {
-  if (n < 0) return `- ${Math.abs(n)}`;
-  return `+ ${n}`;
-}
-
-
-function createId() {
-  if (typeof crypto !== "undefined" && crypto.randomUUID) {
-    return crypto.randomUUID();
-  }
-
-  return "q_" + Math.random().toString(36).slice(2, 10);
-}
-
-
-function normalizeMetaType(type) {
-  if (type === "multi_step_inequality") return "inequalities";
-  if (type === "multi_step_inequalities") return "inequalities";
-  if (type === "inequality") return "inequalities";
-  if (type === "function_evaluation") return "functions";
-  return type;
-}
-
-
-/* ============================================================
-   OPTIONAL DEBUG TEST
-   You can run this from browser console if imported:
-   generateQuestionsForLesson({
-     title: "Test Lesson",
-     problemTypes: ["variables_both_sides"]
-   }, 5)
-   ============================================================ */
+setTimeout(() => {
+  drawGraph();
+  computeStats();
+}, 100);
+</script>
+</body>
+</html>
