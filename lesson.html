@@ -611,7 +611,9 @@ import {
   getLessonById
 } from "./engine/curriculumEngine.js";
 
-import "./engine/questionFactory.js";
+import {
+  generateQuestionForLesson
+} from "./engine/questionFactory.js";
 import "./engine/studentSessionEngine.js";
 import "./engine/formulaEngine.js";
 
@@ -814,10 +816,7 @@ function activateHelpTab(){
 function generatePracticeQuestion(){
   if(!currentLesson) return;
 
-  const question = AlgebraQuestionFactory.generateOne(
-    currentLesson.id,
-    { problemTypes: currentLesson.problemTypes }
-  );
+const question = generateQuestionForLesson(currentLesson);
 
   currentQuestion = question;
   hintUsedForCurrentQuestion = false;
