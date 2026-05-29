@@ -1443,12 +1443,15 @@ function generateChoices(answer, problemType) {
     const a = Number(matches[1]);
     const b = Number(matches[2]);
 
-    return shuffle([
-      answer,
-      `x = ${formatNumber(a)}`,
-      `x = ${formatNumber(b)}`,
-      "No Solution"
-    ]);
+ return shuffle([
+  answer,
+
+  `x = ${formatNumber(a)}`,
+
+  `x = ${formatNumber(-a)}, x = ${formatNumber(-b)}`,
+
+  "No Solution"
+]);
   }
 }
 
