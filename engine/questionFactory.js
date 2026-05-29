@@ -768,53 +768,58 @@ function isQualityQuestion(q) {
 function generateChoices(answer, problemType) {
   if (typeof answer !== "string") answer = String(answer);
 
-  const choices = new Set();
-  choices.add(answer);
+  const distractors = new Set();
 
   if (answer.startsWith("x = ")) {
     const value = Number(answer.replace("x = ", ""));
+
     if (!Number.isNaN(value)) {
-      choices.add(`x = ${value + 1}`);
-      choices.add(`x = ${value - 1}`);
-      choices.add(`x = ${-value}`);
-      choices.add(`x = ${value + 2}`);
-    }
-  } else if (answer.includes(",")) {
-    choices.add(answer.replace("x = ", ""));
-    choices.add("No solution");
-    choices.add("Infinitely many solutions");
-    choices.add("(0, 0)");
-  } else if (answer.startsWith("(")) {
-    choices.add("(0, 0)");
-    choices.add("(1, 1)");
-    choices.add("No solution");
-  } else if (answer.includes("^")) {
-    const match = answer.match(/\^(-?\d+)/);
-    if (match) {
-      const exp = Number(match[1]);
-      const base = answer.split("^")[0];
-      choices.add(`${base}^${exp + 1}`);
-      choices.add(`${base}^${exp - 1}`);
-      choices.add(`${base}^${exp * 2}`);
+      const candidates = [
+        value + 1,
+        value - 1,
+        -value,
+        value + 2,
+        value - 2,
+        value + 3,
+        value - 3
+      ];
+
+      candidates.forEach(n => {
+        const choice = `x = ${n}`;
+        if (choice !== answer) distractors.add(choice);
+      });
     }
   } else if (!Number.isNaN(Number(answer))) {
     const value = Number(answer);
-    choices.add(String(value + 1));
-    choices.add(String(value - 1));
-    choices.add(String(-value));
-    choices.add(String(value + 2));
+
+    [value + 1, value - 1, -value, value + 2, value - 2].forEach(n => {
+      const choice = String(n);
+      if (choice !== answer) distractors.add(choice);
+    });
   } else {
-    choices.add("positive association");
-    choices.add("negative association");
-    choices.add("no association");
-    choices.add("linear relationship");
+    [
+      "positive association",
+      "negative association",
+      "no association",
+      "linear relationship",
+      "No solution",
+      "Infinitely many solutions"
+    ].forEach(choice => {
+      if (choice !== answer) distractors.add(choice);
+    });
   }
 
-  while (choices.size < 4) {
-    choices.add(String(randInt(-12, 12)));
+  while (distractors.size < 3) {
+    const randomChoice = `x = ${randInt(-12, 12)}`;
+    if (randomChoice !== answer) distractors.add(randomChoice);
   }
 
-  return shuffle(Array.from(choices)).slice(0, 4);
+  const finalChoices = [
+    answer,
+    ...shuffle(Array.from(distractors)).slice(0, 3)
+  ];
+
+  return shuffle(finalChoices);
 }
 
 
