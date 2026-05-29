@@ -1,5 +1,5 @@
 /* ============================================================
-   Algebra OS — Question Factory 2.0
+   Algebra OS — Question Factory 2.1
    File: engine/questionFactory.js
 
    PURPOSE:
@@ -31,7 +31,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (!Array.isArray(problemTypes) || problemTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 2.0: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
+      "QuestionFactory 2.1: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
     );
   }
 
@@ -41,7 +41,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (availableTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 2.0: No supported generators found for this lesson. Add generators for: " +
+      "QuestionFactory 2.1: No supported generators found for this lesson. Add generators for: " +
       problemTypes.join(", ")
     );
   }
@@ -73,7 +73,7 @@ export function generateQuestionsForLesson(lesson, count = 10, options = {}) {
 
   if (questions.length < count) {
     throw new Error(
-      "QuestionFactory 2.0: Could not generate enough unique quality questions. Generated " +
+      "QuestionFactory 2.1: Could not generate enough unique quality questions. Generated " +
       questions.length +
       " of " +
       count +
@@ -93,10 +93,10 @@ export function generateQuestionsForLesson(lesson, count = 10, options = {}) {
 
 const GENERATORS = {
   one_step_equation: generateOneStepEquation,
-one_step_addition_equation: generateOneStepAdditionEquation,
-one_step_subtraction_equation: generateOneStepSubtractionEquation,
-one_step_multiplication_equation: generateOneStepMultiplicationEquation,
-one_step_division_equation: generateOneStepDivisionEquation,
+  one_step_addition_equation: generateOneStepAdditionEquation,
+  one_step_subtraction_equation: generateOneStepSubtractionEquation,
+  one_step_multiplication_equation: generateOneStepMultiplicationEquation,
+  one_step_division_equation: generateOneStepDivisionEquation,
 
   two_step_equation: generateTwoStepEquation,
   multi_step_equation: generateMultiStepEquation,
@@ -139,7 +139,7 @@ const METADATA = {
       "Students often use the same operation instead of the inverse operation."
   },
 
-   one_step_addition_equation: {
+  one_step_addition_equation: {
   hintSteps: [
     "Identify the number being added to x.",
     "Use subtraction to undo addition.",
@@ -149,7 +149,7 @@ const METADATA = {
     "Students often add again instead of subtracting to undo addition."
 },
 
-one_step_subtraction_equation: {
+  one_step_subtraction_equation: {
   hintSteps: [
     "Identify the number being subtracted from x.",
     "Use addition to undo subtraction.",
@@ -159,7 +159,7 @@ one_step_subtraction_equation: {
     "Students often subtract again instead of adding to undo subtraction."
 },
 
-one_step_multiplication_equation: {
+  one_step_multiplication_equation: {
   hintSteps: [
     "Identify the coefficient multiplying x.",
     "Use division to undo multiplication.",
@@ -169,7 +169,7 @@ one_step_multiplication_equation: {
     "Students often multiply again instead of dividing to isolate x."
 },
 
-one_step_division_equation: {
+  one_step_division_equation: {
   hintSteps: [
     "Identify the number x is divided by.",
     "Use multiplication to undo division.",
