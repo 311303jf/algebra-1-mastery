@@ -1,100 +1,64 @@
 /*
-  Algebra OS — Formula Engine
-  Version: 1.0
-  Curriculum-driven, no hardcoded lesson config
-
-  Rule:
-  - Lessons come from curriculum/algebra1.json
-  - This engine only understands problemTypes and skills
-  - lesson.html asks this engine for formulas based on the current lesson
+ Algebra OS Formula Engine
 */
 
 const AlgebraFormulaEngine = (() => {
 
-  const formulaRegistry = {
+  const registry = {
 
     one_step_addition_equation: [
       {
-        title: "One-Step Addition Equation",
+        title: "One-Step Addition",
         formula: "x + a = b",
-        steps: [
-          "Subtract a from both sides.",
-          "x = b - a"
-        ],
-        example: "x + 5 = 12 → x = 7"
+        note: "Subtract a from both sides."
       }
     ],
 
     one_step_subtraction_equation: [
       {
-        title: "One-Step Subtraction Equation",
+        title: "One-Step Subtraction",
         formula: "x - a = b",
-        steps: [
-          "Add a to both sides.",
-          "x = b + a"
-        ],
-        example: "x - 4 = 9 → x = 13"
+        note: "Add a to both sides."
       }
     ],
 
     one_step_multiplication_equation: [
       {
-        title: "One-Step Multiplication Equation",
+        title: "One-Step Multiplication",
         formula: "ax = b",
-        steps: [
-          "Divide both sides by a.",
-          "x = b ÷ a"
-        ],
-        example: "3x = 18 → x = 6"
+        note: "Divide both sides by a."
       }
     ],
 
     one_step_division_equation: [
       {
-        title: "One-Step Division Equation",
+        title: "One-Step Division",
         formula: "x ÷ a = b",
-        steps: [
-          "Multiply both sides by a.",
-          "x = ab"
-        ],
-        example: "x ÷ 5 = 3 → x = 15"
+        note: "Multiply both sides by a."
       }
     ],
 
     multi_step_equation: [
       {
-        title: "Multi-Step Equation",
+        title: "Multi-Step Equations",
         formula: "ax + b = c",
-        steps: [
-          "Undo addition or subtraction first.",
-          "Then undo multiplication or division.",
-          "Keep the equation balanced on both sides."
-        ],
-        example: "3x + 5 = 20 → 3x = 15 → x = 5"
+        note: "Subtract b, then divide by a."
       }
     ],
 
     combine_like_terms_equation: [
       {
         title: "Combine Like Terms",
-        formula: "ax + bx = (a + b)x",
-        steps: [
-          "Combine terms with the same variable.",
-          "Then solve the simplified equation."
-        ],
-        example: "3x + 4x = 7x"
+        formula: "3x + 4x = 7x",
+        note: "Add or subtract coefficients."
       }
     ],
 
     distributive_property_equation: [
       {
         title: "Distributive Property",
-        formula: "a(x + b) = ax + ab",
-        steps: [
-          "Multiply the outside number by every term inside the parentheses.",
-          "Then solve the equation."
-        ],
-        example: "3(x + 4) = 3x + 12"
+        formula: "a(x+b)=ax+ab",
+        note: "Multiply the outside factor by every term inside."
       }
     ],
 
@@ -102,73 +66,7 @@ const AlgebraFormulaEngine = (() => {
       {
         title: "Variables on Both Sides",
         formula: "ax + b = cx + d",
-        steps: [
-          "Move variable terms to one side.",
-          "Move constants to the other side.",
-          "Divide to isolate x."
-        ],
-        example: "5x + 3 = 2x + 18 → 3x = 15 → x = 5"
-      }
-    ],
-
-    inequalities: [
-      {
-        title: "Solving Inequalities",
-        formula: "ax + b > c",
-        steps: [
-          "Solve like an equation.",
-          "If you multiply or divide by a negative number, flip the inequality symbol."
-        ],
-        example: "2x + 3 > 11 → 2x > 8 → x > 4"
-      }
-    ],
-
-    inequalities_negative_coefficient: [
-      {
-        title: "Negative Coefficient Inequality",
-        formula: "-ax + b > c",
-        steps: [
-          "Isolate the variable term.",
-          "Divide by the negative coefficient.",
-          "Flip the inequality symbol."
-        ],
-        example: "-2x + 3 > 11 → -2x > 8 → x < -4"
-      }
-    ],
-
-    functions: [
-      {
-        title: "Function Evaluation",
-        formula: "f(x) = expression",
-        steps: [
-          "Replace x with the given input.",
-          "Simplify using order of operations."
-        ],
-        example: "f(x)=2x+3, f(4)=2(4)+3=11"
-      }
-    ],
-
-    function_evaluate: [
-      {
-        title: "Function Evaluation",
-        formula: "f(x) = expression",
-        steps: [
-          "Substitute the input value for x.",
-          "Evaluate carefully."
-        ],
-        example: "f(x)=x²+1, f(3)=10"
-      }
-    ],
-
-    function_or_not: [
-      {
-        title: "Function Rule",
-        formula: "Each input has exactly one output.",
-        steps: [
-          "Check each x-value.",
-          "If one input has two different outputs, it is not a function."
-        ],
-        example: "(1,2), (1,5) is not a function."
+        note: "Move variables to one side."
       }
     ],
 
@@ -176,12 +74,7 @@ const AlgebraFormulaEngine = (() => {
       {
         title: "Slope Formula",
         formula: "m = (y₂ - y₁) ÷ (x₂ - x₁)",
-        steps: [
-          "Find the change in y.",
-          "Find the change in x.",
-          "Divide change in y by change in x."
-        ],
-        example: "Points (1,2) and (3,6): m = (6-2) ÷ (3-1) = 2"
+        note: "Find slope between two points."
       }
     ],
 
@@ -189,296 +82,68 @@ const AlgebraFormulaEngine = (() => {
       {
         title: "Slope-Intercept Form",
         formula: "y = mx + b",
-        steps: [
-          "m is the slope.",
-          "b is the y-intercept.",
-          "The y-intercept is where the graph crosses the y-axis."
-        ],
-        example: "y = 2x + 3 has slope 2 and y-intercept 3."
+        note: "m = slope, b = y-intercept"
       }
     ],
 
-    linear_function_from_table: [
+    functions: [
       {
-        title: "Linear Function from a Table",
-        formula: "rate of change = change in y ÷ change in x",
-        steps: [
-          "Find how much y changes.",
-          "Find how much x changes.",
-          "Use the y-intercept to write y = mx + b."
-        ],
-        example: "If y increases by 3 each time x increases by 1, slope = 3."
+        title: "Function Evaluation",
+        formula: "f(x)",
+        note: "Substitute x into the function."
       }
     ],
 
     systems: [
       {
-        title: "Systems of Equations",
-        formula: "solution = ordered pair that satisfies both equations",
-        steps: [
-          "Use substitution, elimination, or graphing.",
-          "The solution must make both equations true."
-        ],
-        example: "The solution is written as (x, y)."
-      }
-    ],
-
-    systems_by_graphing_concept: [
-      {
-        title: "Systems by Graphing",
-        formula: "solution = point of intersection",
-        steps: [
-          "One intersection means one solution.",
-          "Parallel lines mean no solution.",
-          "Same line means infinitely many solutions."
-        ],
-        example: "Two lines crossing at (2,3) have solution (2,3)."
-      }
-    ],
-
-    scatter_plots: [
-      {
-        title: "Scatter Plot Association",
-        formula: "association describes the pattern of the data",
-        steps: [
-          "Positive association: data rises left to right.",
-          "Negative association: data falls left to right.",
-          "No association: no clear pattern."
-        ],
-        example: "More study time and higher scores often show positive association."
-      }
-    ],
-
-    line_of_fit_prediction: [
-      {
-        title: "Line of Fit Prediction",
-        formula: "y = mx + b",
-        steps: [
-          "Substitute the given x-value.",
-          "Use the line of fit to estimate y."
-        ],
-        example: "If y = 4x + 2 and x = 5, then y = 22."
+        title: "Systems",
+        formula: "Solution = Point of Intersection",
+        note: "Where both equations are true."
       }
     ],
 
     exponent_rules: [
       {
-        title: "Product of Powers",
+        title: "Exponent Rules",
         formula: "aᵐ × aⁿ = aᵐ⁺ⁿ",
-        steps: [
-          "Keep the same base.",
-          "Add the exponents."
-        ],
-        example: "x³ × x⁴ = x⁷"
-      }
-    ],
-
-    polynomial_add: [
-      {
-        title: "Adding Polynomials",
-        formula: "Combine like terms.",
-        steps: [
-          "Add coefficients of like variable terms.",
-          "Add constants with constants."
-        ],
-        example: "(3x + 2) + (5x + 7) = 8x + 9"
+        note: "Add exponents when bases match."
       }
     ],
 
     factoring: [
       {
-        title: "Factoring Trinomials",
-        formula: "x² + bx + c = (x + m)(x + n)",
-        steps: [
-          "Find two numbers that multiply to c.",
-          "The same two numbers must add to b."
-        ],
-        example: "x² + 5x + 6 = (x + 2)(x + 3)"
+        title: "Factoring",
+        formula: "x² + bx + c",
+        note: "Find two numbers that multiply to c and add to b."
       }
     ],
 
     quadratics: [
       {
-        title: "Solving Quadratics by Factoring",
-        formula: "(x - r)(x - s) = 0",
-        steps: [
-          "Set each factor equal to zero.",
-          "Solve both equations."
-        ],
-        example: "(x - 2)(x - 5)=0 → x=2 or x=5"
-      },
-      {
         title: "Quadratic Formula",
         formula: "x = (-b ± √(b² - 4ac)) ÷ 2a",
-        steps: [
-          "Use when the quadratic is in ax² + bx + c = 0 form.",
-          "Substitute a, b, and c carefully."
-        ],
-        example: "Use for equations that are hard to factor."
-      }
-    ],
-
-    quadratic_vertex: [
-      {
-        title: "Vertex Form",
-        formula: "y = a(x - h)² + k",
-        steps: [
-          "The vertex is (h, k).",
-          "If a is positive, the parabola opens up.",
-          "If a is negative, the parabola opens down."
-        ],
-        example: "y = 2(x - 3)² + 4 has vertex (3,4)."
-      }
-    ],
-
-    real_world_one_step: [
-      {
-        title: "Real-World Equation",
-        formula: "unknown + change = total",
-        steps: [
-          "Define the unknown as x.",
-          "Write an equation from the situation.",
-          "Use inverse operations to solve."
-        ],
-        example: "x + 8 = 20 → x = 12"
-      }
-    ],
-
-    real_world_linear: [
-      {
-        title: "Linear Real-World Model",
-        formula: "y = mx + b",
-        steps: [
-          "m is the rate of change.",
-          "b is the starting value.",
-          "x is the input or number of units."
-        ],
-        example: "$5 per class plus $20 fee: y = 5x + 20"
+        note: "Use for ax² + bx + c = 0."
       }
     ]
   };
 
-  const skillRegistry = {
-    "combine like terms": {
-      title: "Combine Like Terms",
-      formula: "ax + bx = (a + b)x",
-      steps: ["Only combine terms with the same variable and exponent."],
-      example: "4x + 6x = 10x"
-    },
-    "use the distributive property": {
-      title: "Distributive Property",
-      formula: "a(x + b) = ax + ab",
-      steps: ["Multiply the outside value by each term inside parentheses."],
-      example: "5(x + 2) = 5x + 10"
-    },
-    "isolate the variable": {
-      title: "Isolate the Variable",
-      formula: "Get x by itself.",
-      steps: ["Use inverse operations in reverse order of operations."],
-      example: "2x + 3 = 11 → 2x = 8 → x = 4"
-    },
-    "check solutions": {
-      title: "Check Solutions",
-      formula: "Substitute the answer back into the original equation.",
-      steps: ["If both sides are equal, the solution is correct."],
-      example: "x = 4 in 2x + 3 = 11 gives 11 = 11."
-    }
-  };
+  function getFormulasForLesson(lesson){
 
-  function normalize(value) {
-    return String(value || "").trim().toLowerCase();
-  }
-
-  function getFallbackFormula(lesson) {
-    const title = lesson?.title || "Equation Solving";
-    const objective = lesson?.objective || "Use mathematical properties to solve problems.";
-
-    if (normalize(title).includes("multi-step")) {
-      return [{
-        title: "Multi-Step Equations",
-        formula: "ax + b = c",
-        steps: [
-          "Undo addition or subtraction first.",
-          "Then undo multiplication or division.",
-          "Check your answer in the original equation."
-        ],
-        example: "4x + 7 = 19 → 4x = 12 → x = 3"
-      }];
-    }
-
-    if (normalize(title).includes("one-step")) {
-      return [{
-        title: "One-Step Equations",
-        formula: "Use inverse operations on both sides.",
-        steps: [
-          "Addition uses subtraction.",
-          "Subtraction uses addition.",
-          "Multiplication uses division.",
-          "Division uses multiplication."
-        ],
-        example: "x + 6 = 14 → x = 8"
-      }];
-    }
-
-    return [{
-      title: "Lesson Strategy",
-      formula: "Use the current lesson objective.",
-      steps: [objective],
-      example: "Read the problem carefully and choose the correct strategy."
-    }];
-  }
-
-  function uniqueFormulaKey(item) {
-    return `${item.title}|${item.formula}`;
-  }
-
-  function getFormulasForLesson(lesson = {}) {
-    const results = [];
-    const seen = new Set();
-
-    function add(item) {
-      if (!item) return;
-      const key = uniqueFormulaKey(item);
-      if (seen.has(key)) return;
-      seen.add(key);
-      results.push(item);
-    }
+    const formulas = [];
 
     (lesson.problemTypes || []).forEach(type => {
-      const formulas = formulaRegistry[normalize(type)] || [];
-      formulas.forEach(add);
+
+      if(registry[type]){
+        formulas.push(...registry[type]);
+      }
+
     });
 
-    (lesson.skills || []).forEach(skill => {
-      const item = skillRegistry[normalize(skill)];
-      add(item);
-    });
-
-    if (!results.length) {
-      getFallbackFormula(lesson).forEach(add);
-    }
-
-    return results;
-  }
-
-  function renderFormulaHTML(lesson = {}) {
-    const formulas = getFormulasForLesson(lesson);
-
-    return formulas.map(item => `
-      <div class="formula-item">
-        <div class="formula-title">${item.title}</div>
-        <div class="formula-equation">${item.formula}</div>
-        <ul class="formula-steps">
-          ${(item.steps || []).map(step => `<li>${step}</li>`).join("")}
-        </ul>
-        <div class="formula-example"><strong>Example:</strong> ${item.example || ""}</div>
-      </div>
-    `).join("");
+    return formulas;
   }
 
   return {
-    getFormulasForLesson,
-    renderFormulaHTML
+    getFormulasForLesson
   };
 
 })();
