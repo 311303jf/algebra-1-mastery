@@ -168,6 +168,66 @@
             "1.4"
           ],
           "unlockAfter": "1.4"
+        },
+        {
+          "id": "1.6",
+          "title": "Compound Inequalities",
+          "standard": "MA.912.AR.2.2",
+          "objective": "Students will solve compound inequalities and interpret solution sets using AND and OR conditions.",
+          "essentialQuestion": "How do AND and OR change the solution set of an inequality?",
+          "skills": [
+            "solve compound inequalities",
+            "distinguish AND from OR solution sets",
+            "apply inverse operations across compound inequalities",
+            "interpret and graph solution intervals"
+          ],
+          "problemTypes": [
+            "compound_inequalities"
+          ],
+          "dokLevels": [
+            2,
+            3
+          ],
+          "difficultyRange": {
+            "min": 3,
+            "max": 5
+          },
+          "realWorldRequired": true,
+          "eocRigor": "medium",
+          "prerequisites": [
+            "1.5"
+          ],
+          "unlockAfter": "1.5"
+        },
+        {
+          "id": "1.7",
+          "title": "Absolute Value Equations",
+          "standard": "MA.912.AR.4.1",
+          "objective": "Students will solve absolute value equations by writing and solving two related linear equations.",
+          "essentialQuestion": "Why can an absolute value equation have two solutions?",
+          "skills": [
+            "isolate absolute value expressions",
+            "write positive and negative cases",
+            "solve both linear equations",
+            "check solutions"
+          ],
+          "problemTypes": [
+            "absolute_value_equations"
+          ],
+          "dokLevels": [
+            2,
+            3
+          ],
+          "difficultyRange": {
+            "min": 2,
+            "max": 5
+          },
+          "realWorldRequired": true,
+          "eocRigor": "medium",
+          "prerequisites": [
+            "1.6"
+          ],
+          "unlockAfter": "1.6"
         }
       ]
     }
