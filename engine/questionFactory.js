@@ -1448,7 +1448,7 @@ function generateChoices(answer, problemType) {
 
   `x = ${formatNumber(a)}`,
 
-  `x = ${formatNumber(-a)}, x = ${formatNumber(-b)}`,
+  `x = ${formatNumber(a)}, x = ${formatNumber(-b)}`,
 
   "No Solution"
 ]);
