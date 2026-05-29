@@ -968,6 +968,24 @@ const question = generateQuestionForLesson(currentLesson);
 }
 
 window.generatePracticeQuestion = generatePracticeQuestion;
+  window.testGenerateQuestions = function(count = 50){
+  for(let i = 0; i < count; i++){
+    const q = generateQuestionForLesson(currentLesson);
+
+    if(!q.choices.includes(q.answer)){
+      console.error("FAILED - answer missing", q);
+      return false;
+    }
+
+    if(new Set(q.choices).size !== q.choices.length){
+      console.error("FAILED - duplicate choices", q);
+      return false;
+    }
+  }
+
+  console.log("PASSED:", count, "questions validated.");
+  return true;
+};
 
 function checkAnswer(selected, correct){
   const feedback = document.getElementById("feedbackBox");
