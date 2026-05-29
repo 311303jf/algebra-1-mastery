@@ -123,6 +123,10 @@ const GENERATORS = {
   one_step_inequalities: generateOneStepInequality,
   multi_step_inequality: generateMultiStepInequality,
   multi_step_inequalities: generateMultiStepInequality,
+  compound_inequality: generateCompoundInequality,
+  compound_inequalities: generateCompoundInequality,
+  absolute_value_equation: generateAbsoluteValueEquation,
+  absolute_value_equations: generateAbsoluteValueEquation,
 
   function_evaluation: generateFunctionEvaluation,
   functions: generateFunctionEvaluation,
@@ -260,6 +264,27 @@ one_step_division_equation: {
     ],
     misconception:
       "Students often forget to reverse the inequality symbol when multiplying or dividing by a negative number."
+  },
+
+  compound_inequalities: {
+    hintSteps: [
+      "Identify whether the compound inequality uses AND or OR.",
+      "Solve each inequality carefully using inverse operations.",
+      "For AND, find the overlap. For OR, include either solution region.",
+      "Reverse the inequality symbol when multiplying or dividing by a negative number."
+    ],
+    misconception:
+      "Students often confuse AND with OR, or forget to reverse the symbol when dividing by a negative coefficient."
+  },
+
+  absolute_value_equations: {
+    hintSteps: [
+      "Isolate the absolute value expression first.",
+      "Set up two equations: one positive case and one negative case.",
+      "Solve both equations and check the solutions."
+    ],
+    misconception:
+      "Students often solve only the positive case and forget the second solution."
   },
 
   functions: {
@@ -729,6 +754,143 @@ function generateMultiStepInequality(difficulty = 1) {
         ? `Because ${formatNumber(a)} is negative, reverse the inequality symbol.`
         : `Because ${formatNumber(a)} is positive, keep the inequality symbol the same.`,
       `x ${finalSymbol} ${formatNumber(x)}`
+    ]
+  });
+}
+
+
+function generateCompoundInequality(difficulty = 1) {
+  const mode = pickRandom(["and_chain", "or_separate"]);
+  const x = pickSolution(difficulty);
+
+  if (mode === "and_chain") {
+    const a = pickIntegerCoefficient(difficulty);
+    const b = pickConstant(difficulty);
+    const widthLeft = randInt(2, 8);
+    const widthRight = randInt(2, 8);
+
+    const center = a * x + b;
+    const low = center - widthLeft;
+    const high = center + widthRight;
+
+    const leftSymbol = pickRandom(["<", "≤"]);
+    const rightSymbol = pickRandom(["<", "≤"]);
+
+    const answerLeftSymbol = a > 0 ? leftSymbol : flipInequality(rightSymbol);
+    const answerRightSymbol = a > 0 ? rightSymbol : flipInequality(leftSymbol);
+
+    const lowerSolution = Math.min(
+      (low - b) / a,
+      (high - b) / a
+    );
+    const upperSolution = Math.max(
+      (low - b) / a,
+      (high - b) / a
+    );
+
+    // Because a, low, high, and b are constructed from integer solution x,
+    // endpoints can still be fractional. For now, reject non-integer endpoints
+    // by regenerating a simpler coefficient.
+    if (!Number.isInteger(lowerSolution) || !Number.isInteger(upperSolution)) {
+      return generateSimpleCompoundInequality(difficulty);
+    }
+
+    return buildQuestion({
+      prompt: `Solve the compound inequality: ${formatNumber(low)} ${leftSymbol} ${formatTerm(a, "x")} ${formatSigned(b)} ${rightSymbol} ${formatNumber(high)}`,
+      answer: `${formatNumber(lowerSolution)} ${answerLeftSymbol} x ${answerRightSymbol} ${formatNumber(upperSolution)}`,
+      problemType: "compound_inequalities",
+      difficulty,
+      solutionSteps: [
+        `Original compound inequality: ${formatNumber(low)} ${leftSymbol} ${formatTerm(a, "x")} ${formatSigned(b)} ${rightSymbol} ${formatNumber(high)}`,
+        b >= 0 ? `Subtract ${formatNumber(b)} from all three parts.` : `Add ${formatNumber(Math.abs(b))} to all three parts.`,
+        `${formatNumber(low - b)} ${leftSymbol} ${formatTerm(a, "x")} ${rightSymbol} ${formatNumber(high - b)}`,
+        `Divide all three parts by ${formatNumber(a)}.`,
+        a < 0 ? "Because the divisor is negative, reverse both inequality symbols." : "Because the divisor is positive, keep both inequality symbols the same.",
+        `Solution: ${formatNumber(lowerSolution)} ${answerLeftSymbol} x ${answerRightSymbol} ${formatNumber(upperSolution)}`
+      ]
+    });
+  }
+
+  const boundary1 = randInt(-10, -1);
+  const boundary2 = randInt(1, 12);
+  const useLessGreater = Math.random() < 0.5;
+  const leftSymbol = useLessGreater ? "<" : "≤";
+  const rightSymbol = useLessGreater ? ">" : "≥";
+  const answer = `x ${leftSymbol} ${formatNumber(boundary1)} OR x ${rightSymbol} ${formatNumber(boundary2)}`;
+
+  return buildQuestion({
+    prompt: `Solve the compound inequality: x ${leftSymbol} ${formatNumber(boundary1)} OR x ${rightSymbol} ${formatNumber(boundary2)}`,
+    answer,
+    problemType: "compound_inequalities",
+    difficulty,
+    solutionSteps: [
+      "This is an OR compound inequality.",
+      "A value is a solution if it makes either inequality true.",
+      `The solution is ${answer}.`
+    ]
+  });
+}
+
+function generateSimpleCompoundInequality(difficulty = 1) {
+  const x = pickSolution(difficulty);
+  const b = pickConstant(difficulty);
+  const low = x + b - randInt(2, 7);
+  const high = x + b + randInt(2, 7);
+  const leftSymbol = pickRandom(["<", "≤"]);
+  const rightSymbol = pickRandom(["<", "≤"]);
+  const lowerSolution = low - b;
+  const upperSolution = high - b;
+
+  return buildQuestion({
+    prompt: `Solve the compound inequality: ${formatNumber(low)} ${leftSymbol} x ${formatSigned(b)} ${rightSymbol} ${formatNumber(high)}`,
+    answer: `${formatNumber(lowerSolution)} ${leftSymbol} x ${rightSymbol} ${formatNumber(upperSolution)}`,
+    problemType: "compound_inequalities",
+    difficulty,
+    solutionSteps: [
+      `Original compound inequality: ${formatNumber(low)} ${leftSymbol} x ${formatSigned(b)} ${rightSymbol} ${formatNumber(high)}`,
+      b >= 0 ? `Subtract ${formatNumber(b)} from all three parts.` : `Add ${formatNumber(Math.abs(b))} to all three parts.`,
+      `Solution: ${formatNumber(lowerSolution)} ${leftSymbol} x ${rightSymbol} ${formatNumber(upperSolution)}`
+    ]
+  });
+}
+
+function generateAbsoluteValueEquation(difficulty = 1) {
+  const x1 = pickSolution(difficulty);
+  const distance = randInt(2, 10);
+  const center = x1 - distance;
+  const x2 = center - distance;
+
+  const mode = difficulty >= 4 ? pickRandom(["basic", "coefficient"]) : "basic";
+
+  if (mode === "coefficient") {
+    const a = pickRandom([2, 3, 4, -2, -3, -4]);
+    const b = -a * center;
+    const rightSide = Math.abs(a * x1 + b);
+
+    return buildQuestion({
+      prompt: `Solve the absolute value equation: |${formatTerm(a, "x")} ${formatSigned(b)}| = ${formatNumber(rightSide)}`,
+      answer: `x = ${formatNumber(Math.min(x1, x2))}, x = ${formatNumber(Math.max(x1, x2))}`,
+      problemType: "absolute_value_equations",
+      difficulty,
+      solutionSteps: [
+        `Original equation: |${formatTerm(a, "x")} ${formatSigned(b)}| = ${formatNumber(rightSide)}`,
+        `Set up two equations: ${formatTerm(a, "x")} ${formatSigned(b)} = ${formatNumber(rightSide)} and ${formatTerm(a, "x")} ${formatSigned(b)} = -${formatNumber(rightSide)}.`,
+        "Solve both equations.",
+        `Solutions: x = ${formatNumber(Math.min(x1, x2))}, x = ${formatNumber(Math.max(x1, x2))}`
+      ]
+    });
+  }
+
+  return buildQuestion({
+    prompt: `Solve the absolute value equation: |x ${formatSigned(-center)}| = ${formatNumber(distance)}`,
+    answer: `x = ${formatNumber(Math.min(x1, x2))}, x = ${formatNumber(Math.max(x1, x2))}`,
+    problemType: "absolute_value_equations",
+    difficulty,
+    solutionSteps: [
+      `Original equation: |x ${formatSigned(-center)}| = ${formatNumber(distance)}`,
+      `Set up two equations: x ${formatSigned(-center)} = ${formatNumber(distance)} and x ${formatSigned(-center)} = -${formatNumber(distance)}.`,
+      "Solve both equations.",
+      `Solutions: x = ${formatNumber(Math.min(x1, x2))}, x = ${formatNumber(Math.max(x1, x2))}`
     ]
   });
 }
@@ -1230,6 +1392,33 @@ function generateChoices(answer, problemType) {
         `x ${flipped} ${formatNumber(value + 1)}`
       ].forEach(choice => { if (choice !== answer) distractors.add(choice); });
     }
+  } else if (answer.includes(" OR ")) {
+    const match = answer.match(/^x\s*(>|<|≥|≤)\s*(-?\d+)\s+OR\s+x\s*(>|<|≥|≤)\s*(-?\d+)$/);
+    if (match) {
+      const s1 = match[1], v1 = Number(match[2]), s2 = match[3], v2 = Number(match[4]);
+      distractors.add(`x ${flipInequality(s1)} ${formatNumber(v1)} OR x ${s2} ${formatNumber(v2)}`);
+      distractors.add(`x ${s1} ${formatNumber(v1)} AND x ${s2} ${formatNumber(v2)}`);
+      distractors.add(`x ${s1} ${formatNumber(v1 + 1)} OR x ${s2} ${formatNumber(v2 - 1)}`);
+      distractors.add(`x ${s1} ${formatNumber(-v1)} OR x ${s2} ${formatNumber(-v2)}`);
+    }
+  } else if (answer.match(/^-?\d+\s*(<|≤)\s*x\s*(<|≤)\s*-?\d+$/)) {
+    const match = answer.match(/^(-?\d+)\s*(<|≤)\s*x\s*(<|≤)\s*(-?\d+)$/);
+    if (match) {
+      const a = Number(match[1]), s1 = match[2], s2 = match[3], b = Number(match[4]);
+      distractors.add(`${formatNumber(a)} ${s1} x ${flipInequality(s2)} ${formatNumber(b)}`);
+      distractors.add(`${formatNumber(a + 1)} ${s1} x ${s2} ${formatNumber(b)}`);
+      distractors.add(`${formatNumber(a)} ${s1} x ${s2} ${formatNumber(b - 1)}`);
+      distractors.add(`x ${s1} ${formatNumber(a)} OR x ${s2} ${formatNumber(b)}`);
+    }
+  } else if (answer.startsWith("x = ") && answer.includes(",")) {
+    const nums = answer.match(/-?\d+/g)?.map(Number) || [];
+    if (nums.length >= 2) {
+      const [a,b] = nums;
+      distractors.add(`x = ${formatNumber(a)}`);
+      distractors.add(`x = ${formatNumber(b)}`);
+      distractors.add(`x = ${formatNumber(-a)}, x = ${formatNumber(-b)}`);
+      distractors.add(`No solution`);
+    }
   } else if (answer.startsWith("(")) {
     distractors.add("(0, 0)");
     distractors.add("(1, 1)");
@@ -1436,6 +1625,8 @@ function normalizeMetaType(type) {
   if (type === "multi_step_inequality") return "inequalities";
   if (type === "multi_step_inequalities") return "inequalities";
   if (type === "inequality") return "inequalities";
+  if (type === "compound_inequality") return "compound_inequalities";
+  if (type === "absolute_value_equation") return "absolute_value_equations";
   if (type === "function_evaluation") return "functions";
   if (type === "distributive_property_equation") return "distributive_property";
   if (type === "combine_like_terms_equation") return "combine_like_terms";
