@@ -657,25 +657,78 @@ function generateOneStepInequality(difficulty = 1) {
 }
 
 function generateMultiStepInequality(difficulty = 1) {
+
+  const mode = pickRandom([
+    "combine",
+    "distribute"
+  ]);
+
+  const symbol = pickRandom([">", "<", "≥", "≤"]);
   const x = pickSolution(difficulty);
-  const coeff = pickCoefficient(difficulty);
+
+  if (mode === "combine") {
+    const a = pickIntegerCoefficient(difficulty);
+    let b = pickIntegerCoefficient(difficulty);
+
+    if (a + b === 0) {
+      b += (b > 0 ? 1 : -1);
+    }
+
+    const c = pickConstant(difficulty);
+    const coefficient = a + b;
+    const rightSide = coefficient * x + c;
+    const finalSymbol = coefficient < 0 ? flipInequality(symbol) : symbol;
+
+    return buildQuestion({
+      prompt:
+        `Solve the inequality: ${formatTerm(a, "x")} ${formatSignedTerm(b, "x")} ${formatSigned(c)} ${symbol} ${formatNumber(rightSide)}`,
+      answer:
+        `x ${finalSymbol} ${formatNumber(x)}`,
+      problemType:
+        "multi_step_inequalities",
+      difficulty,
+      solutionSteps: [
+        `Original inequality: ${formatTerm(a, "x")} ${formatSignedTerm(b, "x")} ${formatSigned(c)} ${symbol} ${formatNumber(rightSide)}`,
+        `Combine like terms: ${formatTerm(a, "x")} ${formatSignedTerm(b, "x")} = ${formatTerm(coefficient, "x")}`,
+        `${formatTerm(coefficient, "x")} ${formatSigned(c)} ${symbol} ${formatNumber(rightSide)}`,
+        c >= 0 ? `Subtract ${formatNumber(c)} from both sides.` : `Add ${formatNumber(Math.abs(c))} to both sides.`,
+        `${formatTerm(coefficient, "x")} ${symbol} ${formatNumber(rightSide - c)}`,
+        `Divide both sides by ${formatNumber(coefficient)}.`,
+        coefficient < 0
+          ? `Because ${formatNumber(coefficient)} is negative, reverse the inequality symbol.`
+          : `Because ${formatNumber(coefficient)} is positive, keep the inequality symbol the same.`,
+        `x ${finalSymbol} ${formatNumber(x)}`
+      ]
+    });
+  }
+
+  const a = pickIntegerCoefficient(difficulty);
   const b = pickConstant(difficulty);
-  const baseSymbol = pickRandom([">", "<", "≥", "≤"]);
-  const result = coeff.value * x + b;
-  const answerSymbol = coeff.value < 0 ? flipInequality(baseSymbol) : baseSymbol;
+  const c = pickConstant(difficulty);
+  const rightSide = a * (x + b) + c;
+  const finalSymbol = a < 0 ? flipInequality(symbol) : symbol;
 
   return buildQuestion({
-    prompt: `Solve the inequality: ${formatCoeffForVariable(coeff)} ${formatSigned(b)} ${baseSymbol} ${formatNumber(result)}`,
-    answer: `x ${answerSymbol} ${formatNumber(x)}`,
-    problemType: "multi_step_inequalities",
+    prompt:
+      `Solve the inequality: ${formatNumber(a)}(x ${formatSigned(b)}) ${formatSigned(c)} ${symbol} ${formatNumber(rightSide)}`,
+    answer:
+      `x ${finalSymbol} ${formatNumber(x)}`,
+    problemType:
+      "multi_step_inequalities",
     difficulty,
     solutionSteps: [
-      `Original inequality: ${formatCoeffForVariable(coeff)} ${formatSigned(b)} ${baseSymbol} ${formatNumber(result)}`,
-      b >= 0 ? `Subtract ${formatNumber(b)} from both sides.` : `Add ${formatNumber(Math.abs(b))} to both sides.`,
-      `${formatCoeffForVariable(coeff)} ${baseSymbol} ${formatNumber(result - b)}`,
-      `Divide both sides by ${coeff.text}.`,
-      coeff.value < 0 ? `Because ${coeff.text} is negative, reverse the inequality symbol.` : `Because ${coeff.text} is positive, keep the inequality symbol the same.`,
-      `x ${answerSymbol} ${formatNumber(x)}`
+      `Original inequality: ${formatNumber(a)}(x ${formatSigned(b)}) ${formatSigned(c)} ${symbol} ${formatNumber(rightSide)}`,
+      `Distribute ${formatNumber(a)}: ${formatTerm(a, "x")} ${formatSigned(a * b)} ${formatSigned(c)} ${symbol} ${formatNumber(rightSide)}`,
+      `Combine constants: ${formatTerm(a, "x")} ${formatSigned(a * b + c)} ${symbol} ${formatNumber(rightSide)}`,
+      (a * b + c) >= 0
+        ? `Subtract ${formatNumber(a * b + c)} from both sides.`
+        : `Add ${formatNumber(Math.abs(a * b + c))} to both sides.`,
+      `${formatTerm(a, "x")} ${symbol} ${formatNumber(rightSide - (a * b + c))}`,
+      `Divide both sides by ${formatNumber(a)}.`,
+      a < 0
+        ? `Because ${formatNumber(a)} is negative, reverse the inequality symbol.`
+        : `Because ${formatNumber(a)} is positive, keep the inequality symbol the same.`,
+      `x ${finalSymbol} ${formatNumber(x)}`
     ]
   });
 }
@@ -1248,7 +1301,7 @@ function pickCoefficient(difficulty = 1) {
   // integers only, but includes positive and negative coefficients.
   // No fractions yet, to avoid decimals like 3.666667.
 
-  if (difficulty <= 3) {
+  if (difficulty <= 5) {
 
     const n =
       Math.random() < 0.4
@@ -1306,10 +1359,18 @@ function formatCoeffForVariable(coeff) {
   return `(${coeff.numerator}/${coeff.denominator})x`;
 }
 
+function cleanZero(n) {
+  return Object.is(n, -0) ? 0 : n;
+}
+
 function formatNumber(n) {
+  n = cleanZero(n);
+
   if (Number.isInteger(n)) return String(n);
-  const rounded = Number(n.toFixed(6));
+
+  const rounded = cleanZero(Number(n.toFixed(6)));
   if (Number.isInteger(rounded)) return String(rounded);
+
   return String(rounded);
 }
 
