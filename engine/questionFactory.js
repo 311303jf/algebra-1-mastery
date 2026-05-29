@@ -35,7 +35,17 @@ export function generateQuestionForLesson(lesson, options = {}) {
     );
   }
 
-  const difficulty = Number(options.difficulty || lesson.difficulty || 1);
+  const difficulty =
+  Number(options?.difficulty) ||
+  Number(lesson?.difficulty) ||
+  (
+    lesson?.difficultyRange
+      ? randInt(
+          lesson.difficultyRange.min || 1,
+          lesson.difficultyRange.max || 3
+        )
+      : 1
+  );
 
   const availableTypes = problemTypes.filter(type => GENERATORS[type]);
 
