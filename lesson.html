@@ -895,24 +895,28 @@ function updateHelpProgress(){
     Accuracy: ${accuracy}%
   `;
 
-  let session = {};
+let storedSession = null;
 
-  if(window.AlgebraStudentSessionEngine &&
-      AlgebraStudentSessionEngine.getCurrentSession){
+try{
+  storedSession =
+    JSON.parse(
+      localStorage.getItem(
+        "algebra_session_" + currentLesson.id
+      )
+    ) || null;
+}catch{
+  storedSession = null;
+}
 
-      session =
-      AlgebraStudentSessionEngine
-        .getCurrentSession(
-          currentLesson.id
-        ) || {};
-  }
+const currentStreak =
+  storedSession && storedSession.currentStreak
+    ? storedSession.currentStreak
+    : 0;
 
-  streakBox.innerHTML = `
-    Current Streak:
-    <strong>
-      ${session.currentStreak || 0}
-    </strong>
-  `;
+streakBox.innerHTML = `
+  Current Streak:
+  <strong>${currentStreak}</strong>
+`;
 
   strongBox.innerHTML = `
     Accuracy:
