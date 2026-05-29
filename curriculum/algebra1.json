@@ -41,7 +41,7 @@
           "prerequisites": [],
           "unlockAfter": null
         },
-        {
+                {
           "id": "1.2",
           "title": "Solving Multi-Step Equations",
           "standard": "MA.912.AR.2.2",
@@ -67,6 +67,33 @@
           "eocRigor": "medium",
           "prerequisites": ["1.1"],
           "unlockAfter": "1.1"
+        },
+
+        {
+          "id": "1.3",
+          "title": "Solving Equations with Variables on Both Sides",
+          "standard": "MA.912.AR.2.2",
+          "objective": "Students will solve linear equations that contain variables on both sides of the equation.",
+          "essentialQuestion": "How can you solve equations when variables appear on both sides?",
+          "skills": [
+            "move variable terms",
+            "move constant terms",
+            "combine like terms",
+            "isolate the variable",
+            "verify solutions"
+          ],
+          "problemTypes": [
+            "variables_both_sides"
+          ],
+          "dokLevels": [2, 3],
+          "difficultyRange": {
+            "min": 3,
+            "max": 5
+          },
+          "realWorldRequired": true,
+          "eocRigor": "medium",
+          "prerequisites": ["1.2"],
+          "unlockAfter": "1.2"
         }
       ]
     }
