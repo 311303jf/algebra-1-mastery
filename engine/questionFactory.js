@@ -1451,13 +1451,19 @@ function generateChoices(answer, problemType) {
     const a = Number(matches[1]);
     const b = Number(matches[2]);
 
- return shuffle([
+ const wrongSign =
+  `x = ${formatNumber(a)}, x = ${formatNumber(-b)}`;
+
+const singleRoot =
+  `x = ${formatNumber(a)}`;
+
+const swapped =
+  `x = ${formatNumber(b)}, x = ${formatNumber(a)}`;
+
+return shuffle([
   answer,
-
-  `x = ${formatNumber(a)}`,
-
-  `x = ${formatNumber(a)}, x = ${formatNumber(-b)}`,
-
+  wrongSign,
+  singleRoot,
   "No Solution"
 ]);
   }
