@@ -422,6 +422,74 @@ function createChoices(answer) {
 
   }
 
+  function multiStepEquation(difficulty = "core") {
+  const r = difficultyRange(difficulty);
+
+  const answer = randInt(r.min, r.max);
+  const a = choice([2,3,4,5,6,7,8]);
+  const b = randInt(2, 15);
+  const c = a * answer + b;
+
+  return {
+    lesson: "1.2",
+    type: "multi_step_equation",
+    dok: 2,
+    difficulty,
+    prompt: `Solve: ${a}x + ${b} = ${c}`,
+    equation: `${a}x + ${b} = ${c}`,
+    answer,
+    choices: createChoices(answer),
+    hint: `First subtract ${b} from both sides, then divide by ${a}.`,
+    explanation: `${a}x + ${b} = ${c}. Subtract ${b}: ${a}x = ${c - b}. Divide by ${a}, so x = ${answer}.`
+  };
+}
+
+function combineLikeTermsEquation(difficulty = "core") {
+  const r = difficultyRange(difficulty);
+
+  const answer = randInt(r.min, r.max);
+  const a = choice([2,3,4,5,6]);
+  const b = choice([2,3,4,5,6]);
+  const c = randInt(2, 12);
+  const combined = a + b;
+  const total = combined * answer + c;
+
+  return {
+    lesson: "1.2",
+    type: "combine_like_terms_equation",
+    dok: 2,
+    difficulty,
+    prompt: `Solve: ${a}x + ${b}x + ${c} = ${total}`,
+    equation: `${a}x + ${b}x + ${c} = ${total}`,
+    answer,
+    choices: createChoices(answer),
+    hint: `First combine like terms: ${a}x + ${b}x = ${combined}x.`,
+    explanation: `${a}x + ${b}x + ${c} = ${total}. Combine like terms: ${combined}x + ${c} = ${total}. Subtract ${c}, then divide by ${combined}. x = ${answer}.`
+  };
+}
+
+function distributivePropertyEquation(difficulty = "core") {
+  const r = difficultyRange(difficulty);
+
+  const answer = randInt(r.min, r.max);
+  const a = choice([2,3,4,5]);
+  const b = randInt(2, 8);
+  const c = a * (answer + b);
+
+  return {
+    lesson: "1.2",
+    type: "distributive_property_equation",
+    dok: 2,
+    difficulty,
+    prompt: `Solve: ${a}(x + ${b}) = ${c}`,
+    equation: `${a}(x + ${b}) = ${c}`,
+    answer,
+    choices: createChoices(answer),
+    hint: `First divide both sides by ${a}, then subtract ${b}.`,
+    explanation: `${a}(x + ${b}) = ${c}. Divide by ${a}: x + ${b} = ${c / a}. Subtract ${b}, so x = ${answer}.`
+  };
+}
+
   function generateOne(
     lessonId = "1.1",
     options = {}
@@ -488,6 +556,17 @@ const type =
       generator = realWorldOneStep;
 
     }
+      else if (type === "multi_step_equation") {
+  generator = multiStepEquation;
+}
+
+else if (type === "combine_like_terms_equation") {
+  generator = combineLikeTermsEquation;
+}
+
+else if (type === "distributive_property_equation") {
+  generator = distributivePropertyEquation;
+}
 
     else if (type === "one_step_mixed") {
 
@@ -499,6 +578,7 @@ const type =
       ]);
 
     }
+      
 
     else {
 
