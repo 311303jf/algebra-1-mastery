@@ -1433,6 +1433,24 @@ function generateChoices(answer, problemType) {
     "All Real Numbers"
   ]);
 }
+   if (
+  problemType === "absolute_value_equations" &&
+  answer !== "No Solution"
+) {
+  const matches = answer.match(/x\s*=\s*(-?\d+(?:\.\d+)?),\s*x\s*=\s*(-?\d+(?:\.\d+)?)/);
+
+  if (matches) {
+    const a = Number(matches[1]);
+    const b = Number(matches[2]);
+
+    return shuffle([
+      answer,
+      `x = ${formatNumber(a)}`,
+      `x = ${formatNumber(b)}`,
+      "No Solution"
+    ]);
+  }
+}
 
   const distractors = new Set();
 
