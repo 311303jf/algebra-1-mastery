@@ -323,6 +323,81 @@ function generateOneStepEquation(difficulty = 1) {
     solutionSteps
   });
 }
+function generateOneStepAdditionEquation(difficulty = 1) {
+  const x = randInt(-10, 10, [0]);
+  const b = randInt(1, 15);
+  const result = x + b;
+
+  return buildQuestion({
+    prompt: `Solve for x: x + ${b} = ${result}`,
+    answer: `x = ${x}`,
+    problemType: "one_step_equation",
+    difficulty,
+    solutionSteps: [
+      `Original equation: x + ${b} = ${result}`,
+      `Subtract ${b} from both sides.`,
+      `x = ${result - b}`,
+      `x = ${x}`
+    ]
+  });
+}
+
+function generateOneStepSubtractionEquation(difficulty = 1) {
+  const x = randInt(-10, 10, [0]);
+  const b = randInt(1, 15);
+  const result = x - b;
+
+  return buildQuestion({
+    prompt: `Solve for x: x - ${b} = ${result}`,
+    answer: `x = ${x}`,
+    problemType: "one_step_equation",
+    difficulty,
+    solutionSteps: [
+      `Original equation: x - ${b} = ${result}`,
+      `Add ${b} to both sides.`,
+      `x = ${result + b}`,
+      `x = ${x}`
+    ]
+  });
+}
+
+function generateOneStepMultiplicationEquation(difficulty = 1) {
+  const x = randInt(-10, 10, [0]);
+  const a = randInt(2, 12);
+  const result = a * x;
+
+  return buildQuestion({
+    prompt: `Solve for x: ${a}x = ${result}`,
+    answer: `x = ${x}`,
+    problemType: "one_step_equation",
+    difficulty,
+    solutionSteps: [
+      `Original equation: ${a}x = ${result}`,
+      `Divide both sides by ${a}.`,
+      `x = ${result / a}`,
+      `x = ${x}`
+    ]
+  });
+}
+
+function generateOneStepDivisionEquation(difficulty = 1) {
+  const a = randInt(2, 12);
+  const result = randInt(-10, 10, [0]);
+  const x = a * result;
+
+  return buildQuestion({
+    prompt: `Solve for x: x ÷ ${a} = ${result}`,
+    answer: `x = ${x}`,
+    problemType: "one_step_equation",
+    difficulty,
+    solutionSteps: [
+      `Original equation: x ÷ ${a} = ${result}`,
+      `Multiply both sides by ${a}.`,
+      `x = ${result} × ${a}`,
+      `x = ${x}`
+    ]
+  });
+}
 
 
 function generateTwoStepEquation(difficulty = 1) {
