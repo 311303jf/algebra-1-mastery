@@ -93,6 +93,11 @@ export function generateQuestionsForLesson(lesson, count = 10, options = {}) {
 
 const GENERATORS = {
   one_step_equation: generateOneStepEquation,
+     one_step_addition_equation: generateOneStepEquation,
+  one_step_subtraction_equation: generateOneStepEquation,
+  one_step_multiplication_equation: generateOneStepEquation,
+  one_step_division_equation: generateOneStepEquation,
+   
   two_step_equation: generateTwoStepEquation,
   multi_step_equation: generateMultiStepEquation,
   variables_both_sides: generateVariablesBothSides,
