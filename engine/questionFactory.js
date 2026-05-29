@@ -1243,26 +1243,61 @@ function pickDivisor(difficulty = 1) {
 }
 
 function pickCoefficient(difficulty = 1) {
-  if (difficulty <= 1) {
-    const n = randInt(2, 10);
-    return { value: n, text: String(n), numerator: n, denominator: 1 };
+
+  // Difficulty 1–3:
+  // integers only, but includes positive and negative coefficients.
+  // No fractions yet, to avoid decimals like 3.666667.
+
+  if (difficulty <= 3) {
+
+    const n =
+      Math.random() < 0.4
+        ? randInt(-10, -2)
+        : randInt(2, 10);
+
+    return {
+      value: n,
+      text: String(n),
+      numerator: n,
+      denominator: 1
+    };
   }
 
-  if (difficulty === 2) {
-    const n = Math.random() < 0.35 ? randInt(-10, -2) : randInt(2, 10);
-    return { value: n, text: String(n), numerator: n, denominator: 1 };
-  }
+  // Difficulty 4+:
+  // fractions allowed later.
 
   const useFraction = Math.random() < 0.4;
+
   if (!useFraction) {
-    const n = Math.random() < 0.45 ? randInt(-10, -2) : randInt(2, 10);
-    return { value: n, text: String(n), numerator: n, denominator: 1 };
+
+    const n =
+      Math.random() < 0.45
+        ? randInt(-10, -2)
+        : randInt(2, 10);
+
+    return {
+      value: n,
+      text: String(n),
+      numerator: n,
+      denominator: 1
+    };
   }
 
   const denominator = pickRandom([2, 3, 4, 5]);
-  let numerator = randInt(1, denominator * 2, [denominator]);
-  if (Math.random() < 0.5) numerator *= -1;
-  return { value: numerator / denominator, text: `${numerator}/${denominator}`, numerator, denominator };
+
+  let numerator =
+    randInt(1, denominator * 2, [denominator]);
+
+  if (Math.random() < 0.5) {
+    numerator *= -1;
+  }
+
+  return {
+    value: numerator / denominator,
+    text: `${numerator}/${denominator}`,
+    numerator,
+    denominator
+  };
 }
 
 function formatCoeffForVariable(coeff) {
