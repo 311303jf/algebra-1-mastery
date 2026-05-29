@@ -12,6 +12,101 @@ body{font-family:Arial,sans-serif;background:#f5f7fb;margin:0;color:#0f172a}
 h1{margin-bottom:10px}
 .badge{display:inline-block;background:#dbeafe;color:#1d4ed8;padding:8px 12px;border-radius:999px;font-weight:bold;margin:5px}
 .btn{background:#2563eb;color:white;border:none;padding:12px 18px;border-radius:12px;font-weight:bold;cursor:pointer}
+
+  .calc-toggle {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #2563eb, #7c3aed);
+  color: white;
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 12px 28px rgba(0,0,0,.25);
+  z-index: 9999;
+}
+
+.calc-panel {
+  position: fixed;
+  right: 22px;
+  bottom: 92px;
+  width: 310px;
+  background: white;
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(0,0,0,.25);
+  padding: 14px;
+  z-index: 9999;
+  border: 1px solid #e5e7eb;
+}
+
+.calc-panel.hidden {
+  display: none;
+}
+
+.calc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 800;
+  margin-bottom: 10px;
+  color: #111827;
+}
+
+.calc-header button {
+  border: none;
+  background: #f3f4f6;
+  border-radius: 8px;
+  font-size: 20px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+}
+
+.calc-display {
+  width: 100%;
+  height: 54px;
+  font-size: 24px;
+  text-align: right;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px solid #d1d5db;
+  margin-bottom: 12px;
+  box-sizing: border-box;
+  background: #f9fafb;
+}
+
+.calc-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.calc-grid button {
+  height: 46px;
+  border: none;
+  border-radius: 12px;
+  background: #f3f4f6;
+  font-size: 17px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.calc-grid button:hover {
+  background: #e5e7eb;
+}
+
+.calc-grid button[data-calc="="] {
+  background: #2563eb;
+  color: white;
+}
+
+.calc-grid button[data-calc="C"] {
+  background: #fee2e2;
+  color: #991b1b;
+}
 </style>
 </head>
 
@@ -297,5 +392,102 @@ startLesson();
     <button data-calc="back">⌫</button>
   </div>
 </div>
+  <script>
+(function setupAlgebraCalculator() {
+  const toggle = document.getElementById("calcToggle");
+  const panel = document.getElementById("calcPanel");
+  const close = document.getElementById("calcClose");
+  const display = document.getElementById("calcDisplay");
+
+  if (!toggle || !panel || !close || !display) return;
+
+  let expression = "";
+
+  toggle.addEventListener("click", () => {
+    panel.classList.toggle("hidden");
+  });
+
+  close.addEventListener("click", () => {
+    panel.classList.add("hidden");
+  });
+
+  document.querySelectorAll("[data-calc]").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const value = btn.getAttribute("data-calc");
+
+      if (value === "C") {
+        expression = "";
+        display.value = "";
+        return;
+      }
+
+      if (value === "back") {
+        expression = expression.slice(0, -1);
+        display.value = expression;
+        return;
+      }
+
+      if (value === "sqrt") {
+        expression += "Math.sqrt(";
+        display.value = expression.replaceAll("Math.sqrt", "√");
+        return;
+      }
+
+      if (value === "square") {
+        expression += "**2";
+        display.value = expression.replaceAll("**2", "²");
+        return;
+      }
+
+      if (value === "pi") {
+        expression += "Math.PI";
+        display.value = expression.replaceAll("Math.PI", "π");
+        return;
+      }
+
+      if (value === "percent") {
+        expression += "/100";
+        display.value = expression;
+        return;
+      }
+
+      if (value === "=") {
+        try {
+          const safeExpression = expression;
+
+          if (!/^[0-9+\-*/().\sMathPIsqrt]+$/.test(safeExpression)) {
+            throw new Error("Invalid expression");
+          }
+
+          const result = Function('"use strict"; return (' + safeExpression + ')')();
+
+          if (!Number.isFinite(result)) {
+            throw new Error("Math error");
+          }
+
+          display.value = Number.isInteger(result)
+            ? result
+            : Number(result.toFixed(6));
+
+          expression = String(display.value);
+        } catch (err) {
+          display.value = "Error";
+          expression = "";
+        }
+
+        return;
+      }
+
+      expression += value;
+      display.value = expression
+        .replaceAll("*", "×")
+        .replaceAll("/", "÷")
+        .replaceAll("Math.PI", "π")
+        .replaceAll("Math.sqrt", "√")
+        .replaceAll("**2", "²");
+    });
+  });
+})();
+</script>
 </body>
 </html>
