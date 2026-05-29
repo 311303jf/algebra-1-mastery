@@ -254,5 +254,48 @@ async function startLesson(){
 
 startLesson();
 </script>
+  <!-- Algebra OS Scientific Calculator -->
+<button id="calcToggle" class="calc-toggle">🧮</button>
+
+<div id="calcPanel" class="calc-panel hidden">
+  <div class="calc-header">
+    <span>Algebra OS Calculator</span>
+    <button id="calcClose">×</button>
+  </div>
+
+  <input id="calcDisplay" class="calc-display" readonly />
+
+  <div class="calc-grid">
+    <button data-calc="C">C</button>
+    <button data-calc="(">(</button>
+    <button data-calc=")">)</button>
+    <button data-calc="/">÷</button>
+
+    <button data-calc="7">7</button>
+    <button data-calc="8">8</button>
+    <button data-calc="9">9</button>
+    <button data-calc="*">×</button>
+
+    <button data-calc="4">4</button>
+    <button data-calc="5">5</button>
+    <button data-calc="6">6</button>
+    <button data-calc="-">−</button>
+
+    <button data-calc="1">1</button>
+    <button data-calc="2">2</button>
+    <button data-calc="3">3</button>
+    <button data-calc="+">+</button>
+
+    <button data-calc="0">0</button>
+    <button data-calc=".">.</button>
+    <button data-calc="sqrt">√</button>
+    <button data-calc="=">=</button>
+
+    <button data-calc="square">x²</button>
+    <button data-calc="pi">π</button>
+    <button data-calc="percent">%</button>
+    <button data-calc="back">⌫</button>
+  </div>
+</div>
 </body>
 </html>
