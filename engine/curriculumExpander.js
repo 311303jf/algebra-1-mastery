@@ -9,7 +9,7 @@
    - No certified content is duplicated manually here.
    ============================================================ */
 
-import { loadCurriculumBlueprints } from "./blueprintLoader.js";
+import { loadCurriculumBlueprints } from "../src/engine/blueprintLoader.js";
 
 const BLUEPRINT_DATA = loadCurriculumBlueprints();
 
