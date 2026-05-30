@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Algebra OS | Curriculum Expansion Engine</title>
+<style>
+body{font-family:Arial,sans-serif;background:#f5f7fb;color:#0f172a;margin:0;padding:30px}
+.card{background:white;border-radius:20px;padding:24px;box-shadow:0 12px 35px rgba(15,23,42,.08);margin-bottom:20px}
+.btn{background:#2563eb;color:white;border:none;border-radius:12px;padding:12px 18px;font-weight:bold;cursor:pointer}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
+.stat{border:1px solid #e2e8f0;border-radius:14px;padding:14px;background:#f8fafc}
+.stat span{display:block;color:#64748b;font-size:12px;font-weight:bold;text-transform:uppercase}
+.stat strong{display:block;font-size:26px;margin-top:5px}
+table{width:100%;border-collapse:collapse;background:white}
+th,td{border-bottom:1px solid #e2e8f0;padding:12px;text-align:left;vertical-align:top}
+th{background:#f8fafc}
+.badge{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:bold;font-size:12px}
+.ready,.certified{background:#dcfce7;color:#166534}
+.missing,.review{background:#fef3c7;color:#92400e}
+.no_problem_types,.fail{background:#fee2e2;color:#991b1b}
+code{background:#f1f5f9;padding:3px 6px;border-radius:6px;display:inline-block;margin:2px}
+.small{color:#64748b;font-size:12px}
+</style>
+</head>
+<body>
+
+<div class="card">
+  <h1>Algebra OS Curriculum Expansion Engine</h1>
+  <p>This panel audits the full Algebra 1 curriculum and identifies missing problem types, missing generators, and lessons ready for QA certification.</p>
+  <button class="btn" onclick="runExpansionAudit()">Run Curriculum Expansion Audit</button>
+  <button class="btn" onclick="runGeneratorQA()">Run Generator QA Test</button>
+  <p class="small">Use this after Unit 1 certification to scale Units 2–12 automatically.</p>
+</div>
+
+<div id="summary" class="card">Click Run Curriculum Expansion Audit.</div>
+<div id="missing" class="card"></div>
+<div id="roadmap" class="card"></div>
+
+<script type="module">
+import {
+  auditEntireCurriculum,
+  testGenerators
+} from "./engine/curriculumExpansionEngine.js";
+
+function statusClass(status){
+  return String(status || "").toLowerCase();
+}
+
+function renderSummary(audit){
+  document.getElementById("summary").innerHTML = `
+    <h2>Expansion Summary</h2>
+    <div class="stat-grid">
+      <div class="stat"><span>Total Units</span><strong>${audit.totalUnits}</strong></div>
+      <div class="stat"><span>Total Lessons</span><strong>${audit.totalLessons}</strong></div>
+      <div class="stat"><span>Ready Lessons</span><strong>${audit.readyLessons}</strong></div>
+      <div class="stat"><span>Missing Generator Lessons</span><strong>${audit.missingGeneratorLessons}</strong></div>
+      <div class="stat"><span>No Problem Type Lessons</span><strong>${audit.noProblemTypeLessons}</strong></div>
+      <div class="stat"><span>Completion</span><strong>${audit.totalLessons ? Math.round((audit.readyLessons / audit.totalLessons) * 100) : 0}%</strong></div>
+    </div>
+  `;
+}
+
+function renderMissing(audit){
+  document.getElementById("missing").innerHTML = `
+    <h2>Missing Generators</h2>
+    <p><strong>Missing Problem Types:</strong></p>
+    ${
+      audit.missingProblemTypes.length
+        ? audit.missingProblemTypes.map(t => `<code>${t}</code>`).join("")
+        : "<p>None. All problem types currently have generators.</p>"
+    }
+  `;
+}
+
+function renderRoadmap(rows){
+  document.getElementById("roadmap").innerHTML = `
+    <h2>Curriculum Roadmap</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Unit</th>
+          <th>Lesson</th>
+          <th>Title</th>
+          <th>Problem Types</th>
+          <th>Missing Generators</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(row => `
+          <tr>
+            <td>${row.unitId}</td>
+            <td>${row.lessonId}</td>
+            <td>${row.lessonTitle}</td>
+            <td>${row.problemTypes.map(t => `<code>${t}</code>`).join("<br>")}</td>
+            <td>${row.missingGenerators.length ? row.missingGenerators.map(t => `<code>${t}</code>`).join("<br>") : "None"}</td>
+            <td><span class="badge ${statusClass(row.status)}">${row.status}</span></td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+window.runExpansionAudit = async function(){
+  document.getElementById("summary").innerHTML = "<h2>Running...</h2>";
+  document.getElementById("missing").innerHTML = "";
+  document.getElementById("roadmap").innerHTML = "";
+
+  const audit = await auditEntireCurriculum();
+
+  renderSummary(audit);
+  renderMissing(audit);
+  renderRoadmap(audit.roadmap);
+};
+
+window.runGeneratorQA = async function(){
+  document.getElementById("summary").innerHTML = "<h2>Running QA Test...</h2>";
+  document.getElementById("missing").innerHTML = "";
+  document.getElementById("roadmap").innerHTML = "";
+
+  const results = await testGenerators(20);
+
+  const total = results.length;
+  const certified = results.filter(r => r.qaStatus === "CERTIFIED").length;
+  const review = results.filter(r => r.qaStatus !== "CERTIFIED").length;
+
+  document.getElementById("summary").innerHTML = `
+    <h2>Generator QA Summary</h2>
+    <div class="stat-grid">
+      <div class="stat"><span>Total Lessons Tested</span><strong>${total}</strong></div>
+      <div class="stat"><span>Certified</span><strong>${certified}</strong></div>
+      <div class="stat"><span>Review</span><strong>${review}</strong></div>
+      <div class="stat"><span>Pass Rate</span><strong>${total ? Math.round((certified / total) * 100) : 0}%</strong></div>
+    </div>
+  `;
+
+  document.getElementById("roadmap").innerHTML = `
+    <h2>Generator QA Roadmap</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Unit</th>
+          <th>Lesson</th>
+          <th>Title</th>
+          <th>Generated</th>
+          <th>Passed</th>
+          <th>Failed</th>
+          <th>Pass Rate</th>
+          <th>Status</th>
+          <th>Errors</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${results.map(row => `
+          <tr>
+            <td>${row.unitId}</td>
+            <td>${row.lessonId}</td>
+            <td>${row.lessonTitle}</td>
+            <td>${row.generated}</td>
+            <td>${row.passed}</td>
+            <td>${row.failed}</td>
+            <td>${row.passRate}%</td>
+            <td><span class="badge ${statusClass(row.qaStatus)}">${row.qaStatus}</span></td>
+            <td>${row.errors?.length ? row.errors.map(e => `<code>${e}</code>`).join("<br>") : "None"}</td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+};
+</script>
+
+</body>
+</html>
