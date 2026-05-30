@@ -3,123 +3,36 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Algebra OS | Coverage Report</title>
+<title>Algebra OS | QA Coverage Report</title>
 <style>
-body{
-  font-family: Arial, sans-serif;
-  background:#f5f7fb;
-  color:#0f172a;
-  margin:0;
-  padding:30px;
-}
-.card{
-  background:white;
-  border-radius:20px;
-  padding:24px;
-  box-shadow:0 12px 35px rgba(15,23,42,.08);
-  margin-bottom:20px;
-}
-h1{margin-top:0}
-.badge{
-  display:inline-block;
-  padding:6px 10px;
-  border-radius:999px;
-  font-weight:bold;
-  font-size:12px;
-}
-.ready{background:#dcfce7;color:#166534}
-.missing{background:#fee2e2;color:#991b1b}
-table{
-  width:100%;
-  border-collapse:collapse;
-  background:white;
-}
-th,td{
-  border-bottom:1px solid #e2e8f0;
-  padding:12px;
-  text-align:left;
-  vertical-align:top;
-}
-th{background:#f8fafc}
-code{
-  background:#f1f5f9;
-  padding:3px 6px;
-  border-radius:6px;
-}
-.btn{
-  background:#2563eb;
-  color:white;
-  border:none;
-  border-radius:12px;
-  padding:12px 18px;
-  font-weight:bold;
-  cursor:pointer;
-}
+body{font-family:Arial,sans-serif;background:#f5f7fb;color:#0f172a;margin:0;padding:30px}.card{background:white;border-radius:20px;padding:24px;box-shadow:0 12px 35px rgba(15,23,42,.08);margin-bottom:20px}h1,h2{margin-top:0}.badge{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:bold;font-size:12px}.certified,.ready{background:#dcfce7;color:#166534}.review{background:#fef3c7;color:#92400e}.fail,.missing{background:#fee2e2;color:#991b1b}table{width:100%;border-collapse:collapse;background:white}th,td{border-bottom:1px solid #e2e8f0;padding:12px;text-align:left;vertical-align:top}th{background:#f8fafc}code{background:#f1f5f9;padding:3px 6px;border-radius:6px;display:inline-block;margin:2px 0}.btn{background:#2563eb;color:white;border:none;border-radius:12px;padding:12px 18px;font-weight:bold;cursor:pointer}.controls{display:flex;gap:12px;align-items:center;flex-wrap:wrap}input{border:1px solid #e2e8f0;border-radius:10px;padding:10px;font-weight:bold}.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}.stat{border:1px solid #e2e8f0;border-radius:14px;padding:14px;background:#f8fafc}.stat span{display:block;color:#64748b;font-size:12px;font-weight:bold;text-transform:uppercase}.stat strong{display:block;font-size:26px;margin-top:5px}.small{color:#64748b;font-size:12px}.details{font-size:12px;color:#334155}hr{border:none;border-top:1px solid #e2e8f0;margin:10px 0}
 </style>
 </head>
 <body>
-
 <div class="card">
-  <h1>Algebra OS Coverage Report</h1>
-  <p>This page scans <code>algebra1.json</code> and verifies whether every lesson has working question generators.</p>
-  <button class="btn" onclick="runCoverage()">Run Coverage Report</button>
+  <h1>Algebra OS QA Coverage Report</h1>
+  <p>This page scans <code>algebra1.json</code> and validates every lesson by generating sample questions through the active Question Factory.</p>
+  <div class="controls">
+    <label>Sample size per problem type: <input id="sampleSize" type="number" value="100" min="10" max="300" step="10" /></label>
+    <button class="btn" onclick="runCoverage()">Run QA Coverage Report</button>
+  </div>
+  <p class="small">Recommended: 100 for certification. Use 20 for quick checks.</p>
 </div>
-
-<div id="summary" class="card">Click Run Coverage Report.</div>
+<div id="summary" class="card">Click Run QA Coverage Report.</div>
 <div id="report" class="card"></div>
-
 <script type="module">
-import {
-  buildCoverageReport,
-  summarizeCoverage
-} from "./engine/coverageEngine.js";
-
+import { buildCoverageReport, summarizeCoverage } from "./engine/coverageEngine.js";
+function statusClass(status){if(status==="CERTIFIED")return"certified";if(status==="READY")return"ready";if(status==="REVIEW")return"review";if(status==="FAIL")return"fail";return"missing";}
 async function runCoverage(){
-  const rows = await buildCoverageReport();
-  const summary = summarizeCoverage(rows);
-
-  document.getElementById("summary").innerHTML = `
-    <h2>Summary</h2>
-    <p><strong>Total Lessons:</strong> ${summary.totalLessons}</p>
-    <p><strong>Ready Lessons:</strong> ${summary.readyLessons}</p>
-    <p><strong>Missing Lessons:</strong> ${summary.missingLessons}</p>
-    <p><strong>Total Problem Types:</strong> ${summary.totalProblemTypes}</p>
-    <p><strong>Missing Problem Types:</strong> ${summary.missingProblemTypes.length ? summary.missingProblemTypes.join(", ") : "None"}</p>
-  `;
-
-  document.getElementById("report").innerHTML = `
-    <h2>Lesson-by-Lesson Coverage</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>Lesson</th>
-          <th>Title</th>
-          <th>Problem Types</th>
-          <th>Status</th>
-          <th>Missing</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${rows.map(row => `
-          <tr>
-            <td>${row.lessonId}</td>
-            <td>${row.lessonTitle}</td>
-            <td>${row.problemTypes.map(t => `<code>${t}</code>`).join("<br>")}</td>
-            <td>
-              <span class="badge ${row.status === "READY" ? "ready" : "missing"}">
-                ${row.status}
-              </span>
-            </td>
-            <td>${row.missing.length ? row.missing.map(t => `<code>${t}</code>`).join("<br>") : "—"}</td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>
-  `;
+  const sampleSize=Number(document.getElementById("sampleSize").value||100);
+  document.getElementById("summary").innerHTML="<h2>Running...</h2><p>Please wait while Algebra OS generates QA samples.</p>";
+  document.getElementById("report").innerHTML="";
+  const rows=await buildCoverageReport(sampleSize);
+  const summary=summarizeCoverage(rows);
+  document.getElementById("summary").innerHTML=`<h2>Summary</h2><div class="stat-grid"><div class="stat"><span>Total Lessons</span><strong>${summary.totalLessons}</strong></div><div class="stat"><span>Certified</span><strong>${summary.certifiedLessons}</strong></div><div class="stat"><span>Review</span><strong>${summary.reviewLessons}</strong></div><div class="stat"><span>Fail</span><strong>${summary.failedLessons}</strong></div><div class="stat"><span>Missing</span><strong>${summary.missingLessons}</strong></div><div class="stat"><span>Generated</span><strong>${summary.totalGenerated}</strong></div><div class="stat"><span>Passed</span><strong>${summary.totalPassed}</strong></div><div class="stat"><span>Failed</span><strong>${summary.totalFailed}</strong></div><div class="stat"><span>Overall Pass Rate</span><strong>${summary.overallPassRate}%</strong></div></div><p><strong>Missing Problem Types:</strong> ${summary.missingProblemTypes.length?summary.missingProblemTypes.join(", "):"None"}</p>`;
+  document.getElementById("report").innerHTML=`<h2>Lesson-by-Lesson QA Coverage</h2><table><thead><tr><th>Lesson</th><th>Title</th><th>Problem Types</th><th>Generated</th><th>Passed</th><th>Failed</th><th>Pass Rate</th><th>Status</th><th>Samples / Errors</th></tr></thead><tbody>${rows.map(row=>`<tr><td>${row.lessonId}</td><td>${row.lessonTitle}</td><td>${row.problemTypes.map(t=>`<code>${t}</code>`).join("<br>")}</td><td>${row.generated}</td><td>${row.passed}</td><td>${row.failed}</td><td>${row.passRate}%</td><td><span class="badge ${statusClass(row.status)}">${row.status}</span></td><td class="details">${row.typeReports.map(typeReport=>`<strong>${typeReport.problemType}</strong><br>Generated: ${typeReport.generated}, Passed: ${typeReport.passed}, Failed: ${typeReport.failed}, Pass Rate: ${typeReport.passRate}%<br><em>Samples:</em><br>${typeReport.samplePrompts.map(p=>`<code>${p}</code>`).join("<br>")}${typeReport.sampleErrors.length?`<br><em>Errors:</em><br>${typeReport.sampleErrors.map(e=>`<code>${e.errors.join("; ")}</code>`).join("<br>")}`:""}<hr>`).join("")}</td></tr>`).join("")}</tbody></table>`;
 }
-
-window.runCoverage = runCoverage;
+window.runCoverage=runCoverage;
 </script>
-
 </body>
 </html>
