@@ -1,764 +1,288 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Algebra 1 Mastery | Algebra OS</title>
-
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Algebra OS — Dashboard</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css"/>
 <style>
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif}
 :root{
-  --bg:#f5f7fb;
-  --ink:#0f172a;
-  --muted:#64748b;
-  --blue:#2563eb;
-  --blue2:#1d4ed8;
-  --green:#16a34a;
-  --red:#dc2626;
-  --amber:#f59e0b;
-  --purple:#7c3aed;
-  --card:#ffffff;
-  --line:#e2e8f0;
-  --soft:#eff6ff;
-  --shadow:0 18px 50px rgba(15,23,42,.10);
+  --bg:#f1f5f9;--card:#fff;--border:#e2e8f0;--muted:#64748b;
+  --blue-bg:#eff6ff;--blue-txt:#1e40af;--blue-bdr:#bfdbfe;
+  --green-bg:#f0fdf4;--green-txt:#15803d;--green-bdr:#bbf7d0;
+  --amber-bg:#fffbeb;--amber-txt:#92400e;--amber-bdr:#fde68a;
+  --red-bg:#fef2f2;--red-txt:#991b1b;--red-bdr:#fecaca;
 }
-*{box-sizing:border-box;margin:0;padding:0}
-body{
-  font-family:Inter,Arial,Helvetica,sans-serif;
-  background:var(--bg);
-  color:var(--ink);
-}
-.app{
-  display:grid;
-  grid-template-columns:260px 1fr 330px;
-  min-height:100vh;
-}
-.sidebar{
-  background:#0f172a;
-  color:white;
-  padding:26px 18px;
-  position:sticky;
-  top:0;
-  height:100vh;
-}
-.logo{
-  font-size:25px;
-  font-weight:900;
-  margin-bottom:8px;
-}
-.sublogo{
-  color:#cbd5e1;
-  font-size:13px;
-  margin-bottom:30px;
-}
-.nav a{
-  display:block;
-  color:#e5e7eb;
-  text-decoration:none;
-  padding:13px 14px;
-  border-radius:14px;
-  margin-bottom:8px;
-  font-weight:800;
-}
-.nav a.active,.nav a:hover{background:#2563eb;color:white}
-.main{
-  padding:28px;
-  overflow:auto;
-}
-.topbar{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:24px;
-  gap:15px;
-}
-.student-pill{
-  background:white;
-  padding:12px 18px;
-  border-radius:18px;
-  box-shadow:0 5px 18px rgba(15,23,42,.08);
-  font-weight:900;
-}
-.reset-btn{
-  border:none;
-  background:#0f172a;
-  color:white;
-  padding:12px 15px;
-  border-radius:14px;
-  font-weight:900;
-  cursor:pointer;
-}
-.hero{
-  background:linear-gradient(135deg,#2563eb,#7c3aed);
-  color:white;
-  padding:36px;
-  border-radius:30px;
-  box-shadow:var(--shadow);
-  margin-bottom:24px;
-}
-.hero h1{font-size:44px;margin-bottom:10px}
-.hero p{font-size:18px;opacity:.93;max-width:850px}
-.stats-grid{
-  display:grid;
-  grid-template-columns:repeat(4,minmax(150px,1fr));
-  gap:16px;
-  margin-bottom:24px;
-}
-.stat-card{
-  background:white;
-  padding:22px;
-  border-radius:24px;
-  box-shadow:0 12px 34px rgba(15,23,42,.08);
-}
-.stat-card p{
-  color:var(--muted);
-  font-weight:900;
-  font-size:13px;
-}
-.stat-card h2{
-  color:var(--blue);
-  margin-top:8px;
-  font-size:28px;
-}
-.section-title{
-  font-size:27px;
-  margin:26px 0 16px;
-}
-.topic-grid{
-  display:flex;
-  flex-direction:column;
-  gap:18px;
-}
-
-.topic-card{
-  background:white;
-  border-radius:26px;
-  box-shadow:var(--shadow);
-  padding:22px;
-  border:1px solid var(--line);
-}
-
-.topic-header{
-  display:grid;
-  grid-template-columns:1fr auto auto;
-  align-items:center;
-  gap:14px;
-  margin-bottom:14px;
-}
-
-.topic-card h3{
-  color:var(--blue);
-  font-size:22px;
-  line-height:1.2;
-}
-
-.topic-pill{
-  background:#eff6ff;
-  color:#1d4ed8;
-  font-weight:900;
-  border-radius:999px;
-  padding:8px 12px;
-  font-size:12px;
-  white-space:nowrap;
-}
-
-.unit-meta{
-  color:var(--muted);
-  font-weight:800;
-  font-size:13px;
-  margin-top:5px;
-}
-
-.unit-progress{
-  height:12px;
-  background:#e2e8f0;
-  border-radius:999px;
-  overflow:hidden;
-  margin:12px 0 16px;
-}
-
-.unit-progress div{
-  height:100%;
-  background:linear-gradient(90deg,#22c55e,#16a34a);
-  transition:.4s;
-}
-
-.lesson-list{
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-
-.lesson{
-  display:grid;
-  grid-template-columns:90px 1fr auto;
-  align-items:center;
-  gap:14px;
-  background:#f8fafc;
-  border:1px solid var(--line);
-  padding:14px 16px;
-  border-radius:18px;
-  transition:.25s;
-  cursor:pointer;
-}
-
-.lesson:hover{
-  transform:translateY(-2px);
-  border-color:#bfdbfe;
-  background:#eff6ff;
-}
-
-.lesson.locked{
-  opacity:.6;
-  cursor:not-allowed;
-}
-
-.lesson-id{
-  font-weight:900;
-  color:#1d4ed8;
-  background:#dbeafe;
-  border-radius:999px;
-  padding:8px 10px;
-  text-align:center;
-  font-size:13px;
-}
-
-.lesson-title{
-  font-weight:900;
-  font-size:16px;
-  margin-bottom:4px;
-}
-
-.lesson-sub{
-  color:var(--muted);
-  font-size:13px;
-  font-weight:700;
-  line-height:1.35;
-}
-
-.lesson-data{
-  color:var(--muted);
-  font-size:12px;
-  font-weight:900;
-  margin-top:5px;
-}
-
-.status{
-  font-weight:900;
-  border-radius:999px;
-  padding:8px 12px;
-  font-size:12px;
-  white-space:nowrap;
-}
-
-.done{background:#dcfce7;color:#166534}
-.open{background:#dbeafe;color:#1e40af}
-.lock{background:#e2e8f0;color:#475569}
-
-.progress-mini{
-  height:12px;
-  background:#e2e8f0;
-  border-radius:999px;
-  overflow:hidden;
-  margin:15px 0 6px;
-}
-.progress-mini div{
-  height:100%;
-  width:0%;
-  background:linear-gradient(90deg,#22c55e,#16a34a);
-  transition:.4s;
-}
-
-@media(max-width:750px){
-  .topic-header{
-    grid-template-columns:1fr;
-  }
-
-  .lesson{
-    grid-template-columns:1fr;
-  }
-
-  .lesson-id{
-    width:max-content;
-  }
-}
-.skill-map{
-  background:white;
-  border-radius:28px;
-  padding:24px;
-  box-shadow:var(--shadow);
-}
-.skill-row{
-  display:grid;
-  grid-template-columns:38px 1fr auto;
-  align-items:center;
-  gap:12px;
-  padding:13px;
-  border-bottom:1px solid var(--line);
-}
-.skill-row:last-child{border-bottom:none}
-.node{
-  width:38px;
-  height:38px;
-  border-radius:50%;
-  display:grid;
-  place-items:center;
-  background:#dbeafe;
-  color:#1d4ed8;
-  font-weight:900;
-}
-.node.done-node{background:#dcfce7;color:#166534}
-.node.lock-node{background:#e2e8f0;color:#64748b}
-.right{
-  background:white;
-  border-left:1px solid var(--line);
-  padding:26px 20px;
-  position:sticky;
-  top:0;
-  height:100vh;
-  overflow:auto;
-}
-.coach-card{
-  background:#eff6ff;
-  border-radius:24px;
-  padding:20px;
-  margin-bottom:18px;
-  border:1px solid #dbeafe;
-}
-.coach-card h3{
-  color:var(--blue);
-  margin-bottom:12px;
-}
-.progress-bar{
-  height:18px;
-  background:#e2e8f0;
-  border-radius:999px;
-  overflow:hidden;
-  margin:12px 0;
-}
-.progress-fill{
-  height:100%;
-  width:0%;
-  background:linear-gradient(90deg,#22c55e,#16a34a);
-  transition:.4s;
-}
-.metric{
-  display:flex;
-  justify-content:space-between;
-  margin:10px 0;
-  font-weight:900;
-}
-.badge{
-  display:inline-block;
-  background:#fef3c7;
-  color:#92400e;
-  padding:10px 13px;
-  border-radius:999px;
-  font-weight:900;
-  margin-top:8px;
-}
-.warning{
-  background:#fff7ed;
-  color:#9a3412;
-  border:1px solid #fed7aa;
-  border-radius:18px;
-  padding:14px;
-  font-weight:800;
-  line-height:1.45;
-}
-@media(max-width:1150px){
-  .app{grid-template-columns:1fr}
-  .sidebar,.right{position:relative;height:auto}
-  .stats-grid{grid-template-columns:repeat(2,1fr)}
-}
-@media(max-width:650px){
-  .stats-grid{grid-template-columns:1fr}
-  .hero h1{font-size:32px}
-}
+body{display:flex;height:100vh;overflow:hidden;background:var(--bg);color:#0f172a;font-size:13px}
+.sb{width:220px;min-width:220px;background:#0f1623;display:flex;flex-direction:column;height:100%;overflow-y:auto}
+.sb-top{padding:18px 14px 10px}
+.sb-name{color:#fff;font-size:16px;font-weight:600}
+.sb-sub{color:#475569;font-size:10px;letter-spacing:.4px;margin-top:2px;margin-bottom:18px}
+.sb-nav-label{color:#334155;font-size:10px;letter-spacing:.6px;padding:8px 10px 4px;text-transform:uppercase}
+.sb a{display:flex;align-items:center;gap:8px;color:#94a3b8;text-decoration:none;padding:8px 10px;border-radius:8px;font-size:12px;margin-bottom:1px;transition:.12s}
+.sb a:hover,.sb a.on{background:#1e293b;color:#f1f5f9}
+.sb a i{font-size:14px;width:14px;text-align:center}
+.units-label{color:#334155;font-size:10px;letter-spacing:.6px;padding:12px 14px 6px;text-transform:uppercase;border-top:0.5px solid #1e293b;margin-top:8px}
+.unit-btn{display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:.12s;border-left:2px solid transparent}
+.unit-btn:hover{background:#1a2332}
+.unit-btn.active{background:#1e293b;border-left-color:#3b82f6}
+.unit-num{width:26px;height:26px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+.un-a{background:#1e40af;color:#93c5fd}.un-l{background:#1e293b;color:#475569}.un-d{background:#14532d;color:#86efac}
+.unit-btn-info{flex:1;min-width:0}
+.ubt{color:#e2e8f0;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ubs{color:#64748b;font-size:10px;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ubpct{font-size:11px;color:#475569;flex-shrink:0}
+.unit-btn.active .ubpct{color:#93c5fd}
+.sb-bottom{margin-top:auto;padding:10px 12px;border-top:0.5px solid #1e293b}
+.sb-user{display:flex;align-items:center;gap:8px;padding:6px 8px}
+.sb-av{width:26px;height:26px;border-radius:50%;background:#1e40af;display:flex;align-items:center;justify-content:center;font-size:10px;color:#93c5fd;font-weight:600;flex-shrink:0}
+.sb-un{color:#e2e8f0;font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-us{color:#475569;font-size:10px}
+.main{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;border-bottom:1px solid var(--border);background:var(--card);flex-shrink:0}
+.tg{font-size:14px;font-weight:600}.ts{font-size:11px;color:var(--muted);margin-top:1px}
+.topbar-right{display:flex;gap:8px}
+.btn{display:flex;align-items:center;gap:4px;padding:6px 11px;border:1px solid var(--border);border-radius:7px;background:transparent;color:var(--muted);font-size:11px;cursor:pointer;transition:.12s;font-family:inherit}
+.btn:hover{background:#f8fafc}.btn i{font-size:13px}.btn-blue{color:#1d4ed8;border-color:#bfdbfe}
+.scroll{flex:1;overflow-y:auto;padding:18px 20px;display:flex;flex-direction:column;gap:14px}
+.banner{background:#1e40af;border-radius:10px;padding:16px 20px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+.banner h2{color:#fff;font-size:15px;font-weight:700;margin-bottom:3px}
+.banner p{color:#93c5fd;font-size:11px;line-height:1.6;max-width:420px}
+.bpills{display:flex;gap:8px;flex-shrink:0}
+.bpill{background:#1d4ed8;border:1px solid #3b82f6;border-radius:8px;padding:9px 14px;text-align:center;min-width:70px}
+.bpill .n{font-size:17px;font-weight:700;color:#fff}.bpill .l{font-size:10px;color:#93c5fd;margin-top:1px}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;flex-shrink:0}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:11px 13px}
+.mc .lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:4px}
+.mc .val{font-size:19px;font-weight:700}.mc .hint{font-size:10px;color:var(--muted);margin-top:2px}
+.blue{color:#1d4ed8}.green{color:#15803d}.purple{color:#7c3aed}
+.unit-panel{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;flex-shrink:0}
+.up-head{display:flex;align-items:center;justify-content:space-between;padding:13px 16px;border-bottom:1px solid var(--border);gap:12px}
+.up-title{font-size:14px;font-weight:600;margin-bottom:2px}.up-sub{font-size:11px;color:var(--muted)}
+.up-tags{display:flex;gap:6px;flex-shrink:0}
+.tag{font-size:10px;padding:3px 8px;border-radius:999px;border:1px solid}
+.tag-blue{background:var(--blue-bg);color:var(--blue-txt);border-color:var(--blue-bdr)}
+.tag-green{background:var(--green-bg);color:var(--green-txt);border-color:var(--green-bdr)}
+.tag-amber{background:var(--amber-bg);color:var(--amber-txt);border-color:var(--amber-bdr)}
+.up-bar{padding:10px 16px 4px}.up-bar-row{display:flex;justify-content:space-between;margin-bottom:4px}
+.up-bar-row span{font-size:10px;color:var(--muted)}
+.bar{height:4px;background:#e2e8f0;border-radius:999px;overflow:hidden;margin-bottom:6px}
+.bar div{height:100%;background:#2563eb;border-radius:999px;transition:.4s}
+.lesson-row{display:grid;grid-template-columns:46px 1fr auto;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--border);cursor:pointer;transition:.12s}
+.lesson-row:hover:not(.locked){background:#f8fafc}.lesson-row.locked{opacity:.55;cursor:default}
+.lid{width:38px;height:28px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex-shrink:0;background:#f1f5f9;color:var(--muted)}
+.lid.lopen{background:var(--blue-bg);color:var(--blue-txt)}.lid.ldone{background:var(--green-bg);color:var(--green-txt)}
+.lt{font-size:12px;font-weight:600;margin-bottom:1px}.ls{font-size:11px;color:var(--muted);line-height:1.45}.lm{font-size:10px;color:var(--muted);margin-top:2px}
+.pill{display:inline-block;font-size:10px;padding:3px 8px;border-radius:999px;border:1px solid;white-space:nowrap}
+.p-open{background:var(--blue-bg);color:var(--blue-txt);border-color:var(--blue-bdr)}
+.p-done{background:var(--green-bg);color:var(--green-txt);border-color:var(--green-bdr)}
+.p-lock{background:#f1f5f9;color:var(--muted);border-color:var(--border)}
+.p-prog{background:var(--amber-bg);color:var(--amber-txt);border-color:var(--amber-bdr)}
+.empty{padding:32px 16px;text-align:center;color:var(--muted);font-size:12px;line-height:1.8}.empty i{font-size:28px;display:block;margin-bottom:8px}
+@media(max-width:850px){body{display:block;overflow:auto;height:auto}.sb{width:100%;height:auto;min-width:0}.main{height:auto}.metrics{grid-template-columns:repeat(2,1fr)}.banner{align-items:flex-start;gap:12px;flex-direction:column}}
+@media(max-width:560px){.metrics{grid-template-columns:1fr}.lesson-row{grid-template-columns:1fr}.up-head{align-items:flex-start;flex-direction:column}}
 </style>
 </head>
-
 <body>
-<div class="app">
-
-  <aside class="sidebar">
-    <div class="logo">Algebra OS</div>
-    <div class="sublogo">MDCPS Algebra 1 EOC</div>
-    <nav class="nav">
-      <a class="active" href="#">🏠 Dashboard</a>
-      <a href="#">📚 Learn</a>
-      <a href="#">🧠 Practice</a>
-      <a href="#">🎯 EOC Prep</a>
-      <a href="#">📈 Progress</a>
-      <a href="#">🏆 Achievements</a>
-      <a href="#">⚙️ Settings</a>
+<aside class="sb">
+  <div class="sb-top">
+    <div class="sb-name">Algebra OS</div>
+    <div class="sb-sub">MDCPS · Algebra 1 EOC</div>
+    <div class="sb-nav-label">Menu</div>
+    <nav>
+      <a href="#" class="on"><i class="ti ti-layout-dashboard"></i> Dashboard</a>
+      <a href="#"><i class="ti ti-brain"></i> Practice</a>
+      <a href="#"><i class="ti ti-target"></i> EOC Prep</a>
+      <a href="#"><i class="ti ti-chart-line"></i> Progress</a>
+      <a href="#"><i class="ti ti-trophy"></i> Achievements</a>
+      <a href="#"><i class="ti ti-settings"></i> Settings</a>
     </nav>
-  </aside>
-
-  <main class="main">
-
-    <div class="topbar">
-      <div class="student-pill">Welcome back, Algebra Scholar</div>
-      <button class="reset-btn" onclick="resetProgress()">Reset Progress</button>
+  </div>
+  <div class="units-label">My Units</div>
+  <div id="unitsList"></div>
+  <div class="sb-bottom">
+    <div class="sb-user">
+      <div class="sb-av">AS</div>
+      <div style="min-width:0">
+        <div class="sb-un">Algebra Scholar</div>
+        <div class="sb-us">MDCPS Student</div>
+      </div>
     </div>
-
-    <section class="hero">
-      <h1>Master Algebra 1</h1>
-      <p>
-        Your learning dashboard now connects to real progress from Lesson 1.1 using local storage.
-        XP, mastery, badges, and unlocked lessons update automatically.
-      </p>
-    </section>
-
-    <section class="stats-grid">
-      <div class="stat-card">
-        <p>COURSE MASTERY</p>
-        <h2 id="courseMastery">0%</h2>
-      </div>
-
-      <div class="stat-card">
-        <p>TOPIC 1 MASTERY</p>
-        <h2 id="topic1Mastery">0%</h2>
-      </div>
-
-      <div class="stat-card">
-        <p>XP EARNED</p>
-        <h2 id="xpStat">0 XP</h2>
-      </div>
-
-      <div class="stat-card">
-        <p>PREDICTED EOC</p>
-        <h2 id="eocStat">Level 1</h2>
-      </div>
-    </section>
-
-    <h2 class="section-title">Current Learning Path</h2>
-
-    <section class="topic-grid" id="dynamicTopicGrid">
-</section>
-
-    <h2 class="section-title">Skill Tree</h2>
-
-    <section class="skill-map">
-      <div class="skill-row">
-        <div class="node" id="node11">1</div>
-        <div>
-          <strong>Simple Equations</strong>
-          <div class="lesson-sub">Inverse operations and balance</div>
-        </div>
-        <span class="status open" id="tree11Status">Open</span>
-      </div>
-
-      <div class="skill-row">
-        <div class="node lock-node" id="node12">2</div>
-        <div>
-          <strong>Multi-Step Equations</strong>
-          <div class="lesson-sub">Combining steps and simplifying</div>
-        </div>
-        <span class="status lock" id="tree12Status">Locked</span>
-      </div>
-
-      <div class="skill-row">
-        <div class="node lock-node">3</div>
-        <div>
-          <strong>Variables on Both Sides</strong>
-          <div class="lesson-sub">Move variables strategically</div>
-        </div>
-        <span class="status lock">Locked</span>
-      </div>
-    </section>
-
-  </main>
-
-  <aside class="right">
-
-    <div class="coach-card">
-      <h3>🤖 Algebra Coach</h3>
-      <p id="coachMessage">
-        Start with Lesson 1.1. Your dashboard will update when you earn XP and mastery.
-      </p>
+  </div>
+</aside>
+<div class="main">
+  <div class="topbar">
+    <div>
+      <div class="tg">Good morning, Scholar</div>
+      <div class="ts">MDCPS Algebra 1 · Algebra OS Expansion Engine</div>
     </div>
-
-    <div class="coach-card">
-      <h3>📈 Global Mastery</h3>
-      <div class="progress-bar"><div class="progress-fill" id="globalFill"></div></div>
-      <div class="metric"><span>Course</span><span id="globalText">0%</span></div>
-      <div class="metric"><span>Topic 1</span><span id="rightTopic1">0%</span></div>
-      <div class="metric"><span>XP</span><span id="rightXP">0</span></div>
+    <div class="topbar-right">
+      <button class="btn" onclick="resetAll()"><i class="ti ti-refresh"></i> Reset</button>
+      <button class="btn btn-blue" onclick="continueLesson()"><i class="ti ti-player-play"></i> Continue</button>
     </div>
-
-    <div class="coach-card">
-      <h3>🏆 Badges</h3>
-      <p>Your latest achievement:</p>
-      <span class="badge" id="badgeText">No badge yet</span>
+  </div>
+  <div class="scroll">
+    <div class="banner">
+      <div>
+        <h2>Master Algebra 1 — one lesson at a time</h2>
+        <p>Blueprint Loader and Expansion Engine are active. Select a unit to view its lessons, mastery, and unlock status.</p>
+      </div>
+      <div class="bpills">
+        <div class="bpill"><div class="n" id="eocLvl">Level 1</div><div class="l">Predicted EOC</div></div>
+        <div class="bpill"><div class="n" id="bannerXP">0</div><div class="l">Total XP</div></div>
+      </div>
     </div>
-
-    <div class="warning">
-      💡 This version saves progress in this browser only. Later we can connect it to Google Sheets, Firebase, Supabase, or Google Classroom.
+    <div class="metrics">
+      <div class="mc"><div class="lbl">Course mastery</div><div class="val blue" id="mCourse">0%</div><div class="hint">All loaded units</div></div>
+      <div class="mc"><div class="lbl">Unit 1 mastery</div><div class="val green" id="mUnit1">0%</div><div class="hint">Certified unit</div></div>
+      <div class="mc"><div class="lbl">XP earned</div><div class="val purple" id="mXP">0</div><div class="hint">Keep stacking</div></div>
+      <div class="mc"><div class="lbl">Lessons started</div><div class="val" id="mStarted">0 / 0</div><div class="hint">Across course</div></div>
     </div>
-
-  </aside>
-
+    <div class="unit-panel" id="unitPanel">
+      <div class="empty"><i class="ti ti-arrow-left"></i>Loading Algebra OS curriculum...</div>
+    </div>
+  </div>
 </div>
-
 <script type="module">
-import {
-  loadCurriculum,
-  getAllUnits,
-  getAllLessons,
-  getCurriculumStats
-} from "./engine/curriculumEngine.js";
-function getNum(key, fallback=0){
-  return Number(localStorage.getItem(key) || fallback);
+import { loadCurriculum, getAllUnits, getAllLessons, getCurriculumStats } from "./engine/curriculumEngine.js";
+
+let CURRICULUM = null;
+let UNITS = [];
+let activeUnitId = null;
+
+function getUnitNumber(unit){ const m = String(unit.id || "").match(/\d+/); return m ? Number(m[0]) : unit.order || 0; }
+function getUnitShortTitle(unit){ return String(unit.title || "").replace("Expressions, Equations, and Inequalities","Expressions & Equations").replace("Functions and Relations","Functions & Relations").replace("Graphing Linear Functions","Graphing Linear").replace("Writing Linear Functions","Writing Linear").replace("Systems of Equations","Systems"); }
+function getLessonSession(id){ try{return JSON.parse(localStorage.getItem("algebra_session_"+id)||"{}")}catch{return {}} }
+function mastery(id){return getLessonSession(id).mastery || 0}
+function attempts(id){return getLessonSession(id).attempted || 0}
+function accuracy(id){return getLessonSession(id).accuracy || 0}
+function getXP(){return Number(localStorage.getItem("algebra_xp") || 0)}
+function avg(arr){return arr.length ? Math.round(arr.reduce((a,b)=>a+b,0)/arr.length) : 0}
+function unitMastery(unit){return avg((unit.lessons || []).map(l => mastery(l.id)))}
+
+function isLessonUnlocked(unit, lesson, index){
+  const unlockMastery = lesson.unlockMastery || 80;
+  if(lesson.unlockAfter) return mastery(lesson.unlockAfter) >= unlockMastery;
+  if(index === 0){
+    if(unit.order === 1 || unit.id === "unit-1") return true;
+    const prevUnit = UNITS.find(u => (u.order || getUnitNumber(u)) === ((unit.order || getUnitNumber(unit))-1));
+    if(!prevUnit) return true;
+    const prevLessons = prevUnit.lessons || [];
+    const lastLesson = prevLessons[prevLessons.length - 1];
+    return lastLesson ? mastery(lastLesson.id) >= unlockMastery : true;
+  }
+  const prevLesson = unit.lessons[index - 1];
+  return prevLesson ? mastery(prevLesson.id) >= unlockMastery : true;
 }
 
-function lesson11Mastery(){
-  const saved = localStorage.getItem("algebra_session_1.1");
-
-  if(!saved){
-    return 0;
-  }
-
-  try{
-    const session = JSON.parse(saved);
-    return session.mastery || 0;
-  }catch(error){
-    return 0;
-  }
+function pillOf(m, unlocked, lessonId){
+  if(!unlocked) return ["lock","Locked"];
+  if(m >= 85) return ["done","Mastered"];
+  if(m >= 70) return ["done","Proficient"];
+  if(m > 0 || attempts(lessonId) > 0) return ["prog","In progress"];
+  return ["open","Open"];
 }
 
-function buildCurriculumUI(curriculum){
-  const topicGrid = document.getElementById("dynamicTopicGrid");
-
-  if(!topicGrid) return;
-
-  topicGrid.innerHTML = "";
-
-  const units = getAllUnits(curriculum);
-
-  units.forEach((unit, index) => {
-    const card = document.createElement("div");
-    card.className = "topic-card";
-
-    const lessons = unit.lessons || [];
-
-    const unitMasteries = lessons.map(lesson => {
-      const session = getLessonSession(lesson.id);
-      return session.mastery || 0;
-    });
-
-    const unitMastery = calculateAverage(unitMasteries);
-
-    const isUnitOne = unit.id === "unit-1";
-    const isExpanded = isUnitOne || index === 0;
-
-    let lessonsHTML = "";
-
-    if(isExpanded){
-      lessonsHTML = `
-        <div class="lesson-list">
-          ${lessons.map(lesson => {
-            const session = getLessonSession(lesson.id);
-            const mastery = session.mastery || 0;
-            const attempts = session.attempted || 0;
-            const accuracy = session.accuracy || 0;
-
-            const unlockMastery = lesson.unlockMastery || 80;
-
-            let isUnlocked = true;
-
-            if(lesson.unlockAfter){
-              const requiredSession = getLessonSession(lesson.unlockAfter);
-              const requiredMastery = requiredSession.mastery || 0;
-              isUnlocked = requiredMastery >= unlockMastery;
-            }
-
-            let statusText = "Open";
-            let statusClass = "open";
-
-            if(!isUnlocked){
-              statusText = "Locked";
-              statusClass = "lock";
-            }
-
-            if(mastery >= 85){
-              statusText = "Mastered";
-              statusClass = "done";
-            }else if(mastery >= 70){
-              statusText = "Proficient";
-              statusClass = "done";
-            }else if(attempts > 0){
-              statusText = "In Progress";
-              statusClass = "open";
-            }
-
-            const objective = lesson.objective || "";
-            const shortObjective =
-              objective.length > 115
-                ? objective.slice(0, 115) + "..."
-                : objective;
-
-            const clickAction = isUnlocked
-              ? `window.location.href='lesson.html?id=${lesson.id}'`
-              : `alert('This lesson is locked. Reach 80% mastery in the previous lesson first.')`;
-
-            return `
-              <div class="lesson ${!isUnlocked ? "locked" : ""}" onclick="${clickAction}">
-                <div class="lesson-id">${lesson.id}</div>
-
-                <div>
-                  <div class="lesson-title">${lesson.title}</div>
-                  <div class="lesson-sub">${shortObjective}</div>
-                  <div class="lesson-data">
-                    Mastery: ${mastery}% · Attempts: ${attempts} · Accuracy: ${accuracy}%
-                  </div>
-                </div>
-
-                <span class="status ${statusClass}">
-                  ${statusText}
-                </span>
-              </div>
-            `;
-          }).join("")}
-        </div>
-      `;
-    }else{
-      lessonsHTML = `
-        <div class="warning">
-          This unit is ready in the curriculum map. Lessons will expand when the unit becomes active.
-        </div>
-      `;
-    }
-
-    const statusLabel =
-      unit.status === "certified"
-        ? "Certified"
-        : "Expansion";
-
-    card.innerHTML = `
-      <div class="topic-header">
-        <div>
-          <h3>${unit.title}</h3>
-          <div class="unit-meta">
-            ${lessons.length} lessons · ${unitMastery}% mastery
-          </div>
-        </div>
-
-        <span class="topic-pill">${unit.quarter}</span>
-        <span class="status ${unit.status === "certified" ? "done" : "open"}">
-          ${statusLabel}
-        </span>
-      </div>
-
-      <div class="unit-progress">
-        <div style="width:${unitMastery}%"></div>
-      </div>
-
-      ${lessonsHTML}
-    `;
-
-    topicGrid.appendChild(card);
+function buildSidebar(){
+  const list = document.getElementById("unitsList");
+  list.innerHTML = "";
+  UNITS.forEach(unit => {
+    const pct = unitMastery(unit);
+    const isActive = activeUnitId === unit.id;
+    const isCertified = unit.status === "certified";
+    const isDone = (unit.lessons || []).length > 0 && (unit.lessons || []).every(l => mastery(l.id) >= 80);
+    const numClass = isDone ? "un-d" : isCertified ? "un-a" : "un-l";
+    const div = document.createElement("div");
+    div.className = "unit-btn" + (isActive ? " active" : "");
+    div.id = "ubtn-" + unit.id;
+    div.onclick = () => selectUnit(unit.id);
+    div.innerHTML = `<div class="unit-num ${numClass}">${getUnitNumber(unit)}</div><div class="unit-btn-info"><div class="ubt">Unit ${getUnitNumber(unit)}</div><div class="ubs">${getUnitShortTitle(unit)}</div></div><div class="ubpct">${pct}%</div>`;
+    list.appendChild(div);
   });
 }
 
-function getLessonSession(lessonId){
-  try{
-    return JSON.parse(
-      localStorage.getItem(`algebra_session_${lessonId}`) || "{}"
-    );
-  }catch(error){
-    return {};
+function selectUnit(id){
+  activeUnitId = id;
+  document.querySelectorAll(".unit-btn").forEach(el => el.classList.remove("active"));
+  const btn = document.getElementById("ubtn-" + id);
+  if(btn) btn.classList.add("active");
+  const unit = UNITS.find(u => u.id === id);
+  if(unit) renderPanel(unit);
+}
+
+function renderPanel(unit){
+  const panel = document.getElementById("unitPanel");
+  const pct = unitMastery(unit);
+  const certified = unit.status === "certified";
+  const frozen = unit.frozen === true;
+  const statusClass = certified ? "tag-green" : "tag-amber";
+  const statusLabel = certified ? "Certified" : "Expansion";
+  const rows = (unit.lessons || []).map((lesson, index) => {
+    const m = mastery(lesson.id);
+    const unlocked = isLessonUnlocked(unit, lesson, index);
+    const [type,label] = pillOf(m, unlocked, lesson.id);
+    const lidClass = !unlocked ? "" : m >= 80 ? "ldone" : "lopen";
+    let meta = `Mastery: ${m}% · Attempts: ${attempts(lesson.id)} · Accuracy: ${accuracy(lesson.id)}%`;
+    if(!unlocked){
+      if(lesson.unlockAfter) meta = `Requires 80% mastery in ${lesson.unlockAfter}`;
+      else if(index > 0) meta = `Requires 80% mastery in ${(unit.lessons[index-1] || {}).id}`;
+      else meta = "Requires previous unit mastery";
+    }
+    const objective = lesson.objective || lesson.essentialQuestion || "Algebra 1 lesson";
+    const shortObjective = objective.length > 120 ? objective.slice(0,120) + "..." : objective;
+    const clickAction = unlocked ? `window.location.href='lesson.html?id=${lesson.id}'` : `alert('${meta}')`;
+    return `<div class="lesson-row ${!unlocked ? "locked" : ""}" onclick="${clickAction}"><div class="lid ${lidClass}">${lesson.id}</div><div><div class="lt">${lesson.title}</div><div class="ls">${shortObjective}</div><div class="lm">${meta}</div></div><span class="pill p-${type}">${label}</span></div>`;
+  }).join("");
+
+  panel.innerHTML = `<div class="up-head"><div><div class="up-title">Unit ${getUnitNumber(unit)} — ${unit.title}</div><div class="up-sub">${(unit.lessons || []).length} lessons · ${unit.quarter || "Course"} · Order ${unit.order || getUnitNumber(unit)}</div></div><div class="up-tags"><span class="tag tag-blue">${unit.quarter || "Course"}</span><span class="tag ${statusClass}">${statusLabel}</span>${frozen ? `<span class="tag tag-green">Frozen</span>` : ``}</div></div><div class="up-bar"><div class="up-bar-row"><span>Progress</span><span>${pct}%</span></div><div class="bar"><div style="width:${pct}%"></div></div></div>${rows || `<div class="empty"><i class="ti ti-alert-circle"></i>No lessons found for this unit.</div>`}`;
+}
+
+function renderDashboard(){
+  const allLessons = getAllLessons(CURRICULUM);
+  const courseAverage = avg(allLessons.map(l => mastery(l.id)));
+  const unit1 = UNITS.find(u => u.id === "unit-1") || UNITS[0];
+  const unit1Average = unit1 ? unitMastery(unit1) : 0;
+  const xp = getXP();
+  const eoc = courseAverage >= 75 ? "Level 4" : courseAverage >= 45 ? "Level 3" : courseAverage >= 20 ? "Level 2" : "Level 1";
+  document.getElementById("eocLvl").textContent = eoc;
+  document.getElementById("bannerXP").textContent = xp;
+  document.getElementById("mCourse").textContent = courseAverage + "%";
+  document.getElementById("mUnit1").textContent = unit1Average + "%";
+  document.getElementById("mXP").textContent = xp;
+  document.getElementById("mStarted").textContent = allLessons.filter(l => attempts(l.id) > 0 || mastery(l.id) > 0).length + " / " + allLessons.length;
+}
+
+window.resetAll = function(){
+  if(confirm("Reset all progress?")){
+    const keys = ["algebra_xp"];
+    getAllLessons(CURRICULUM).forEach(l => keys.push("algebra_session_" + l.id));
+    keys.forEach(k => localStorage.removeItem(k));
+    buildSidebar(); renderDashboard(); if(activeUnitId) selectUnit(activeUnitId);
   }
-}
+};
 
-function getLessonMastery(lessonId){
-  const session = getLessonSession(lessonId);
-  return session.mastery || 0;
-}
-
-function calculateAverage(numbers){
-  if(!numbers.length) return 0;
-  return Math.round(
-    numbers.reduce((sum, value) => sum + value, 0) / numbers.length
-  );
-}
-
-function renderDashboard(curriculum){
-  const xp = getNum("algebra_xp",0);
-
-  const allLessons = getAllLessons(curriculum);
-  const allMasteries = allLessons.map(lesson => getLessonMastery(lesson.id));
-
-  const course = calculateAverage(allMasteries);
-
-  const firstUnit = curriculum.units[0];
-  const topic1Masteries = firstUnit.lessons.map(lesson =>
-    getLessonMastery(lesson.id)
-  );
-
-  const topic1 = calculateAverage(topic1Masteries);
-
-  document.getElementById("xpStat").textContent = xp + " XP";
-  document.getElementById("rightXP").textContent = xp;
-
-  document.getElementById("topic1Mastery").textContent = topic1 + "%";
-  document.getElementById("rightTopic1").textContent = topic1 + "%";
-
-  document.getElementById("courseMastery").textContent = course + "%";
-  document.getElementById("globalText").textContent = course + "%";
-  document.getElementById("globalFill").style.width = course + "%";
-
-  if(course >= 75){
-    document.getElementById("eocStat").textContent = "Level 4";
-  }else if(course >= 45){
-    document.getElementById("eocStat").textContent = "Level 3";
-  }else if(course >= 20){
-    document.getElementById("eocStat").textContent = "Level 2";
-  }else{
-    document.getElementById("eocStat").textContent = "Level 1";
-  }
-}
-
-function goLesson(url){
-  window.location.href = url;
-}
-
-function goLessonIfUnlocked(url, id){
-  const el = document.getElementById(id);
-  if(el.classList.contains("locked")){
-    alert("This lesson is locked. Complete Lesson 1.1 with 80% mastery first.");
-    return;
-  }
-  window.location.href = url;
-}
-
-function resetProgress(){
-  if(confirm("Reset all local progress for this app?")){
-    localStorage.removeItem("lesson11_current");
-    localStorage.removeItem("lesson11_correct");
-    localStorage.removeItem("lesson11_answered");
-    localStorage.removeItem("algebra_xp");
-    localStorage.removeItem("algebra_session_1.1");
-    window.location.reload();
-  }
-}
+window.continueLesson = function(){
+  const allLessons = getAllLessons(CURRICULUM);
+  const next = allLessons.find(l => mastery(l.id) < 80) || allLessons[0];
+  if(next) window.location.href = "lesson.html?id=" + next.id;
+};
 
 async function startApp(){
   try{
-    const curriculum = await loadCurriculum();
-    const stats = getCurriculumStats(curriculum);
-
-    console.log("Curriculum loaded:", curriculum);
-    console.log("Curriculum stats:", stats);
-
-    buildCurriculumUI(curriculum);
-renderDashboard(curriculum);
-
+    CURRICULUM = await loadCurriculum();
+    UNITS = getAllUnits(CURRICULUM);
+    console.log("Curriculum loaded:", CURRICULUM);
+    console.log("Curriculum stats:", getCurriculumStats(CURRICULUM));
+    buildSidebar();
+    renderDashboard();
+    const first = UNITS.find(u => u.id === "unit-1") || UNITS[0];
+    if(first) selectUnit(first.id);
   }catch(error){
     console.error(error);
-    alert("Curriculum could not be loaded. Check curriculum/algebra1.json");
+    document.getElementById("unitPanel").innerHTML = `<div class="empty"><i class="ti ti-alert-triangle"></i>Curriculum could not be loaded. Check curriculumEngine.js, curriculumExpander.js, and blueprint paths.</div>`;
   }
 }
-
 startApp();
 </script>
 </body>
