@@ -5,9 +5,11 @@
 
 import { loadCurriculum } from "./curriculumEngine.js";
 import { generateQuestionForLesson } from "./questionFactory.js?v=2111";
+import { expandCurriculum } from "./curriculumExpander.js";
 
 export async function auditEntireCurriculum() {
-  const curriculum = await loadCurriculum();
+  const baseCurriculum = await loadCurriculum();
+const curriculum = expandCurriculum(baseCurriculum);
   const units = curriculum.units || [];
 
   const roadmap = [];
