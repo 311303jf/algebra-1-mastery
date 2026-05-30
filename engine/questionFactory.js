@@ -1,5 +1,5 @@
 /* ============================================================
-   Algebra OS — Question Factory 2.3
+   Algebra OS — Question Factory 2.4
    File: engine/questionFactory.js
 
    PURPOSE:
@@ -31,7 +31,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (!Array.isArray(problemTypes) || problemTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 2.3: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
+      "QuestionFactory 2.4: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
     );
   }
 
@@ -51,7 +51,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (availableTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 2.3: No supported generators found for this lesson. Add generators for: " +
+      "QuestionFactory 2.4: No supported generators found for this lesson. Add generators for: " +
       problemTypes.join(", ")
     );
   }
@@ -83,7 +83,7 @@ export function generateQuestionsForLesson(lesson, count = 10, options = {}) {
 
   if (questions.length < count) {
     throw new Error(
-      "QuestionFactory 2.3: Could not generate enough unique quality questions. Generated " +
+      "QuestionFactory 2.4: Could not generate enough unique quality questions. Generated " +
       questions.length +
       " of " +
       count +
@@ -127,7 +127,7 @@ const GENERATORS = {
   compound_inequalities: generateCompoundInequality,
   absolute_value_equation: generateAbsoluteValueEquation,
   absolute_value_equations: generateAbsoluteValueEquation,
-   absolute_value_functions: generateAbsoluteValueFunction,
+  absolute_value_functions: generateAbsoluteValueFunction,
 
   function_evaluation: generateFunctionEvaluation,
   functions: generateFunctionEvaluation,
@@ -286,6 +286,17 @@ one_step_division_equation: {
     ],
     misconception:
       "Students often solve only the positive case and forget the second solution."
+  },
+
+  absolute_value_functions: {
+    hintSteps: [
+      "Write the function in vertex form f(x) = a|x - h| + k.",
+      "Use h and k to identify the vertex.",
+      "Use the sign of a to determine whether the graph opens up or down.",
+      "Substitute input values carefully when evaluating the function."
+    ],
+    misconception:
+      "Students often read the horizontal shift with the wrong sign inside the absolute value."
   },
 
   functions: {
@@ -962,21 +973,14 @@ if (createNoSolution) {
   });
 }
 
+
 function generateAbsoluteValueFunction(difficulty = 1) {
   const a = pickRandom([-3, -2, -1, 1, 2, 3]);
   const h = randInt(-6, 6);
   const k = randInt(-6, 6);
 
   const vertex = `(${formatNumber(h)}, ${formatNumber(k)})`;
-
-  const promptModes = [
-    "vertex",
-    "opens",
-    "evaluate",
-    "transformation"
-  ];
-
-  const mode = pickRandom(promptModes);
+  const mode = pickRandom(["vertex", "opens", "evaluate", "transformation"]);
 
   if (mode === "vertex") {
     return buildQuestion({
@@ -985,7 +989,7 @@ function generateAbsoluteValueFunction(difficulty = 1) {
       problemType: "absolute_value_functions",
       difficulty,
       solutionSteps: [
-        `The vertex form of an absolute value function is f(x) = a|x - h| + k.`,
+        "The vertex form of an absolute value function is f(x) = a|x - h| + k.",
         `Here, h = ${formatNumber(h)} and k = ${formatNumber(k)}.`,
         `The vertex is (${formatNumber(h)}, ${formatNumber(k)}).`
       ]
@@ -1001,9 +1005,9 @@ function generateAbsoluteValueFunction(difficulty = 1) {
       problemType: "absolute_value_functions",
       difficulty,
       solutionSteps: [
-        `Look at the coefficient a in f(x) = a|x - h| + k.`,
-        `If a is positive, the graph opens up.`,
-        `If a is negative, the graph opens down.`,
+        "Look at the coefficient a in f(x) = a|x - h| + k.",
+        "If a is positive, the graph opens up.",
+        "If a is negative, the graph opens down.",
         `Here, a = ${formatNumber(a)}, so the graph ${answer}.`
       ]
     });
@@ -1021,14 +1025,23 @@ function generateAbsoluteValueFunction(difficulty = 1) {
       solutionSteps: [
         `Substitute x = ${formatNumber(x)} into the function.`,
         `f(${formatNumber(x)}) = ${formatNumber(a)}|${formatNumber(x)} ${formatSigned(-h)}| ${formatSigned(k)}`,
-        `Simplify inside the absolute value.`,
+        "Simplify inside the absolute value.",
         `f(${formatNumber(x)}) = ${formatNumber(y)}`
       ]
     });
   }
 
-  const horizontalShift = h > 0 ? `${Math.abs(h)} units right` : h < 0 ? `${Math.abs(h)} units left` : "no horizontal shift";
-  const verticalShift = k > 0 ? `${Math.abs(k)} units up` : k < 0 ? `${Math.abs(k)} units down` : "no vertical shift";
+  const horizontalShift = h > 0
+    ? `${Math.abs(h)} units right`
+    : h < 0
+      ? `${Math.abs(h)} units left`
+      : "no horizontal shift";
+
+  const verticalShift = k > 0
+    ? `${Math.abs(k)} units up`
+    : k < 0
+      ? `${Math.abs(k)} units down`
+      : "no vertical shift";
 
   return buildQuestion({
     prompt: `Describe the transformation of f(x) = ${formatNumber(a)}|x ${formatSigned(-h)}| ${formatSigned(k)} from the parent function f(x) = |x|.`,
@@ -1036,8 +1049,8 @@ function generateAbsoluteValueFunction(difficulty = 1) {
     problemType: "absolute_value_functions",
     difficulty,
     solutionSteps: [
-      `The parent function is f(x) = |x|.`,
-      `The form f(x) = a|x - h| + k shifts the graph horizontally by h and vertically by k.`,
+      "The parent function is f(x) = |x|.",
+      "The form f(x) = a|x - h| + k shifts the graph horizontally by h and vertically by k.",
       `Here, h = ${formatNumber(h)} and k = ${formatNumber(k)}.`,
       `So the transformation is: ${horizontalShift}, ${verticalShift}.`
     ]
@@ -1555,6 +1568,55 @@ function generateChoices(answer, problemType) {
     ]);
   }
 
+  if (problemType === "absolute_value_functions") {
+    if (answer === "opens up" || answer === "opens down") {
+      return finalizeChoices(answer, [
+        answer === "opens up" ? "opens down" : "opens up",
+        "opens left",
+        "opens right",
+        "cannot be determined"
+      ]);
+    }
+
+    if (answer.includes("units") || answer.includes("horizontal shift") || answer.includes("vertical shift") || answer.includes("no horizontal shift") || answer.includes("no vertical shift")) {
+      return finalizeChoices(answer, [
+        "reflected over the y-axis",
+        "stretched vertically only",
+        "shifted right 1 unit, shifted up 1 unit",
+        "no transformation"
+      ]);
+    }
+
+    if (answer.startsWith("f(")) {
+      const numericValue = Number(answer.split("=").pop().trim());
+      const inputLabel = answer.match(/f\(([^)]+)\)/)?.[1] || "x";
+
+      if (!Number.isNaN(numericValue)) {
+        return finalizeChoices(answer, [
+          `f(${inputLabel}) = ${formatNumber(numericValue + 1)}`,
+          `f(${inputLabel}) = ${formatNumber(numericValue - 1)}`,
+          `f(${inputLabel}) = ${formatNumber(-numericValue)}`,
+          `f(${inputLabel}) = ${formatNumber(numericValue + 2)}`
+        ]);
+      }
+    }
+
+    if (answer.startsWith("(")) {
+      const nums = answer.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+
+      if (nums.length >= 2) {
+        const [h, k] = nums;
+
+        return finalizeChoices(answer, [
+          `(${formatNumber(-h)}, ${formatNumber(k)})`,
+          `(${formatNumber(h)}, ${formatNumber(-k)})`,
+          `(${formatNumber(k)}, ${formatNumber(h)})`,
+          `(0, ${formatNumber(k)})`
+        ]);
+      }
+    }
+  }
+
   if (
     problemType === "absolute_value_equations" &&
     answer !== "No Solution"
@@ -1828,6 +1890,7 @@ function normalizeMetaType(type) {
   if (type === "inequality") return "inequalities";
   if (type === "compound_inequality") return "compound_inequalities";
   if (type === "absolute_value_equation") return "absolute_value_equations";
+  if (type === "absolute_value_functions") return "absolute_value_functions";
   if (type === "function_evaluation") return "functions";
   if (type === "distributive_property_equation") return "distributive_property";
   if (type === "combine_like_terms_equation") return "combine_like_terms";
