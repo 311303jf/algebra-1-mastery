@@ -43,8 +43,42 @@ import {
   testGenerators
 } from "./engine/curriculumExpansionEngine.js";
 
+import {
+  ALGEBRA_OS_MASTER_UNITS
+} from "./engine/curriculumExpander.js";
+
 function statusClass(status){
   return String(status || "").toLowerCase();
+}
+  function renderExpansionUnits() {
+
+  const html = `
+    <h2>Planned Expansion Units</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Unit</th>
+          <th>Title</th>
+          <th>Lessons</th>
+        </tr>
+      </thead>
+
+      <tbody>
+
+      ${ALGEBRA_OS_MASTER_UNITS.map(unit => `
+        <tr>
+          <td>${unit.id}</td>
+          <td>${unit.title}</td>
+          <td>${unit.lessons.length}</td>
+        </tr>
+      `).join("")}
+
+      </tbody>
+    </table>
+  `;
+
+  document.getElementById("missing").innerHTML += html;
 }
 
 function renderSummary(audit){
@@ -110,9 +144,10 @@ window.runExpansionAudit = async function(){
 
   const audit = await auditEntireCurriculum();
 
-  renderSummary(audit);
-  renderMissing(audit);
-  renderRoadmap(audit.roadmap);
+renderSummary(audit);
+renderMissing(audit);
+renderExpansionUnits();
+renderRoadmap(audit.roadmap);
 };
 
 window.runGeneratorQA = async function(){
