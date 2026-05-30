@@ -1433,45 +1433,70 @@ function isQualityQuestion(q) {
 
 function generateChoices(answer, problemType) {
   if (typeof answer !== "string") answer = String(answer);
-   if (answer === "No Solution") {
-  return shuffle([
-    "No Solution",
-    "x = 0",
-    "x = 1",
-    "All Real Numbers"
-  ]);
-}
-   if (
-  problemType === "absolute_value_equations" &&
-  answer !== "No Solution"
-) {
-  const matches = answer.match(/x\s*=\s*(-?\d+(?:\.\d+)?),\s*x\s*=\s*(-?\d+(?:\.\d+)?)/);
 
-  if (matches) {
-    const a = Number(matches[1]);
-    const b = Number(matches[2]);
+  const addUnique = (list, choice) => {
+    if (choice === undefined || choice === null) return;
+    const cleaned = String(choice).trim();
+    if (!cleaned) return;
+    if (!list.includes(cleaned)) list.push(cleaned);
+  };
 
- const wrongSign =
-  `x = ${formatNumber(a)}, x = ${formatNumber(-b)}`;
+  const finalizeChoices = (correctAnswer, candidates) => {
+    const choices = [];
+    addUnique(choices, correctAnswer);
 
-const singleRoot =
-  `x = ${formatNumber(a)}`;
+    candidates.forEach(choice => {
+      if (choices.length < 4) addUnique(choices, choice);
+    });
 
-const swapped =
-  `x = ${formatNumber(b)}, x = ${formatNumber(a)}`;
+    let safety = 0;
+    while (choices.length < 4 && safety < 200) {
+      safety++;
+      const randomChoice =
+        correctAnswer.startsWith("x ") && !correctAnswer.startsWith("x = ")
+          ? `x ${pickRandom([">", "<", "≥", "≤"])} ${randInt(-12, 12)}`
+          : `x = ${randInt(-12, 12)}`;
 
-return shuffle([
-  answer,
-  wrongSign,
-  singleRoot,
-  "No Solution"
-]);
+      addUnique(choices, randomChoice);
+    }
+
+    return shuffle(choices.slice(0, 4));
+  };
+
+  if (answer === "No Solution") {
+    return finalizeChoices(answer, [
+      "x = 0",
+      "x = 1",
+      "x = -1",
+      "All Real Numbers"
+    ]);
   }
-}
+
+  if (
+    problemType === "absolute_value_equations" &&
+    answer !== "No Solution"
+  ) {
+    const matches = answer.match(/x\s*=\s*(-?\d+(?:\.\d+)?),\s*x\s*=\s*(-?\d+(?:\.\d+)?)/);
+
+    if (matches) {
+      const a = Number(matches[1]);
+      const b = Number(matches[2]);
+
+      return finalizeChoices(answer, [
+        `x = ${formatNumber(a)}`,
+        `x = ${formatNumber(b)}`,
+        `x = ${formatNumber(b)}, x = ${formatNumber(a)}`,
+        `x = ${formatNumber(a)}, x = ${formatNumber(-b)}`,
+        `x = ${formatNumber(-a)}, x = ${formatNumber(b)}`,
+        `x = ${formatNumber(-a)}, x = ${formatNumber(-b)}`,
+        "No Solution"
+      ]);
+    }
+  }
 
   const distractors = new Set();
 
-  if (answer.startsWith("x = ")) {
+  if (answer.startsWith("x = ") && !answer.includes(",")) {
     const value = Number(answer.replace("x = ", ""));
     if (!Number.isNaN(value)) {
       [value + 1, value - 1, -value, value + 2, value - 2, value + 3, value - 3].forEach(n => {
@@ -1512,13 +1537,14 @@ return shuffle([
       distractors.add(`x ${s1} ${formatNumber(a)} OR x ${s2} ${formatNumber(b)}`);
     }
   } else if (answer.startsWith("x = ") && answer.includes(",")) {
-    const nums = answer.match(/-?\d+/g)?.map(Number) || [];
+    const nums = answer.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
     if (nums.length >= 2) {
-      const [a,b] = nums;
+      const [a, b] = nums;
       distractors.add(`x = ${formatNumber(a)}`);
       distractors.add(`x = ${formatNumber(b)}`);
+      distractors.add(`x = ${formatNumber(b)}, x = ${formatNumber(a)}`);
       distractors.add(`x = ${formatNumber(-a)}, x = ${formatNumber(-b)}`);
-      distractors.add(`No solution`);
+      distractors.add("No Solution");
     }
   } else if (answer.startsWith("(")) {
     distractors.add("(0, 0)");
@@ -1546,17 +1572,8 @@ return shuffle([
     });
   }
 
-  while (distractors.size < 3) {
-    const randomChoice = answer.startsWith("x ")
-      ? `x ${pickRandom([">", "<", "≥", "≤"])} ${randInt(-12, 12)}`
-      : `x = ${randInt(-12, 12)}`;
-    if (randomChoice !== answer) distractors.add(randomChoice);
-  }
-
-  const finalChoices = [answer, ...shuffle(Array.from(distractors)).slice(0, 3)];
-  return shuffle(finalChoices);
+  return finalizeChoices(answer, shuffle(Array.from(distractors)));
 }
-
 
 /* ============================================================
    RIGOR & VARIATION HELPERS
