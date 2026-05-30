@@ -127,6 +127,7 @@ const GENERATORS = {
   compound_inequalities: generateCompoundInequality,
   absolute_value_equation: generateAbsoluteValueEquation,
   absolute_value_equations: generateAbsoluteValueEquation,
+   absolute_value_functions: generateAbsoluteValueFunction,
 
   function_evaluation: generateFunctionEvaluation,
   functions: generateFunctionEvaluation,
