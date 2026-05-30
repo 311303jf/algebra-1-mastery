@@ -130,6 +130,7 @@ function getSupportedProblemTypes() {
 
     "absolute_value_equation",
     "absolute_value_equations",
+     "absolute_value_functions",
 
     "function_evaluation",
     "functions",
