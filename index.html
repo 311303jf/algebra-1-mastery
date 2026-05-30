@@ -124,76 +124,136 @@ body{
   margin:26px 0 16px;
 }
 .topic-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
-  gap:20px;
+  display:flex;
+  flex-direction:column;
+  gap:18px;
 }
+
 .topic-card{
   background:white;
-  border-radius:28px;
+  border-radius:26px;
   box-shadow:var(--shadow);
-  padding:24px;
+  padding:22px;
+  border:1px solid var(--line);
 }
+
 .topic-header{
-  display:flex;
-  justify-content:space-between;
-  align-items:flex-start;
-  gap:12px;
-  margin-bottom:18px;
+  display:grid;
+  grid-template-columns:1fr auto auto;
+  align-items:center;
+  gap:14px;
+  margin-bottom:14px;
 }
+
 .topic-card h3{
   color:var(--blue);
-  line-height:1.25;
+  font-size:22px;
+  line-height:1.2;
 }
+
 .topic-pill{
   background:#eff6ff;
   color:#1d4ed8;
   font-weight:900;
   border-radius:999px;
-  padding:7px 10px;
+  padding:8px 12px;
   font-size:12px;
   white-space:nowrap;
 }
-.lesson{
+
+.unit-meta{
+  color:var(--muted);
+  font-weight:800;
+  font-size:13px;
+  margin-top:5px;
+}
+
+.unit-progress{
+  height:12px;
+  background:#e2e8f0;
+  border-radius:999px;
+  overflow:hidden;
+  margin:12px 0 16px;
+}
+
+.unit-progress div{
+  height:100%;
+  background:linear-gradient(90deg,#22c55e,#16a34a);
+  transition:.4s;
+}
+
+.lesson-list{
   display:flex;
-  justify-content:space-between;
+  flex-direction:column;
+  gap:10px;
+}
+
+.lesson{
+  display:grid;
+  grid-template-columns:90px 1fr auto;
   align-items:center;
-  gap:12px;
+  gap:14px;
   background:#f8fafc;
   border:1px solid var(--line);
-  padding:13px 14px;
-  border-radius:16px;
-  margin-bottom:10px;
+  padding:14px 16px;
+  border-radius:18px;
   transition:.25s;
   cursor:pointer;
 }
+
 .lesson:hover{
   transform:translateY(-2px);
   border-color:#bfdbfe;
   background:#eff6ff;
 }
+
 .lesson.locked{
-  opacity:.55;
+  opacity:.6;
   cursor:not-allowed;
 }
+
+.lesson-id{
+  font-weight:900;
+  color:#1d4ed8;
+  background:#dbeafe;
+  border-radius:999px;
+  padding:8px 10px;
+  text-align:center;
+  font-size:13px;
+}
+
 .lesson-title{
   font-weight:900;
+  font-size:16px;
+  margin-bottom:4px;
 }
+
 .lesson-sub{
   color:var(--muted);
-  font-size:12px;
-  font-weight:800;
-  margin-top:3px;
+  font-size:13px;
+  font-weight:700;
+  line-height:1.35;
 }
+
+.lesson-data{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:900;
+  margin-top:5px;
+}
+
 .status{
   font-weight:900;
   border-radius:999px;
-  padding:7px 10px;
+  padding:8px 12px;
   font-size:12px;
+  white-space:nowrap;
 }
+
 .done{background:#dcfce7;color:#166534}
 .open{background:#dbeafe;color:#1e40af}
 .lock{background:#e2e8f0;color:#475569}
+
 .progress-mini{
   height:12px;
   background:#e2e8f0;
@@ -206,6 +266,20 @@ body{
   width:0%;
   background:linear-gradient(90deg,#22c55e,#16a34a);
   transition:.4s;
+}
+
+@media(max-width:750px){
+  .topic-header{
+    grid-template-columns:1fr;
+  }
+
+  .lesson{
+    grid-template-columns:1fr;
+  }
+
+  .lesson-id{
+    width:max-content;
+  }
 }
 .skill-map{
   background:white;
@@ -452,8 +526,7 @@ function lesson11Mastery(){
   }
 }
 
-  function buildCurriculumUI(curriculum){
-
+function buildCurriculumUI(curriculum){
   const topicGrid = document.getElementById("dynamicTopicGrid");
 
   if(!topicGrid) return;
@@ -462,82 +535,122 @@ function lesson11Mastery(){
 
   const units = getAllUnits(curriculum);
 
-  units.forEach(unit => {
-
+  units.forEach((unit, index) => {
     const card = document.createElement("div");
     card.className = "topic-card";
 
+    const lessons = unit.lessons || [];
+
+    const unitMasteries = lessons.map(lesson => {
+      const session = getLessonSession(lesson.id);
+      return session.mastery || 0;
+    });
+
+    const unitMastery = calculateAverage(unitMasteries);
+
+    const isUnitOne = unit.id === "unit-1";
+    const isExpanded = isUnitOne || index === 0;
+
     let lessonsHTML = "";
 
-    unit.lessons.forEach(lesson => {
-      const session = JSON.parse(
-  localStorage.getItem(`algebra_session_${lesson.id}`) || "{}"
-);
+    if(isExpanded){
+      lessonsHTML = `
+        <div class="lesson-list">
+          ${lessons.map(lesson => {
+            const session = getLessonSession(lesson.id);
+            const mastery = session.mastery || 0;
+            const attempts = session.attempted || 0;
+            const accuracy = session.accuracy || 0;
 
-const mastery = session.mastery || 0;
-     const unlockMastery =
-  lesson.unlockMastery || 80;
+            const unlockMastery = lesson.unlockMastery || 80;
 
-let isUnlocked = true;
+            let isUnlocked = true;
 
-if(lesson.unlockAfter){
-  const requiredSession = JSON.parse(
-    localStorage.getItem(`algebra_session_${lesson.unlockAfter}`) || "{}"
-  );
+            if(lesson.unlockAfter){
+              const requiredSession = getLessonSession(lesson.unlockAfter);
+              const requiredMastery = requiredSession.mastery || 0;
+              isUnlocked = requiredMastery >= unlockMastery;
+            }
 
-  const requiredMastery = requiredSession.mastery || 0;
+            let statusText = "Open";
+            let statusClass = "open";
 
-  isUnlocked = requiredMastery >= unlockMastery;
-}
+            if(!isUnlocked){
+              statusText = "Locked";
+              statusClass = "lock";
+            }
 
-let statusText = "Open";
-let statusClass = "open";
-      if(!isUnlocked){
-  statusText = "Locked";
-  statusClass = "lock";
-}
+            if(mastery >= 85){
+              statusText = "Mastered";
+              statusClass = "done";
+            }else if(mastery >= 70){
+              statusText = "Proficient";
+              statusClass = "done";
+            }else if(attempts > 0){
+              statusText = "In Progress";
+              statusClass = "open";
+            }
 
-if(mastery >= 85){
-  statusText = "Mastered";
-  statusClass = "done";
-}else if(mastery >= 70){
-  statusText = "Proficient";
-  statusClass = "done";
-}else if(session.attempted > 0){
-  statusText = "In Progress";
-  statusClass = "open";
-}
+            const objective = lesson.objective || "";
+            const shortObjective =
+              objective.length > 115
+                ? objective.slice(0, 115) + "..."
+                : objective;
 
-      lessonsHTML += `
-        <div class="lesson" onclick="${isUnlocked ? `window.location.href='lesson.html?id=${lesson.id}'` : `alert('This lesson is locked. Reach 80% mastery in the previous lesson first.')`}"
-          <div>
-            <div class="lesson-title">
-              ${lesson.id} ${lesson.title}
-            </div>
+            const clickAction = isUnlocked
+              ? `window.location.href='lesson.html?id=${lesson.id}'`
+              : `alert('This lesson is locked. Reach 80% mastery in the previous lesson first.')`;
 
-<div class="lesson-sub">
-  ${lesson.objective}
-</div>
+            return `
+              <div class="lesson ${!isUnlocked ? "locked" : ""}" onclick="${clickAction}">
+                <div class="lesson-id">${lesson.id}</div>
 
-<div class="lesson-sub">
-  Mastery: ${mastery}% · Attempts: ${session.attempted || 0} · Accuracy: ${session.accuracy || 0}%
-</div>
-          </div>
+                <div>
+                  <div class="lesson-title">${lesson.title}</div>
+                  <div class="lesson-sub">${shortObjective}</div>
+                  <div class="lesson-data">
+                    Mastery: ${mastery}% · Attempts: ${attempts} · Accuracy: ${accuracy}%
+                  </div>
+                </div>
 
-<span class="status ${statusClass}">
-  ${statusText}
-</span>
+                <span class="status ${statusClass}">
+                  ${statusText}
+                </span>
+              </div>
+            `;
+          }).join("")}
         </div>
       `;
-    });
+    }else{
+      lessonsHTML = `
+        <div class="warning">
+          This unit is ready in the curriculum map. Lessons will expand when the unit becomes active.
+        </div>
+      `;
+    }
+
+    const statusLabel =
+      unit.status === "certified"
+        ? "Certified"
+        : "Expansion";
 
     card.innerHTML = `
       <div class="topic-header">
-        <h3>${unit.title}</h3>
+        <div>
+          <h3>${unit.title}</h3>
+          <div class="unit-meta">
+            ${lessons.length} lessons · ${unitMastery}% mastery
+          </div>
+        </div>
 
-        <span class="topic-pill">
-          ${unit.quarter}
+        <span class="topic-pill">${unit.quarter}</span>
+        <span class="status ${unit.status === "certified" ? "done" : "open"}">
+          ${statusLabel}
         </span>
+      </div>
+
+      <div class="unit-progress">
+        <div style="width:${unitMastery}%"></div>
       </div>
 
       ${lessonsHTML}
@@ -546,6 +659,7 @@ if(mastery >= 85){
     topicGrid.appendChild(card);
   });
 }
+
 function getLessonSession(lessonId){
   try{
     return JSON.parse(
@@ -624,7 +738,7 @@ function resetProgress(){
     localStorage.removeItem("lesson11_answered");
     localStorage.removeItem("algebra_xp");
     localStorage.removeItem("algebra_session_1.1");
-    renderDashboard();
+    window.location.reload();
   }
 }
 
