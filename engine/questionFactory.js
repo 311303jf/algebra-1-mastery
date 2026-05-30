@@ -962,6 +962,88 @@ if (createNoSolution) {
   });
 }
 
+function generateAbsoluteValueFunction(difficulty = 1) {
+  const a = pickRandom([-3, -2, -1, 1, 2, 3]);
+  const h = randInt(-6, 6);
+  const k = randInt(-6, 6);
+
+  const vertex = `(${formatNumber(h)}, ${formatNumber(k)})`;
+
+  const promptModes = [
+    "vertex",
+    "opens",
+    "evaluate",
+    "transformation"
+  ];
+
+  const mode = pickRandom(promptModes);
+
+  if (mode === "vertex") {
+    return buildQuestion({
+      prompt: `For the function f(x) = ${formatNumber(a)}|x ${formatSigned(-h)}| ${formatSigned(k)}, identify the vertex.`,
+      answer: vertex,
+      problemType: "absolute_value_functions",
+      difficulty,
+      solutionSteps: [
+        `The vertex form of an absolute value function is f(x) = a|x - h| + k.`,
+        `Here, h = ${formatNumber(h)} and k = ${formatNumber(k)}.`,
+        `The vertex is (${formatNumber(h)}, ${formatNumber(k)}).`
+      ]
+    });
+  }
+
+  if (mode === "opens") {
+    const answer = a > 0 ? "opens up" : "opens down";
+
+    return buildQuestion({
+      prompt: `For the function f(x) = ${formatNumber(a)}|x ${formatSigned(-h)}| ${formatSigned(k)}, determine whether the graph opens up or opens down.`,
+      answer,
+      problemType: "absolute_value_functions",
+      difficulty,
+      solutionSteps: [
+        `Look at the coefficient a in f(x) = a|x - h| + k.`,
+        `If a is positive, the graph opens up.`,
+        `If a is negative, the graph opens down.`,
+        `Here, a = ${formatNumber(a)}, so the graph ${answer}.`
+      ]
+    });
+  }
+
+  if (mode === "evaluate") {
+    const x = h + pickRandom([-4, -3, -2, 2, 3, 4]);
+    const y = a * Math.abs(x - h) + k;
+
+    return buildQuestion({
+      prompt: `Evaluate f(${formatNumber(x)}) for f(x) = ${formatNumber(a)}|x ${formatSigned(-h)}| ${formatSigned(k)}.`,
+      answer: `f(${formatNumber(x)}) = ${formatNumber(y)}`,
+      problemType: "absolute_value_functions",
+      difficulty,
+      solutionSteps: [
+        `Substitute x = ${formatNumber(x)} into the function.`,
+        `f(${formatNumber(x)}) = ${formatNumber(a)}|${formatNumber(x)} ${formatSigned(-h)}| ${formatSigned(k)}`,
+        `Simplify inside the absolute value.`,
+        `f(${formatNumber(x)}) = ${formatNumber(y)}`
+      ]
+    });
+  }
+
+  const horizontalShift = h > 0 ? `${Math.abs(h)} units right` : h < 0 ? `${Math.abs(h)} units left` : "no horizontal shift";
+  const verticalShift = k > 0 ? `${Math.abs(k)} units up` : k < 0 ? `${Math.abs(k)} units down` : "no vertical shift";
+
+  return buildQuestion({
+    prompt: `Describe the transformation of f(x) = ${formatNumber(a)}|x ${formatSigned(-h)}| ${formatSigned(k)} from the parent function f(x) = |x|.`,
+    answer: `${horizontalShift}, ${verticalShift}`,
+    problemType: "absolute_value_functions",
+    difficulty,
+    solutionSteps: [
+      `The parent function is f(x) = |x|.`,
+      `The form f(x) = a|x - h| + k shifts the graph horizontally by h and vertically by k.`,
+      `Here, h = ${formatNumber(h)} and k = ${formatNumber(k)}.`,
+      `So the transformation is: ${horizontalShift}, ${verticalShift}.`
+    ]
+  });
+}
+
 function generateFunctionEvaluation(difficulty = 1) {
   const m = randInt(-5, 5, [0]);
   const b = randInt(-10, 10);
