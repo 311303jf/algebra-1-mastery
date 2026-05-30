@@ -1,5 +1,7 @@
 // engine/curriculumEngine.js
 
+import { expandCurriculum } from "./curriculumExpander.js";
+
 export async function loadCurriculum() {
   const response = await fetch("./curriculum/algebra1.json");
 
@@ -7,7 +9,9 @@ export async function loadCurriculum() {
     throw new Error("Could not load Algebra 1 curriculum.");
   }
 
-  return await response.json();
+  const baseCurriculum = await response.json();
+
+  return expandCurriculum(baseCurriculum);
 }
 
 export function getAllUnits(curriculum) {
@@ -43,6 +47,10 @@ export function getCurriculumStats(curriculum) {
   return {
     totalUnits: units.length,
     totalLessons: lessons.length,
-    quarters: [...new Set(units.map(unit => unit.quarter))]
+    quarters: [...new Set(units.map(unit => unit.quarter))],
+    frozenUnits: units.filter(unit => unit.frozen === true).length,
+    certifiedUnits: units.filter(unit => unit.status === "certified").length,
+    expansionEngine: "active",
+    blueprintLoader: "active"
   };
 }
