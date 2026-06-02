@@ -95,6 +95,101 @@ h1{margin-bottom:10px}
   border:1px solid #e2e8f0;
 }
 
+
+.lesson-progress-panel{
+  background:white;
+  border-radius:24px;
+  padding:22px;
+  margin-bottom:20px;
+  box-shadow:0 12px 35px rgba(15,23,42,.08);
+  border:1px solid var(--line);
+}
+
+.lesson-progress-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  margin-bottom:16px;
+}
+
+.lesson-progress-kicker{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+
+.lesson-progress-title{
+  font-size:22px;
+  font-weight:900;
+  margin-top:4px;
+}
+
+.lesson-progress-target{
+  background:#eff6ff;
+  color:#1d4ed8;
+  border:1px solid #bfdbfe;
+  border-radius:999px;
+  padding:8px 12px;
+  font-size:12px;
+  font-weight:900;
+  white-space:nowrap;
+}
+
+.lesson-progress-stats{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:10px;
+  margin-bottom:14px;
+}
+
+.lesson-progress-stat{
+  background:#f8fafc;
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:12px;
+}
+
+.lesson-progress-stat span{
+  display:block;
+  color:var(--muted);
+  font-size:10px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+
+.lesson-progress-stat strong{
+  display:block;
+  color:var(--ink);
+  font-size:22px;
+  margin-top:4px;
+}
+
+.lesson-progress-message{
+  color:#475569;
+  font-size:13px;
+  font-weight:800;
+  margin-top:10px;
+  line-height:1.4;
+}
+
+.lesson-progress-message.ready{
+  color:#166534;
+}
+
+@media (max-width:700px){
+  .lesson-progress-header{
+    flex-direction:column;
+  }
+
+  .lesson-progress-stats{
+    grid-template-columns:1fr 1fr;
+  }
+}
+
 /* Student Math Lab */
 .math-lab{
   position:sticky;
@@ -439,6 +534,43 @@ h1{margin-bottom:10px}
       <p id="lessonObjective"></p>
     </section>
 
+    <section class="lesson-progress-panel">
+      <div class="lesson-progress-header">
+        <div>
+          <div class="lesson-progress-kicker">Current Lesson Progress</div>
+          <div class="lesson-progress-title" id="activeLessonProgressTitle">Loading progress...</div>
+        </div>
+        <div class="lesson-progress-target">Target Mastery: 80%</div>
+      </div>
+
+      <div class="lesson-progress-stats">
+        <div class="lesson-progress-stat">
+          <span>Current Mastery</span>
+          <strong id="activeLessonMastery">0%</strong>
+        </div>
+        <div class="lesson-progress-stat">
+          <span>Remaining</span>
+          <strong id="activeLessonRemaining">80%</strong>
+        </div>
+        <div class="lesson-progress-stat">
+          <span>Attempts</span>
+          <strong id="activeLessonAttempts">0</strong>
+        </div>
+        <div class="lesson-progress-stat">
+          <span>Accuracy</span>
+          <strong id="activeLessonAccuracy">0%</strong>
+        </div>
+      </div>
+
+      <div class="mastery-bar">
+        <div id="activeLessonMasteryFill" class="mastery-fill"></div>
+      </div>
+
+      <div id="activeLessonProgressMessage" class="lesson-progress-message">
+        Start practicing to build mastery.
+      </div>
+    </section>
+
     <section class="card">
       <h2>🎯 Learning Objective</h2>
       <p id="objectiveText"></p>
@@ -599,6 +731,8 @@ h1{margin-bottom:10px}
           <div class="progress-stat"><span>Attempts</span><strong id="helpAttempts">0</strong></div>
           <div class="progress-stat"><span>Correct</span><strong id="helpCorrect">0</strong></div>
           <div class="progress-stat"><span>Accuracy</span><strong id="helpAccuracy">0%</strong></div>
+          <div class="progress-stat"><span>Mastery</span><strong id="helpMastery">0%</strong></div>
+          <div class="progress-stat"><span>Remaining</span><strong id="helpRemaining">80%</strong></div>
           <div class="progress-stat"><span>XP</span><strong id="helpXP">0</strong></div>
         </div>
         <div class="mastery-bar"><div id="helpMasteryFill" class="mastery-fill"></div></div>
@@ -658,6 +792,87 @@ let hintUsedForCurrentQuestion = false;
   attempts: 0,
   correct: 0
 };
+
+
+function getStoredLessonSession(lessonId){
+  try{
+    return JSON.parse(
+      localStorage.getItem("algebra_session_" + lessonId) || "{}"
+    );
+  }catch(error){
+    return {};
+  }
+}
+
+function getCurrentLessonStats(){
+  if(!currentLesson){
+    return {
+      mastery: 0,
+      remaining: 80,
+      attempts: 0,
+      correct: 0,
+      accuracy: 0,
+      xp: Number(localStorage.getItem("algebra_xp") || 0)
+    };
+  }
+
+  const session = getStoredLessonSession(currentLesson.id);
+
+  const mastery = Number(session.mastery || 0);
+  const attempts = Number(session.attempted || session.attempts || helpProgress.attempts || 0);
+  const correct = Number(session.correct || helpProgress.correct || 0);
+  const accuracy = Number(
+    session.accuracy !== undefined
+      ? session.accuracy
+      : attempts > 0
+        ? Math.round((correct / attempts) * 100)
+        : 0
+  );
+
+  return {
+    mastery,
+    remaining: Math.max(0, 80 - mastery),
+    attempts,
+    correct,
+    accuracy,
+    xp: Number(localStorage.getItem("algebra_xp") || 0)
+  };
+}
+
+function updateActiveLessonProgressPanel(){
+  if(!currentLesson) return;
+
+  const stats = getCurrentLessonStats();
+
+  const titleEl = document.getElementById("activeLessonProgressTitle");
+  const masteryEl = document.getElementById("activeLessonMastery");
+  const remainingEl = document.getElementById("activeLessonRemaining");
+  const attemptsEl = document.getElementById("activeLessonAttempts");
+  const accuracyEl = document.getElementById("activeLessonAccuracy");
+  const fillEl = document.getElementById("activeLessonMasteryFill");
+  const messageEl = document.getElementById("activeLessonProgressMessage");
+
+  if(titleEl) titleEl.textContent = currentLesson.id + " — " + currentLesson.title;
+  if(masteryEl) masteryEl.textContent = stats.mastery + "%";
+  if(remainingEl) remainingEl.textContent = stats.remaining + "%";
+  if(attemptsEl) attemptsEl.textContent = stats.attempts;
+  if(accuracyEl) accuracyEl.textContent = stats.accuracy + "%";
+  if(fillEl) fillEl.style.width = Math.min(100, stats.mastery) + "%";
+
+  if(messageEl){
+    if(stats.mastery >= 80){
+      messageEl.className = "lesson-progress-message ready";
+      messageEl.textContent = "✅ You reached the 80% mastery target. The next lesson should be unlocked.";
+    }else if(stats.attempts === 0){
+      messageEl.className = "lesson-progress-message";
+      messageEl.textContent = "Start practicing. You need 80% mastery to unlock the next lesson.";
+    }else{
+      messageEl.className = "lesson-progress-message";
+      messageEl.textContent = "You need " + stats.remaining + "% more mastery to unlock the next lesson.";
+    }
+  }
+}
+
 
 function renderFormulaSheet(lesson){
   const container = document.getElementById("formulaContent");
@@ -820,23 +1035,24 @@ function updateHelpProgress(){
   const attemptsEl = document.getElementById("helpAttempts");
   const correctEl = document.getElementById("helpCorrect");
   const accuracyEl = document.getElementById("helpAccuracy");
+  const masteryEl = document.getElementById("helpMastery");
+  const remainingEl = document.getElementById("helpRemaining");
   const xpEl = document.getElementById("helpXP");
   const masteryFill = document.getElementById("helpMasteryFill");
 
-  const attempts = helpProgress.attempts;
-  const correct = helpProgress.correct;
-  const xp = Number(localStorage.getItem("algebra_xp") || 0);
+  const stats = getCurrentLessonStats();
 
-  const accuracy = attempts > 0
-    ? Math.round((correct / attempts) * 100)
-    : 0;
+  if(attemptsEl) attemptsEl.textContent = stats.attempts;
+  if(correctEl) correctEl.textContent = stats.correct;
+  if(accuracyEl) accuracyEl.textContent = stats.accuracy + "%";
+  if(masteryEl) masteryEl.textContent = stats.mastery + "%";
+  if(remainingEl) remainingEl.textContent = stats.remaining + "%";
+  if(xpEl) xpEl.textContent = stats.xp;
+  if(masteryFill) masteryFill.style.width = Math.min(100, stats.mastery) + "%";
 
-  if(attemptsEl) attemptsEl.textContent = attempts;
-  if(correctEl) correctEl.textContent = correct;
-  if(accuracyEl) accuracyEl.textContent = accuracy + "%";
-  if(xpEl) xpEl.textContent = xp;
-  if(masteryFill) masteryFill.style.width = accuracy + "%";
+  updateActiveLessonProgressPanel();
 }
+
   function renderAnalytics(){
 
   const weakBox =
