@@ -1,5 +1,5 @@
 /* ============================================================
-   Algebra OS — Question Factory 3.2 Stable
+   Algebra OS — Question Factory 3.3 Systems
    File: engine/questionFactory.js
 
    PURPOSE:
@@ -31,7 +31,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (!Array.isArray(problemTypes) || problemTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 3.2 Stable: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
+      "QuestionFactory 3.3 Systems: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
     );
   }
 
@@ -51,7 +51,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (availableTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 3.2 Stable: No supported generators found for this lesson. Add generators for: " +
+      "QuestionFactory 3.3 Systems: No supported generators found for this lesson. Add generators for: " +
       problemTypes.join(", ")
     );
   }
@@ -83,7 +83,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
   }
 
   console.warn(
-    "QuestionFactory 3.2 Stable: Could not produce a fully certified question after 30 attempts.",
+    "QuestionFactory 3.3 Systems: Could not produce a fully certified question after 30 attempts.",
     lastQuestion,
     lesson
   );
@@ -112,7 +112,7 @@ export function generateQuestionsForLesson(lesson, count = 10, options = {}) {
 
   if (questions.length < count) {
     throw new Error(
-      "QuestionFactory 3.2 Stable: Could not generate enough unique quality questions. Generated " +
+      "QuestionFactory 3.3 Systems: Could not generate enough unique quality questions. Generated " +
       questions.length +
       " of " +
       count +
@@ -173,6 +173,32 @@ const GENERATORS = {
   graph_linear_function: generateGraphLinearFunction,
 
   systems: generateSystems,
+
+  systems_graphing: generateSystemsGraphing,
+  identify_solution_from_graph: generateIdentifySolutionFromGraph,
+  graph_two_linear_equations: generateGraphTwoLinearEquations,
+
+  systems_substitution: generateSystemsSubstitution,
+  substitution_one_equation_solved: generateSubstitutionOneEquationSolved,
+  substitution_real_world: generateSubstitutionRealWorld,
+
+  systems_elimination: generateSystemsElimination,
+  elimination_addition: generateEliminationAddition,
+  elimination_multiplication: generateEliminationMultiplication,
+
+  systems_one_solution: generateSystemsOneSolution,
+  systems_no_solution: generateSystemsNoSolution,
+  systems_infinite_solutions: generateSystemsInfiniteSolutions,
+
+  systems_word_problem: generateSystemsWordProblem,
+  systems_cost_problem: generateSystemsCostProblem,
+  systems_mixture_problem: generateSystemsMixtureProblem,
+  systems_comparison_problem: generateSystemsComparisonProblem,
+
+  systems_inequalities_graphing: generateSystemsInequalitiesGraphing,
+  identify_solution_region: generateIdentifySolutionRegion,
+  systems_inequalities_word_problem: generateSystemsInequalitiesWordProblem,
+
   scatter_plots: generateScatterPlot,
   exponent_rules: generateExponentRules,
   factoring: generateFactoring,
@@ -417,6 +443,196 @@ one_step_division_equation: {
     ],
     misconception:
       "Students often solve for only one variable and forget that the solution is an ordered pair."
+  },
+
+  systems_graphing: {
+    hintSteps: [
+      "Write both equations in slope-intercept form if needed.",
+      "Graph both lines.",
+      "The solution is the point where the lines intersect."
+    ],
+    misconception:
+      "Students often choose an intercept instead of the intersection point."
+  },
+
+  identify_solution_from_graph: {
+    hintSteps: [
+      "Look for the point where the two lines cross.",
+      "Read the x-coordinate and y-coordinate of the intersection.",
+      "Write the solution as an ordered pair."
+    ],
+    misconception:
+      "Students often reverse the x-coordinate and y-coordinate."
+  },
+
+  graph_two_linear_equations: {
+    hintSteps: [
+      "Use the y-intercept to start each line.",
+      "Use the slope to find a second point.",
+      "The solution is the intersection of the two lines."
+    ],
+    misconception:
+      "Students often graph only one of the two equations."
+  },
+
+  systems_substitution: {
+    hintSteps: [
+      "Substitute one expression into the other equation.",
+      "Solve for one variable.",
+      "Substitute back to find the other variable."
+    ],
+    misconception:
+      "Students often forget to substitute back to find the second variable."
+  },
+
+  substitution_one_equation_solved: {
+    hintSteps: [
+      "Use the equation that is already solved for one variable.",
+      "Substitute that expression into the other equation.",
+      "Solve and then find the second variable."
+    ],
+    misconception:
+      "Students often substitute into the wrong side of the equation."
+  },
+
+  substitution_real_world: {
+    hintSteps: [
+      "Define the variables.",
+      "Write two equations from the situation.",
+      "Use substitution to solve the system."
+    ],
+    misconception:
+      "Students often write only one equation for a two-variable situation."
+  },
+
+  systems_elimination: {
+    hintSteps: [
+      "Line up like terms.",
+      "Add or subtract the equations to eliminate one variable.",
+      "Solve for the remaining variable and substitute back."
+    ],
+    misconception:
+      "Students often eliminate the wrong terms or forget to change signs."
+  },
+
+  elimination_addition: {
+    hintSteps: [
+      "Check if one pair of variable terms are opposites.",
+      "Add the equations to eliminate that variable.",
+      "Solve for the remaining variable."
+    ],
+    misconception:
+      "Students often add equations before checking whether a variable will eliminate."
+  },
+
+  elimination_multiplication: {
+    hintSteps: [
+      "Multiply one or both equations to create opposite coefficients.",
+      "Add the equations to eliminate one variable.",
+      "Solve and substitute back."
+    ],
+    misconception:
+      "Students often multiply only one term instead of the entire equation."
+  },
+
+  systems_one_solution: {
+    hintSteps: [
+      "Compare the slopes and y-intercepts.",
+      "Different slopes mean the lines intersect once.",
+      "The system has one solution."
+    ],
+    misconception:
+      "Students often think all systems have exactly one solution."
+  },
+
+  systems_no_solution: {
+    hintSteps: [
+      "Compare the slopes and y-intercepts.",
+      "Same slope and different y-intercepts means parallel lines.",
+      "Parallel lines have no solution."
+    ],
+    misconception:
+      "Students often confuse parallel lines with the same line."
+  },
+
+  systems_infinite_solutions: {
+    hintSteps: [
+      "Simplify both equations.",
+      "If they represent the same line, every point on the line is a solution.",
+      "The system has infinitely many solutions."
+    ],
+    misconception:
+      "Students often think identical equations have no solution."
+  },
+
+  systems_word_problem: {
+    hintSteps: [
+      "Define both variables.",
+      "Write two equations from the situation.",
+      "Solve the system and interpret the ordered pair."
+    ],
+    misconception:
+      "Students often solve the system but do not interpret what the variables mean."
+  },
+
+  systems_cost_problem: {
+    hintSteps: [
+      "Let the variables represent the number of each item.",
+      "Write one equation for quantity and one equation for total cost.",
+      "Solve the system and interpret the answer."
+    ],
+    misconception:
+      "Students often mix up price and quantity."
+  },
+
+  systems_mixture_problem: {
+    hintSteps: [
+      "Define the variables for each part of the mixture.",
+      "Write one equation for total amount and one for total value.",
+      "Solve the system."
+    ],
+    misconception:
+      "Students often add rates or prices incorrectly."
+  },
+
+  systems_comparison_problem: {
+    hintSteps: [
+      "Write one equation for each option.",
+      "Solve the system to find when both options are equal.",
+      "Interpret the intersection point."
+    ],
+    misconception:
+      "Students often compare only the starting values and ignore the rates."
+  },
+
+  systems_inequalities_graphing: {
+    hintSteps: [
+      "Graph each boundary line.",
+      "Use a test point to decide which side to shade.",
+      "The solution is the overlapping shaded region."
+    ],
+    misconception:
+      "Students often shade the wrong side of one inequality."
+  },
+
+  identify_solution_region: {
+    hintSteps: [
+      "Test the point in each inequality.",
+      "A solution must satisfy both inequalities.",
+      "If both statements are true, the point is in the solution region."
+    ],
+    misconception:
+      "Students often check only one inequality instead of both."
+  },
+
+  systems_inequalities_word_problem: {
+    hintSteps: [
+      "Define the variables.",
+      "Write inequalities for each constraint.",
+      "Interpret the overlapping solution region."
+    ],
+    misconception:
+      "Students often write equations instead of inequalities for constraints."
   },
 
   scatter_plots: {
@@ -910,76 +1126,67 @@ function generateSimpleCompoundInequality(difficulty = 1) {
 }
 
 function generateAbsoluteValueEquation(difficulty = 1) {
-  /*
-    Absolute Value Equations — Stable Generator
-    Rules:
-    - Multiple-solution answers are always canonical.
-    - Example: x = 1, x = 7, never x = 7, x = 1.
-    - Avoid mathematically duplicate answer choices.
-  */
-
   const mode = pickRandom(["basic", "scaled"]);
 
-  const m = pickRandom([-5, -4, -3, -2, 2, 3, 4, 5]);
+  const x1 = pickSolution(difficulty);
+  const distance = randInt(2, 9);
 
-  const solutionA = pickSolution(difficulty);
-  const solutionB = solutionA + pickRandom([2, 4, 6, 8]);
+const m = pickRandom([-5, -4, -3, -2, 2, 3, 4, 5]);
 
-  const midpoint = (solutionA + solutionB) / 2;
-  const distanceFromMidpoint = Math.abs(solutionA - solutionB) / 2;
+const solutionA = pickSolution(difficulty);
+const solutionB = solutionA + pickRandom([2, 4, 6, 8]);
 
-  const b = -m * midpoint;
-  const target = Math.abs(m * distanceFromMidpoint);
+const midpoint = (solutionA + solutionB) / 2;
+const distanceFromMidpoint = Math.abs(solutionA - solutionB) / 2;
 
-  const positiveSolution = (target - b) / m;
-  const negativeSolution = (-target - b) / m;
-  const canonicalAnswer = normalizeMultipleSolutions(
-    positiveSolution,
-    negativeSolution
-  );
+const b = -m * midpoint;
+const target = Math.abs(m * distanceFromMidpoint);
+
+  //const insideValue = Math.abs(m * x1 + b);
+  //const target = insideValue === 0 ? distance : insideValue;
 
   if (mode === "basic") {
     return buildQuestion({
       prompt: `Solve for x: |${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(target)}`,
-      answer: canonicalAnswer,
+      answer: `x = ${formatNumber((target - b) / m)}, x = ${formatNumber((-target - b) / m)}`,
       problemType: "absolute_value_equations",
       difficulty,
       solutionSteps: [
         `Original equation: |${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(target)}`,
         `Set up two equations: ${formatTerm(m, "x")} ${formatSigned(b)} = ${formatNumber(target)} OR ${formatTerm(m, "x")} ${formatSigned(b)} = ${formatNumber(-target)}`,
         `Solve both equations.`,
-        canonicalAnswer
+        `x = ${formatNumber((target - b) / m)}, x = ${formatNumber((-target - b) / m)}`
       ]
     });
   }
 
   const a = pickRandom([-5, -4, -3, -2, 2, 3, 4, 5]);
   const c = a * target;
-  const createNoSolution = Math.random() < 0.15;
+   const createNoSolution = Math.random() < 0.15;
 
-  if (createNoSolution) {
-    const badC = a > 0
-      ? -Math.abs(c)
-      : Math.abs(c);
-
-    return buildQuestion({
-      prompt: `Solve for x: ${formatNumber(a)}|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(badC)}`,
-      answer: "No Solution",
-      problemType: "absolute_value_equations",
-      difficulty,
-      solutionSteps: [
-        `Original equation: ${formatNumber(a)}|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(badC)}`,
-        `Divide both sides by ${formatNumber(a)}.`,
-        `|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(badC / a)}`,
-        "Absolute value can never equal a negative number.",
-        "No Solution"
-      ]
-    });
-  }
+if (createNoSolution) {
+  const badC = a > 0
+    ? -Math.abs(c)
+    : Math.abs(c);
 
   return buildQuestion({
+    prompt: `Solve for x: ${formatNumber(a)}|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(badC)}`,
+    answer: "No Solution",
+    problemType: "absolute_value_equations",
+    difficulty,
+    solutionSteps: [
+      `Original equation: ${formatNumber(a)}|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(badC)}`,
+      `Divide both sides by ${formatNumber(a)}.`,
+      `|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(badC / a)}`,
+      "Absolute value can never equal a negative number.",
+      "No Solution"
+    ]
+  });
+}
+  
+  return buildQuestion({
     prompt: `Solve for x: ${formatNumber(a)}|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(c)}`,
-    answer: canonicalAnswer,
+    answer: `x = ${formatNumber((target - b) / m)}, x = ${formatNumber((-target - b) / m)}`,
     problemType: "absolute_value_equations",
     difficulty,
     solutionSteps: [
@@ -988,10 +1195,11 @@ function generateAbsoluteValueEquation(difficulty = 1) {
       `|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(target)}`,
       `Set up two equations: ${formatTerm(m, "x")} ${formatSigned(b)} = ${formatNumber(target)} OR ${formatTerm(m, "x")} ${formatSigned(b)} = ${formatNumber(-target)}`,
       `Solve both equations.`,
-      canonicalAnswer
+      `x = ${formatNumber((target - b) / m)}, x = ${formatNumber((-target - b) / m)}`
     ]
   });
 }
+
 
 function generateAbsoluteValueFunction(difficulty = 1) {
   const a = pickRandom([-3, -2, -1, 1, 2, 3]);
@@ -1395,6 +1603,396 @@ function generateSystems(difficulty = 1) {
 
 
 /* ============================================================
+   GENERATORS — SYSTEMS OF EQUATIONS AND INEQUALITIES
+   Unit 5
+   ============================================================ */
+
+function generateSystemsGraphing(difficulty = 1) {
+  const point = pickCleanPoint();
+  const m1 = pickRandom([-3, -2, -1, 1, 2, 3]);
+  let m2 = pickRandom([-3, -2, -1, 1, 2, 3]);
+  if (m2 === m1) m2 = m1 === 3 ? -2 : 3;
+
+  const b1 = point.y - m1 * point.x;
+  const b2 = point.y - m2 * point.x;
+
+  return buildQuestion({
+    prompt: `Solve the system by graphing: y = ${formatNumber(m1)}x ${formatSigned(b1)} and y = ${formatNumber(m2)}x ${formatSigned(b2)}`,
+    answer: `(${formatNumber(point.x)}, ${formatNumber(point.y)})`,
+    problemType: "systems_graphing",
+    difficulty,
+    solutionSteps: [
+      `Graph y = ${formatNumber(m1)}x ${formatSigned(b1)}.`,
+      `Graph y = ${formatNumber(m2)}x ${formatSigned(b2)}.`,
+      "The solution is where the lines intersect.",
+      `The lines intersect at (${formatNumber(point.x)}, ${formatNumber(point.y)}).`
+    ]
+  });
+}
+
+function generateIdentifySolutionFromGraph(difficulty = 1) {
+  const point = pickCleanPoint();
+
+  return buildQuestion({
+    prompt: `Two lines intersect on a graph at the point (${formatNumber(point.x)}, ${formatNumber(point.y)}). What is the solution to the system?`,
+    answer: `(${formatNumber(point.x)}, ${formatNumber(point.y)})`,
+    problemType: "identify_solution_from_graph",
+    difficulty,
+    solutionSteps: [
+      "The solution to a system is the point of intersection.",
+      `The graph shows the intersection at (${formatNumber(point.x)}, ${formatNumber(point.y)}).`,
+      `Therefore, the solution is (${formatNumber(point.x)}, ${formatNumber(point.y)}).`
+    ]
+  });
+}
+
+function generateGraphTwoLinearEquations(difficulty = 1) {
+  const point = pickCleanPoint();
+  const m1 = pickRandom([-2, -1, 1, 2]);
+  let m2 = pickRandom([-3, -1, 1, 3]);
+  if (m2 === m1) m2 = -m1;
+
+  const b1 = point.y - m1 * point.x;
+  const b2 = point.y - m2 * point.x;
+
+  return buildQuestion({
+    prompt: `Graph the two equations and identify their intersection: y = ${formatNumber(m1)}x ${formatSigned(b1)} and y = ${formatNumber(m2)}x ${formatSigned(b2)}`,
+    answer: `(${formatNumber(point.x)}, ${formatNumber(point.y)})`,
+    problemType: "graph_two_linear_equations",
+    difficulty,
+    solutionSteps: [
+      "Graph both linear equations.",
+      "Find the point where the two lines cross.",
+      `The intersection point is (${formatNumber(point.x)}, ${formatNumber(point.y)}).`
+    ]
+  });
+}
+
+function generateSystemsSubstitution(difficulty = 1) {
+  const solution = pickCleanPoint();
+  const a = randInt(2, 5);
+  const b = randInt(-6, 6);
+  const c = solution.y - a * solution.x;
+  const right = b * solution.x + solution.y;
+
+  return buildQuestion({
+    prompt: `Solve by substitution: y = ${formatNumber(a)}x ${formatSigned(c)} and ${formatNumber(b)}x + y = ${formatNumber(right)}`,
+    answer: `(${formatNumber(solution.x)}, ${formatNumber(solution.y)})`,
+    problemType: "systems_substitution",
+    difficulty,
+    solutionSteps: [
+      `Substitute y = ${formatNumber(a)}x ${formatSigned(c)} into the second equation.`,
+      `${formatNumber(b)}x + (${formatNumber(a)}x ${formatSigned(c)}) = ${formatNumber(right)}`,
+      `Solve to get x = ${formatNumber(solution.x)}.`,
+      `Substitute back to get y = ${formatNumber(solution.y)}.`,
+      `Solution: (${formatNumber(solution.x)}, ${formatNumber(solution.y)}).`
+    ]
+  });
+}
+
+function generateSubstitutionOneEquationSolved(difficulty = 1) {
+  const solution = pickCleanPoint();
+  const m = pickRandom([-3, -2, -1, 1, 2, 3]);
+  const b = solution.y - m * solution.x;
+  const a = randInt(2, 5);
+  const right = a * solution.x + solution.y;
+
+  return buildQuestion({
+    prompt: `Solve the system: y = ${formatNumber(m)}x ${formatSigned(b)} and ${formatNumber(a)}x + y = ${formatNumber(right)}`,
+    answer: `(${formatNumber(solution.x)}, ${formatNumber(solution.y)})`,
+    problemType: "substitution_one_equation_solved",
+    difficulty,
+    solutionSteps: [
+      "One equation is already solved for y.",
+      `Substitute ${formatNumber(m)}x ${formatSigned(b)} for y in the other equation.`,
+      `Solve for x = ${formatNumber(solution.x)}.`,
+      `Then y = ${formatNumber(solution.y)}.`,
+      `Solution: (${formatNumber(solution.x)}, ${formatNumber(solution.y)}).`
+    ]
+  });
+}
+
+function generateSubstitutionRealWorld(difficulty = 1, overrideType = "substitution_real_world") {
+  const ticketsAdult = randInt(1, 8);
+  const ticketsChild = randInt(1, 8);
+  const adultPrice = randInt(8, 15);
+  const childPrice = randInt(3, 7);
+  const totalTickets = ticketsAdult + ticketsChild;
+  const totalCost = adultPrice * ticketsAdult + childPrice * ticketsChild;
+
+  return buildQuestion({
+    prompt: `A theater sold ${totalTickets} tickets. Adult tickets cost $${adultPrice} and child tickets cost $${childPrice}. The total was $${totalCost}. How many adult and child tickets were sold?`,
+    answer: `${ticketsAdult} adult tickets, ${ticketsChild} child tickets`,
+    problemType: overrideType,
+    difficulty,
+    solutionSteps: [
+      "Let a = adult tickets and c = child tickets.",
+      `a + c = ${totalTickets}`,
+      `${adultPrice}a + ${childPrice}c = ${totalCost}`,
+      "Use substitution to solve the system.",
+      `a = ${ticketsAdult}, c = ${ticketsChild}.`
+    ]
+  });
+}
+
+function generateSystemsElimination(difficulty = 1) {
+  const solution = pickCleanPoint();
+  const a = randInt(1, 5);
+  const b = randInt(1, 5);
+  const c = randInt(1, 5);
+  const d = randInt(1, 5);
+
+  const r1 = a * solution.x + b * solution.y;
+  const r2 = c * solution.x - b * solution.y;
+
+  return buildQuestion({
+    prompt: `Solve by elimination: ${a}x + ${b}y = ${r1}; ${c}x - ${b}y = ${r2}`,
+    answer: `(${formatNumber(solution.x)}, ${formatNumber(solution.y)})`,
+    problemType: "systems_elimination",
+    difficulty,
+    solutionSteps: [
+      "Add the equations to eliminate y.",
+      `${a + c}x = ${r1 + r2}`,
+      `x = ${formatNumber(solution.x)}`,
+      `Substitute back to get y = ${formatNumber(solution.y)}.`,
+      `Solution: (${formatNumber(solution.x)}, ${formatNumber(solution.y)}).`
+    ]
+  });
+}
+
+function generateEliminationAddition(difficulty = 1) {
+  const solution = pickCleanPoint();
+  const a = randInt(1, 5);
+  const b = randInt(1, 5);
+  const c = randInt(1, 5);
+
+  const r1 = a * solution.x + b * solution.y;
+  const r2 = c * solution.x - b * solution.y;
+
+  return buildQuestion({
+    prompt: `Solve by adding the equations: ${a}x + ${b}y = ${r1}; ${c}x - ${b}y = ${r2}`,
+    answer: `(${formatNumber(solution.x)}, ${formatNumber(solution.y)})`,
+    problemType: "elimination_addition",
+    difficulty,
+    solutionSteps: [
+      "The y-terms are opposites.",
+      "Add the equations to eliminate y.",
+      `Solve for x = ${formatNumber(solution.x)}.`,
+      `Substitute back to find y = ${formatNumber(solution.y)}.`
+    ]
+  });
+}
+
+function generateEliminationMultiplication(difficulty = 1) {
+  const solution = pickCleanPoint();
+  const a1 = randInt(1, 4);
+  const b1 = randInt(1, 4);
+  const a2 = randInt(1, 4);
+  const b2 = randInt(1, 4, [b1]);
+
+  const r1 = a1 * solution.x + b1 * solution.y;
+  const r2 = a2 * solution.x + b2 * solution.y;
+
+  return buildQuestion({
+    prompt: `Solve by elimination: ${a1}x + ${b1}y = ${r1}; ${a2}x + ${b2}y = ${r2}`,
+    answer: `(${formatNumber(solution.x)}, ${formatNumber(solution.y)})`,
+    problemType: "elimination_multiplication",
+    difficulty,
+    solutionSteps: [
+      "Multiply one or both equations to create opposite coefficients.",
+      "Add or subtract the equations to eliminate one variable.",
+      `The solution is (${formatNumber(solution.x)}, ${formatNumber(solution.y)}).`
+    ]
+  });
+}
+
+function generateSystemsOneSolution(difficulty = 1) {
+  const m1 = pickRandom([-3, -2, -1, 1, 2, 3]);
+  let m2 = pickRandom([-3, -2, -1, 1, 2, 3]);
+  if (m2 === m1) m2 = m1 === 3 ? -2 : 3;
+  const b1 = randInt(-8, 8);
+  const b2 = randInt(-8, 8);
+
+  return buildQuestion({
+    prompt: `How many solutions does the system have? y = ${formatNumber(m1)}x ${formatSigned(b1)} and y = ${formatNumber(m2)}x ${formatSigned(b2)}`,
+    answer: "One solution",
+    problemType: "systems_one_solution",
+    difficulty,
+    solutionSteps: [
+      `The slopes are ${formatNumber(m1)} and ${formatNumber(m2)}.`,
+      "Different slopes mean the lines intersect once.",
+      "The system has one solution."
+    ]
+  });
+}
+
+function generateSystemsNoSolution(difficulty = 1) {
+  const m = pickRandom([-3, -2, -1, 1, 2, 3]);
+  const b1 = randInt(-8, 8);
+  let b2 = randInt(-8, 8, [b1]);
+
+  return buildQuestion({
+    prompt: `How many solutions does the system have? y = ${formatNumber(m)}x ${formatSigned(b1)} and y = ${formatNumber(m)}x ${formatSigned(b2)}`,
+    answer: "No solution",
+    problemType: "systems_no_solution",
+    difficulty,
+    solutionSteps: [
+      "The slopes are the same.",
+      "The y-intercepts are different.",
+      "The lines are parallel, so there is no solution."
+    ]
+  });
+}
+
+function generateSystemsInfiniteSolutions(difficulty = 1) {
+  const m = pickRandom([-3, -2, -1, 1, 2, 3]);
+  const b = randInt(-8, 8);
+  const scale = randInt(2, 5);
+
+  return buildQuestion({
+    prompt: `How many solutions does the system have? y = ${formatNumber(m)}x ${formatSigned(b)} and ${scale}y = ${formatNumber(scale * m)}x ${formatSigned(scale * b)}`,
+    answer: "Infinitely many solutions",
+    problemType: "systems_infinite_solutions",
+    difficulty,
+    solutionSteps: [
+      "Simplify the second equation by dividing every term by the same number.",
+      `It becomes y = ${formatNumber(m)}x ${formatSigned(b)}.`,
+      "Both equations represent the same line.",
+      "The system has infinitely many solutions."
+    ]
+  });
+}
+
+function generateSystemsWordProblem(difficulty = 1) {
+  return generateSubstitutionRealWorld(difficulty, "systems_word_problem");
+}
+
+function generateSystemsCostProblem(difficulty = 1) {
+  const x = randInt(1, 8);
+  const y = randInt(1, 8);
+  const priceX = randInt(2, 6);
+  const priceY = randInt(7, 12);
+  const totalItems = x + y;
+  const totalCost = priceX * x + priceY * y;
+
+  return buildQuestion({
+    prompt: `A student buys ${totalItems} items. Pencils cost $${priceX} each and notebooks cost $${priceY} each. The total cost is $${totalCost}. How many pencils and notebooks were bought?`,
+    answer: `${x} pencils, ${y} notebooks`,
+    problemType: "systems_cost_problem",
+    difficulty,
+    solutionSteps: [
+      "Let p = pencils and n = notebooks.",
+      `p + n = ${totalItems}`,
+      `${priceX}p + ${priceY}n = ${totalCost}`,
+      `Solving gives p = ${x} and n = ${y}.`
+    ]
+  });
+}
+
+function generateSystemsMixtureProblem(difficulty = 1) {
+  const small = randInt(2, 8);
+  const large = randInt(2, 8);
+  const smallRate = randInt(2, 5);
+  const largeRate = randInt(6, 10);
+  const totalAmount = small + large;
+  const totalValue = small * smallRate + large * largeRate;
+
+  return buildQuestion({
+    prompt: `A mix uses ${totalAmount} pounds total. One ingredient costs $${smallRate} per pound and another costs $${largeRate} per pound. The total value is $${totalValue}. How many pounds of each ingredient are used?`,
+    answer: `${small} lb at $${smallRate}, ${large} lb at $${largeRate}`,
+    problemType: "systems_mixture_problem",
+    difficulty,
+    solutionSteps: [
+      "Let x and y represent the pounds of each ingredient.",
+      `x + y = ${totalAmount}`,
+      `${smallRate}x + ${largeRate}y = ${totalValue}`,
+      `Solving gives x = ${small} and y = ${large}.`
+    ]
+  });
+}
+
+function generateSystemsComparisonProblem(difficulty = 1) {
+  const x = randInt(2, 10);
+  const rateA = randInt(2, 6);
+  const rateB = randInt(7, 12);
+  const startA = randInt(10, 30);
+  const startB = startA + (rateA - rateB) * x;
+
+  return buildQuestion({
+    prompt: `Plan A costs $${startA} plus $${rateA} per hour. Plan B costs $${startB} plus $${rateB} per hour. After how many hours do the plans cost the same?`,
+    answer: `${x} hours`,
+    problemType: "systems_comparison_problem",
+    difficulty,
+    solutionSteps: [
+      `Write ${startA} + ${rateA}x = ${startB} + ${rateB}x.`,
+      "Solve for x.",
+      `x = ${x}.`,
+      `The plans cost the same after ${x} hours.`
+    ]
+  });
+}
+
+function generateSystemsInequalitiesGraphing(difficulty = 1) {
+  const m1 = pickRandom([-2, -1, 1, 2]);
+  const b1 = randInt(-6, 6);
+  const m2 = pickRandom([-2, -1, 1, 2]);
+  const b2 = randInt(-6, 6);
+  const s1 = pickRandom(["<", "≤", ">", "≥"]);
+  const s2 = pickRandom(["<", "≤", ">", "≥"]);
+
+  return buildQuestion({
+    prompt: `Which describes the solution to the system of inequalities y ${s1} ${formatNumber(m1)}x ${formatSigned(b1)} and y ${s2} ${formatNumber(m2)}x ${formatSigned(b2)}?`,
+    answer: "The overlapping shaded region",
+    problemType: "systems_inequalities_graphing",
+    difficulty,
+    solutionSteps: [
+      "Graph each boundary line.",
+      "Shade the correct side for each inequality.",
+      "The solution is where the shaded regions overlap."
+    ]
+  });
+}
+
+function generateIdentifySolutionRegion(difficulty = 1) {
+  const point = pickCleanPoint();
+  const xLimit = point.x + randInt(1, 5);
+  const yLimit = point.y + randInt(1, 5);
+
+  return buildQuestion({
+    prompt: `Is the point (${formatNumber(point.x)}, ${formatNumber(point.y)}) a solution to the system x < ${formatNumber(xLimit)} and y < ${formatNumber(yLimit)}?`,
+    answer: "Yes",
+    problemType: "identify_solution_region",
+    difficulty,
+    solutionSteps: [
+      `Check x < ${formatNumber(xLimit)}: ${formatNumber(point.x)} < ${formatNumber(xLimit)} is true.`,
+      `Check y < ${formatNumber(yLimit)}: ${formatNumber(point.y)} < ${formatNumber(yLimit)} is true.`,
+      "The point satisfies both inequalities."
+    ]
+  });
+}
+
+function generateSystemsInequalitiesWordProblem(difficulty = 1) {
+  const maxItems = randInt(10, 25);
+  const maxCost = randInt(30, 80);
+  const priceX = randInt(2, 5);
+  const priceY = randInt(4, 9);
+
+  return buildQuestion({
+    prompt: `A club can buy at most ${maxItems} total snacks. Chips cost $${priceX} each and drinks cost $${priceY} each. The club can spend at most $${maxCost}. Which system models the situation?`,
+    answer: `x + y ≤ ${maxItems}; ${priceX}x + ${priceY}y ≤ ${maxCost}`,
+    problemType: "systems_inequalities_word_problem",
+    difficulty,
+    solutionSteps: [
+      "At most means less than or equal to.",
+      `Total snacks: x + y ≤ ${maxItems}.`,
+      `Total cost: ${priceX}x + ${priceY}y ≤ ${maxCost}.`
+    ]
+  });
+}
+
+
+
+/* ============================================================
    GENERATORS — LATER CURRICULUM
    ============================================================ */
 
@@ -1533,7 +2131,7 @@ function isQualityQuestion(q) {
   if (!Array.isArray(q.choices)) return false;
   if (q.choices.length !== 4) return false;
 
-  const uniqueChoices = new Set(q.choices.map(normalizeAnswerChoiceForEquivalence));
+  const uniqueChoices = new Set(q.choices);
   if (uniqueChoices.size !== q.choices.length) return false;
 
   if (!q.choices.includes(q.answer)) return false;
@@ -1593,60 +2191,16 @@ function isInequalityChoice(choice) {
 
 
 
-function normalizeMultipleSolutions(a, b) {
-  const values = [Number(a), Number(b)]
-    .map(cleanZero)
-    .sort((x, y) => x - y);
-
-  return `x = ${formatNumber(values[0])}, x = ${formatNumber(values[1])}`;
-}
-
-function normalizeAnswerChoiceForEquivalence(choice) {
-  const text = String(choice || "").trim();
-
-  if (/^x\s*=/.test(text) && text.includes(",")) {
-    const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
-
-    if (nums.length === 2) {
-      return normalizeMultipleSolutions(nums[0], nums[1])
-        .replace(/\s+/g, "")
-        .toLowerCase();
-    }
-  }
-
-  if (text.startsWith("{") && text.endsWith("}")) {
-    const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
-
-    if (nums.length > 1) {
-      return "{" + nums.sort((a, b) => a - b).map(formatNumber).join(",") + "}";
-    }
-  }
-
-  return text.replace(/\s+/g, "").toLowerCase();
-}
-
-function addUniqueByEquivalence(list, choice) {
-  if (choice === undefined || choice === null) return;
-
-  const cleaned = String(choice).trim();
-  if (!cleaned) return;
-
-  const normalized = normalizeAnswerChoiceForEquivalence(cleaned);
-  const existing = list.map(normalizeAnswerChoiceForEquivalence);
-
-  if (!existing.includes(normalized)) {
-    list.push(cleaned);
-  }
-}
-
-
 function generateChoices(answer, problemType) {
   if (typeof answer !== "string") answer = String(answer);
 
   const type = String(problemType || "").toLowerCase();
 
   const addUnique = (list, choice) => {
-    addUniqueByEquivalence(list, choice);
+    if (choice === undefined || choice === null) return;
+    const cleaned = String(choice).trim();
+    if (!cleaned) return;
+    if (!list.includes(cleaned)) list.push(cleaned);
   };
 
   const finalizeChoices = (correctAnswer, candidates) => {
@@ -1723,6 +2277,14 @@ function generateChoices(answer, problemType) {
     return generateSimpleInequalityAnswerChoices(answer, finalizeChoices);
   }
 
+  if (
+    type.includes("systems") ||
+    type.includes("substitution") ||
+    type.includes("elimination")
+  ) {
+    return generateSystemsAnswerChoices(answer, problemType, finalizeChoices);
+  }
+
   if (type.includes("scatter")) {
     return finalizeChoices(answer, [
       "positive association",
@@ -1791,14 +2353,14 @@ function generateChoices(answer, problemType) {
     if (matches) {
       const a = Number(matches[1]);
       const b = Number(matches[2]);
-      const canonicalAnswer = normalizeMultipleSolutions(a, b);
 
-      return finalizeChoices(canonicalAnswer, [
+      return finalizeChoices(answer, [
         `x = ${formatNumber(a)}`,
         `x = ${formatNumber(b)}`,
-        normalizeMultipleSolutions(-a, b),
-        normalizeMultipleSolutions(a, -b),
-        normalizeMultipleSolutions(-a, -b),
+        `x = ${formatNumber(b)}, x = ${formatNumber(a)}`,
+        `x = ${formatNumber(a)}, x = ${formatNumber(-b)}`,
+        `x = ${formatNumber(-a)}, x = ${formatNumber(b)}`,
+        `x = ${formatNumber(-a)}, x = ${formatNumber(-b)}`,
         "No Solution"
       ]);
     }
@@ -1820,9 +2382,8 @@ function generateChoices(answer, problemType) {
       const [a, b] = nums;
       distractors.add(`x = ${formatNumber(a)}`);
       distractors.add(`x = ${formatNumber(b)}`);
-      distractors.add(normalizeMultipleSolutions(-a, b));
-      distractors.add(normalizeMultipleSolutions(a, -b));
-      distractors.add(normalizeMultipleSolutions(-a, -b));
+      distractors.add(`x = ${formatNumber(b)}, x = ${formatNumber(a)}`);
+      distractors.add(`x = ${formatNumber(-a)}, x = ${formatNumber(-b)}`);
       distractors.add("No Solution");
     }
   } else if (answer.startsWith("(")) {
@@ -1934,6 +2495,135 @@ function generateCompoundInequalityAnswerChoices(answer, finalizeChoices) {
     "No Solution",
     "All Real Numbers"
   ]);
+}
+
+
+function generateSystemsAnswerChoices(answer, problemType, finalizeChoices) {
+  const text = String(answer || "").trim();
+  const type = String(problemType || "").toLowerCase();
+
+  if (
+    text === "One solution" ||
+    text === "No solution" ||
+    text === "Infinitely many solutions"
+  ) {
+    return finalizeChoices(text, [
+      "One solution",
+      "No solution",
+      "Infinitely many solutions",
+      "Cannot be determined"
+    ]);
+  }
+
+  if (text === "Yes" || text === "No") {
+    return finalizeChoices(text, [
+      text === "Yes" ? "No" : "Yes",
+      "Only when x = 0",
+      "Only when y = 0",
+      "Cannot be determined"
+    ]);
+  }
+
+  if (text === "The overlapping shaded region") {
+    return finalizeChoices(text, [
+      "The overlapping shaded region",
+      "Only the region above the first line",
+      "Only the region below the second line",
+      "The intersection point only"
+    ]);
+  }
+
+  if (text.startsWith("(")) {
+    const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+
+    if (nums.length >= 2) {
+      const [x, y] = nums;
+
+      return finalizeChoices(text, [
+        `(${formatNumber(y)}, ${formatNumber(x)})`,
+        `(${formatNumber(x + 1)}, ${formatNumber(y)})`,
+        `(${formatNumber(x)}, ${formatNumber(y + 1)})`,
+        `(${formatNumber(-x)}, ${formatNumber(-y)})`,
+        "No solution",
+        "Infinitely many solutions"
+      ]);
+    }
+  }
+
+  if (text.includes(";") && type.includes("inequalit")) {
+    return finalizeChoices(text, [
+      text.replaceAll("≤", "<"),
+      text.replaceAll("≤", "≥"),
+      "x + y ≥ 0; x ≥ 0; y ≥ 0",
+      "No solution"
+    ]);
+  }
+
+  if (text.includes("adult tickets") || text.includes("child tickets")) {
+    const nums = text.match(/\d+/g)?.map(Number) || [];
+
+    if (nums.length >= 2) {
+      const [a, c] = nums;
+
+      return finalizeChoices(text, [
+        `${c} adult tickets, ${a} child tickets`,
+        `${a + 1} adult tickets, ${Math.max(0, c - 1)} child tickets`,
+        `${Math.max(0, a - 1)} adult tickets, ${c + 1} child tickets`,
+        "No solution"
+      ]);
+    }
+  }
+
+  if (text.includes("pencils") || text.includes("notebooks")) {
+    const nums = text.match(/\d+/g)?.map(Number) || [];
+
+    if (nums.length >= 2) {
+      const [p, n] = nums;
+
+      return finalizeChoices(text, [
+        `${n} pencils, ${p} notebooks`,
+        `${p + 1} pencils, ${Math.max(0, n - 1)} notebooks`,
+        `${Math.max(0, p - 1)} pencils, ${n + 1} notebooks`,
+        "No solution"
+      ]);
+    }
+  }
+
+  if (text.includes("hours")) {
+    const value = Number(text.match(/-?\d+(?:\.\d+)?/)?.[0]);
+
+    if (!Number.isNaN(value)) {
+      return finalizeChoices(text, [
+        `${formatNumber(value + 1)} hours`,
+        `${formatNumber(Math.max(0, value - 1))} hours`,
+        `${formatNumber(value * 2)} hours`,
+        "Never"
+      ]);
+    }
+  }
+
+  if (text.includes("lb")) {
+    return finalizeChoices(text, [
+      "1 lb at $2, 1 lb at $4",
+      "2 lb at $3, 2 lb at $5",
+      "No solution",
+      "Infinitely many solutions"
+    ]);
+  }
+
+  return finalizeChoices(text, [
+    "No solution",
+    "Infinitely many solutions",
+    "One solution",
+    "Cannot be determined"
+  ]);
+}
+
+function pickCleanPoint() {
+  return {
+    x: randInt(-6, 6),
+    y: randInt(-6, 6)
+  };
 }
 
 
