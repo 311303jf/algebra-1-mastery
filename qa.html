@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Algebra OS | QA Certification</title>
+
+<style>
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f1f5f9;
+  color:#0f172a;
+}
+
+.page{
+  max-width:1200px;
+  margin:auto;
+  padding:30px;
+}
+
+.card{
+  background:white;
+  border:1px solid #e2e8f0;
+  border-radius:18px;
+  padding:22px;
+  margin-bottom:18px;
+  box-shadow:0 10px 28px rgba(15,23,42,.06);
+}
+
+.btn{
+  background:#2563eb;
+  color:white;
+  border:none;
+  border-radius:12px;
+  padding:12px 18px;
+  font-weight:900;
+  cursor:pointer;
+}
+
+.btn:hover{
+  filter:brightness(.95);
+}
+
+.status{
+  display:inline-block;
+  padding:5px 10px;
+  border-radius:999px;
+  font-size:12px;
+  font-weight:900;
+}
+
+.pass{
+  background:#dcfce7;
+  color:#166534;
+}
+
+.fail{
+  background:#fee2e2;
+  color:#991b1b;
+}
+
+.pending{
+  background:#dbeafe;
+  color:#1e40af;
+}
+
+.lesson-row{
+  display:grid;
+  grid-template-columns:80px 1fr auto;
+  gap:12px;
+  align-items:center;
+  padding:12px;
+  border-bottom:1px solid #e2e8f0;
+}
+
+.lesson-row:last-child{
+  border-bottom:none;
+}
+
+.small{
+  color:#64748b;
+  font-size:13px;
+  margin-top:3px;
+}
+</style>
+</head>
+
+<body>
+<div class="page">
+
+  <div class="card">
+    <h1>Algebra OS — QA Certification Dashboard</h1>
+    <p>
+      This dashboard will certify question generation quality before lessons are released.
+    </p>
+
+    <button class="btn" onclick="loadQA()">Load Curriculum QA</button>
+  </div>
+
+  <div class="card">
+    <h2>Curriculum Summary</h2>
+    <div id="summaryBox">Not loaded yet.</div>
+  </div>
+
+  <div class="card">
+    <h2>Lessons Detected</h2>
+    <div id="lessonList">No lessons loaded.</div>
+  </div>
+
+</div>
+
+<script type="module">
+import {
+  loadCurriculum,
+  getAllUnits,
+  getAllLessons,
+  getCurriculumStats
+} from "./engine/curriculumEngine.js";
+
+let curriculum = null;
+
+window.loadQA = async function loadQA(){
+  const summaryBox = document.getElementById("summaryBox");
+  const lessonList = document.getElementById("lessonList");
+
+  summaryBox.innerHTML = "Loading curriculum...";
+  lessonList.innerHTML = "";
+
+  try{
+    curriculum = await loadCurriculum();
+
+    const stats = getCurriculumStats(curriculum);
+    const units = getAllUnits(curriculum);
+    const lessons = getAllLessons(curriculum);
+
+    summaryBox.innerHTML = `
+      <p><strong>Total Units:</strong> ${stats.totalUnits}</p>
+      <p><strong>Total Lessons:</strong> ${stats.totalLessons}</p>
+      <p><strong>Quarters:</strong> ${stats.quarters.join(", ")}</p>
+      <p><strong>Expansion Engine:</strong> ${stats.expansionEngine || "active"}</p>
+      <p><strong>Blueprint Loader:</strong> ${stats.blueprintLoader || "active"}</p>
+    `;
+
+    lessonList.innerHTML = lessons.map(lesson => `
+      <div class="lesson-row">
+        <strong>${lesson.id}</strong>
+        <div>
+          <div>${lesson.title}</div>
+          <div class="small">${lesson.unitTitle || ""}</div>
+        </div>
+        <span class="status pending">Detected</span>
+      </div>
+    `).join("");
+
+    console.log("QA curriculum loaded:", curriculum);
+    console.log("QA stats:", stats);
+  }catch(error){
+    console.error(error);
+    summaryBox.innerHTML = `
+      <span class="status fail">FAILED TO LOAD</span>
+      <p>${error.message}</p>
+    `;
+  }
+};
+</script>
+</body>
+</html>
