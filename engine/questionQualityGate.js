@@ -1,12 +1,12 @@
 /* ============================================================
-   Algebra OS — Question QualityGate Engine 2.0
+   Algebra OS — Question QualityGate Engine 2.1 Semantic
    File: engine/questionQualityGate.js
 
    Purpose:
    - Validate question structure
    - Validate answer/choices quality
    - Prevent cross-domain distractors
-   - Reject misaligned questions before students see them
+   - Reject mathematically equivalent duplicate choices
    ============================================================ */
 
 function hasBadText(value){
@@ -31,6 +31,57 @@ function hasAny(text, keywords){
   return keywords.some(word => t.includes(word));
 }
 
+function formatSemanticNumber(n){
+  n = Number(n);
+
+  if(Object.is(n, -0)) n = 0;
+  if(Number.isInteger(n)) return String(n);
+
+  const rounded = Number(n.toFixed(6));
+  if(Number.isInteger(rounded)) return String(rounded);
+
+  return String(rounded);
+}
+
+function normalizeChoiceForEquivalence(choice){
+  const text = String(choice || "").trim();
+
+  if(/^x\s*=/.test(text) && text.includes(",")){
+    const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+
+    if(nums.length === 2){
+      nums.sort((a,b) => a - b);
+      return `x=${formatSemanticNumber(nums[0])},x=${formatSemanticNumber(nums[1])}`;
+    }
+  }
+
+  if(text.startsWith("{") && text.endsWith("}")){
+    const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+
+    if(nums.length > 1){
+      nums.sort((a,b) => a - b);
+      return "{" + nums.map(formatSemanticNumber).join(",") + "}";
+    }
+  }
+
+  return text.replace(/\s+/g, "").toLowerCase();
+}
+
+function validateEquivalentChoices(question, errors){
+  if(!question || !Array.isArray(question.choices)) return;
+
+  const normalizedChoices =
+    question.choices.map(normalizeChoiceForEquivalence);
+
+  const uniqueNormalized = new Set(normalizedChoices);
+
+  if(uniqueNormalized.size !== normalizedChoices.length){
+    errors.push(
+      "Equivalent duplicate choices found. Example: x = -8, x = -12 and x = -12, x = -8 represent the same solution set."
+    );
+  }
+}
+
 function isInequalityText(text){
   const t = String(text || "");
 
@@ -40,16 +91,6 @@ function isInequalityText(text){
     /\bno solution\b/i.test(t) ||
     /\ball real numbers\b/i.test(t)
   );
-}
-
-function isEquationText(text){
-  const t = String(text || "");
-  return /=/.test(t) && !/[<>≤≥]/.test(t);
-}
-
-function isCoordinateText(text){
-  const t = String(text || "");
-  return /\(\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*\)/.test(t);
 }
 
 function isAssociationText(text){
@@ -62,51 +103,15 @@ function isAssociationText(text){
   ]);
 }
 
-function isFunctionText(text){
-  return hasAny(text, [
-    "function",
-    "not a function",
-    "domain",
-    "range",
-    "f("
-  ]);
-}
-
 function getExpectedChoiceFamily(problemType){
   const type = normalize(problemType);
 
-  if(type.includes("inequality")){
-    return "inequality";
-  }
-
-  if(type.includes("absolute_value_equation")){
-    return "equation";
-  }
-
-  if(type.includes("equation")){
-    return "equation";
-  }
-
-  if(type.includes("scatter")){
-    return "association";
-  }
-
-  if(
-    type.includes("slope") ||
-    type.includes("graph_linear") ||
-    type.includes("linear_function")
-  ){
-    return "linear";
-  }
-
-  if(
-    type.includes("domain") ||
-    type.includes("range") ||
-    type.includes("function") ||
-    type.includes("relations")
-  ){
-    return "function";
-  }
+  if(type.includes("inequality")) return "inequality";
+  if(type.includes("absolute_value_equation")) return "equation";
+  if(type.includes("equation")) return "equation";
+  if(type.includes("scatter")) return "association";
+  if(type.includes("slope") || type.includes("graph_linear") || type.includes("linear_function")) return "linear";
+  if(type.includes("domain") || type.includes("range") || type.includes("function") || type.includes("relations")) return "function";
 
   return "general";
 }
@@ -119,31 +124,24 @@ function validateChoiceFamily(question, errors){
   if(expected === "general") return;
 
   const choices = question.choices.map(String);
-  const prompt = String(question.prompt || "");
 
   if(expected === "inequality"){
     const invalidAssociationChoices =
       choices.filter(choice => isAssociationText(choice));
 
     if(invalidAssociationChoices.length > 0){
-      errors.push(
-        "Inequality question contains association/scatter-plot choices."
-      );
+      errors.push("Inequality question contains association/scatter-plot choices.");
     }
 
     const inequalityLikeCount =
       choices.filter(choice => isInequalityText(choice)).length;
 
     if(inequalityLikeCount < 3){
-      errors.push(
-        "Inequality question choices are not mostly inequality-style answers."
-      );
+      errors.push("Inequality question choices are not mostly inequality-style answers.");
     }
 
     if(!isInequalityText(question.answer)){
-      errors.push(
-        "Inequality question answer is not an inequality-style answer."
-      );
+      errors.push("Inequality question answer is not an inequality-style answer.");
     }
   }
 
@@ -152,9 +150,7 @@ function validateChoiceFamily(question, errors){
       choices.filter(choice => isAssociationText(choice));
 
     if(invalidAssociationChoices.length > 0){
-      errors.push(
-        "Equation question contains association/scatter-plot choices."
-      );
+      errors.push("Equation question contains association/scatter-plot choices.");
     }
   }
 
@@ -163,37 +159,7 @@ function validateChoiceFamily(question, errors){
       choices.filter(choice => isAssociationText(choice)).length;
 
     if(associationCount < 2){
-      errors.push(
-        "Scatter plot question choices do not match association-style answers."
-      );
-    }
-  }
-
-  if(expected === "function"){
-    const invalidAssociationChoices =
-      choices.filter(choice => isAssociationText(choice));
-
-    if(
-      invalidAssociationChoices.length > 0 &&
-      !normalize(question.problemType).includes("scatter")
-    ){
-      errors.push(
-        "Function question contains scatter-plot association distractors."
-      );
-    }
-  }
-
-  if(expected === "linear"){
-    const invalidAssociationChoices =
-      choices.filter(choice => isAssociationText(choice));
-
-    if(
-      invalidAssociationChoices.length > 0 &&
-      !normalize(prompt).includes("scatter")
-    ){
-      errors.push(
-        "Linear question contains scatter-plot association distractors."
-      );
+      errors.push("Scatter plot question choices do not match association-style answers.");
     }
   }
 }
@@ -206,6 +172,7 @@ function validateQuestionAlignment(question, lesson){
   const allowed =
     lesson.allowedProblemTypes ||
     lesson.problemTypes ||
+    lesson.problem_types ||
     [];
 
   if(Array.isArray(allowed) && allowed.length){
@@ -224,10 +191,7 @@ function validateQuestion(question, lesson = null){
 
   if(!question){
     errors.push("Question object is missing.");
-    return {
-      valid:false,
-      errors
-    };
+    return { valid:false, errors };
   }
 
   if(!question.prompt || hasBadText(question.prompt)){
@@ -251,6 +215,8 @@ function validateQuestion(question, lesson = null){
     if(uniqueChoices.size !== question.choices.length){
       errors.push("Duplicate choices found.");
     }
+
+    validateEquivalentChoices(question, errors);
 
     if(!question.choices.map(String).includes(String(question.answer))){
       errors.push("Correct answer is missing from choices.");
@@ -280,10 +246,7 @@ function validateQuestion(question, lesson = null){
   }
 
   validateChoiceFamily(question, errors);
-
-  errors.push(
-    ...validateQuestionAlignment(question, lesson)
-  );
+  errors.push(...validateQuestionAlignment(question, lesson));
 
   return {
     valid: errors.length === 0,
@@ -295,12 +258,7 @@ function assertValidQuestion(question, lesson = null){
   const result = validateQuestion(question, lesson);
 
   if(!result.valid){
-    console.warn(
-      "QuestionQualityGate failed:",
-      result.errors,
-      question,
-      lesson
-    );
+    console.warn("QuestionQualityGate failed:", result.errors, question, lesson);
   }
 
   return result.valid;
@@ -308,5 +266,6 @@ function assertValidQuestion(question, lesson = null){
 
 window.AlgebraQuestionQualityGate = {
   validateQuestion,
-  assertValidQuestion
+  assertValidQuestion,
+  normalizeChoiceForEquivalence
 };
