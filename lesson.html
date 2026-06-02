@@ -190,6 +190,108 @@ h1{margin-bottom:10px}
   }
 }
 
+
+.practice-workspace{
+  border:1px solid #dbeafe;
+  background:#ffffff;
+}
+
+.practice-header{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-start;
+  gap:16px;
+  margin-bottom:16px;
+}
+
+.practice-kicker{
+  color:var(--muted);
+  font-size:12px;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+}
+
+.practice-title{
+  font-size:24px;
+  font-weight:900;
+  margin-top:4px;
+}
+
+.practice-sub{
+  color:#64748b;
+  font-size:13px;
+  font-weight:800;
+  line-height:1.45;
+  margin-top:5px;
+}
+
+.practice-actions{
+  display:flex;
+  gap:10px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.practice-problem-types{
+  margin-top:12px;
+}
+
+.lesson-info-details{
+  background:white;
+  border-radius:20px;
+  margin-bottom:14px;
+  box-shadow:0 10px 28px rgba(15,23,42,.06);
+  border:1px solid var(--line);
+  overflow:hidden;
+}
+
+.lesson-info-details summary{
+  cursor:pointer;
+  list-style:none;
+  padding:18px 22px;
+  font-size:18px;
+  font-weight:900;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.lesson-info-details summary::-webkit-details-marker{
+  display:none;
+}
+
+.lesson-info-details summary::after{
+  content:"+";
+  color:#2563eb;
+  font-weight:900;
+  font-size:24px;
+}
+
+.lesson-info-details[open] summary::after{
+  content:"−";
+}
+
+.lesson-info-body{
+  padding:0 22px 20px;
+  color:#334155;
+  line-height:1.55;
+}
+
+@media (max-width:700px){
+  .practice-header{
+    flex-direction:column;
+  }
+
+  .practice-actions{
+    width:100%;
+  }
+
+  .practice-actions .btn{
+    width:100%;
+  }
+}
+
 /* Student Math Lab */
 .math-lab{
   position:sticky;
@@ -224,7 +326,7 @@ h1{margin-bottom:10px}
 
 .lab-tabs{
   display:grid;
-  grid-template-columns:repeat(5,1fr);
+  grid-template-columns:repeat(6,1fr);
   gap:6px;
   margin-bottom:14px;
 }
@@ -571,32 +673,53 @@ h1{margin-bottom:10px}
       </div>
     </section>
 
-    <section class="card">
-      <h2>🎯 Learning Objective</h2>
-      <p id="objectiveText"></p>
-    </section>
+    <section class="card practice-workspace">
+      <div class="practice-header">
+        <div>
+          <div class="practice-kicker">Practice Workspace</div>
+          <div class="practice-title">Start practicing now</div>
+          <div class="practice-sub">
+            Generate one question at a time. Your mastery, accuracy, attempts, and XP update automatically.
+          </div>
+        </div>
 
-    <section class="card">
-      <h2>🧠 Skills</h2>
-      <div id="skillsList"></div>
-    </section>
+        <div class="practice-actions">
+          <button class="btn" onclick="generatePracticeQuestion()">Generate Practice Question</button>
+        </div>
+      </div>
 
-    <section class="card">
-      <h2>📊 Lesson Metadata</h2>
-      <p><strong>Standard:</strong> <span id="standardText"></span></p>
-      <p><strong>DOK Levels:</strong> <span id="dokText"></span></p>
-      <p><strong>EOC Rigor:</strong> <span id="rigorText"></span></p>
-      <p><strong>Real-World Required:</strong> <span id="realWorldText"></span></p>
-    </section>
+      <div class="practice-problem-types">
+        <strong>Problem types for this lesson:</strong>
+        <div id="problemTypes"></div>
+      </div>
 
-    <section class="card">
-      <h2>🧪 Question Engine Preview</h2>
-      <p>This lesson will generate questions using these problem types:</p>
-      <div id="problemTypes"></div>
-      <br>
-      <button class="btn" onclick="generatePracticeQuestion()">Generate Practice Question</button>
       <div id="questionBox" style="margin-top:20px;"></div>
     </section>
+
+    <details class="lesson-info-details">
+      <summary>🎯 Learning Objective</summary>
+      <div class="lesson-info-body">
+        <p id="objectiveText"></p>
+      </div>
+    </details>
+
+    <details class="lesson-info-details">
+      <summary>🧠 Skills</summary>
+      <div class="lesson-info-body">
+        <div id="skillsList"></div>
+      </div>
+    </details>
+
+    <details class="lesson-info-details">
+      <summary>📊 Lesson Metadata</summary>
+      <div class="lesson-info-body">
+        <p><strong>Standard:</strong> <span id="standardText"></span></p>
+        <p><strong>DOK Levels:</strong> <span id="dokText"></span></p>
+        <p><strong>EOC Rigor:</strong> <span id="rigorText"></span></p>
+        <p><strong>Real-World Required:</strong> <span id="realWorldText"></span></p>
+      </div>
+    </details>
+
   </main>
 
   <aside class="math-lab" aria-label="Student Math Lab">
@@ -1209,8 +1332,8 @@ if(
 
       <div id="feedbackBox" style="margin-top:16px;"></div>
 
-      <div style="margin-top:18px;color:#475569;">
-        <strong>Hint:</strong> Open the 💡 Help tab. If you use the hint, this question becomes assisted practice.
+      <div style="margin-top:18px;color:#475569;font-size:13px;">
+        <strong>Need help?</strong> Open the 💡 Help tab. Assisted questions do not count toward mastery or XP.
       </div>
     </div>
   `;
