@@ -1,5 +1,5 @@
 /* ============================================================
-   Algebra OS — Question Factory 2.4
+   Algebra OS — Question Factory 3.0
    File: engine/questionFactory.js
 
    PURPOSE:
@@ -31,7 +31,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (!Array.isArray(problemTypes) || problemTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 2.4: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
+      "QuestionFactory 3.0: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
     );
   }
 
@@ -51,15 +51,44 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (availableTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 2.4: No supported generators found for this lesson. Add generators for: " +
+      "QuestionFactory 3.0: No supported generators found for this lesson. Add generators for: " +
       problemTypes.join(", ")
     );
   }
 
-  const type = pickRandom(availableTypes);
-  const question = GENERATORS[type](difficulty);
+  let lastQuestion = null;
 
-  return normalizeQuestion(question, type, difficulty);
+  for (let attempt = 0; attempt < 30; attempt++) {
+    const type = pickRandom(availableTypes);
+    const question = normalizeQuestion(
+      GENERATORS[type](difficulty),
+      type,
+      difficulty
+    );
+
+    lastQuestion = question;
+
+    const gateAvailable =
+      typeof window !== "undefined" &&
+      window.AlgebraQuestionQualityGate &&
+      typeof window.AlgebraQuestionQualityGate.assertValidQuestion === "function";
+
+    const passesGate = gateAvailable
+      ? window.AlgebraQuestionQualityGate.assertValidQuestion(question, lesson)
+      : isQualityQuestion(question);
+
+    if (passesGate && isQuestionAlignedToLesson(question, lesson)) {
+      return question;
+    }
+  }
+
+  console.warn(
+    "QuestionFactory 3.0: Could not produce a fully certified question after 30 attempts.",
+    lastQuestion,
+    lesson
+  );
+
+  return lastQuestion;
 }
 
 
@@ -83,7 +112,7 @@ export function generateQuestionsForLesson(lesson, count = 10, options = {}) {
 
   if (questions.length < count) {
     throw new Error(
-      "QuestionFactory 2.4: Could not generate enough unique quality questions. Generated " +
+      "QuestionFactory 3.0: Could not generate enough unique quality questions. Generated " +
       questions.length +
       " of " +
       count +
@@ -1527,6 +1556,53 @@ function isQualityQuestion(q) {
 }
 
 
+function isQuestionAlignedToLesson(question, lesson) {
+  if (!question || !lesson) return true;
+
+  const allowedTypes =
+    lesson.problemTypes ||
+    lesson.allowedProblemTypes ||
+    lesson.problem_types ||
+    [];
+
+  if (!Array.isArray(allowedTypes) || allowedTypes.length === 0) {
+    return true;
+  }
+
+  if (!allowedTypes.includes(question.problemType)) {
+    return false;
+  }
+
+  return true;
+}
+
+function isAssociationChoice(choice) {
+  const text = String(choice || "").toLowerCase();
+
+  return (
+    text.includes("positive association") ||
+    text.includes("negative association") ||
+    text.includes("no association") ||
+    text.includes("linear association") ||
+    text.includes("nonlinear association") ||
+    text.includes("linear relationship")
+  );
+}
+
+function isInequalityChoice(choice) {
+  const text = String(choice || "");
+
+  return (
+    /[<>≤≥]/.test(text) ||
+    /\bOR\b/.test(text) ||
+    /\bAND\b/.test(text) ||
+    /\bNo Solution\b/i.test(text) ||
+    /\bAll Real Numbers\b/i.test(text)
+  );
+}
+
+
+
 function generateChoices(answer, problemType) {
   if (typeof answer !== "string") answer = String(answer);
 
@@ -1565,6 +1641,26 @@ function generateChoices(answer, problemType) {
       "x = 1",
       "x = -1",
       "All Real Numbers"
+    ]);
+  }
+
+  const normalizedProblemType = String(problemType || "").toLowerCase();
+
+  if (normalizedProblemType.includes("compound_inequalit")) {
+    return generateCompoundInequalityChoices(answer, finalizeChoices);
+  }
+
+  if (normalizedProblemType.includes("inequalit")) {
+    return generateInequalityChoices(answer, finalizeChoices);
+  }
+
+  if (normalizedProblemType.includes("scatter")) {
+    return finalizeChoices(answer, [
+      "positive association",
+      "negative association",
+      "no association",
+      "linear association",
+      "nonlinear association"
     ]);
   }
 
@@ -1712,13 +1808,130 @@ function generateChoices(answer, problemType) {
       if (choice !== answer) distractors.add(choice);
     });
   } else {
-    ["positive association", "negative association", "no association", "linear relationship", "No solution", "Infinitely many solutions"].forEach(choice => {
+    [
+      "No Solution",
+      "All Real Numbers",
+      "Cannot be determined",
+      "x = 0",
+      "x = 1",
+      "x = -1"
+    ].forEach(choice => {
       if (choice !== answer) distractors.add(choice);
     });
   }
 
-  return finalizeChoices(answer, shuffle(Array.from(distractors)));
+  const finalChoices = finalizeChoices(answer, shuffle(Array.from(distractors)));
+
+  if (
+    String(problemType || "").toLowerCase().includes("inequalit") &&
+    finalChoices.some(isAssociationChoice)
+  ) {
+    return generateInequalityChoices(answer, finalizeChoices);
+  }
+
+  return finalChoices;
 }
+
+
+function generateInequalityChoices(answer, finalizeChoices) {
+  const text = String(answer || "").trim();
+
+  const simpleMatch =
+    text.match(/^x\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)$/);
+
+  if (simpleMatch) {
+    const symbol = simpleMatch[1];
+    const value = Number(simpleMatch[2]);
+    const flipped = flipInequality(symbol);
+
+    return finalizeChoices(text, [
+      `x ${flipped} ${formatNumber(value)}`,
+      `x ${symbol} ${formatNumber(value + 1)}`,
+      `x ${symbol} ${formatNumber(value - 1)}`,
+      `x ${flipped} ${formatNumber(value + 1)}`,
+      `x ${symbol} ${formatNumber(-value)}`,
+      "No Solution"
+    ]);
+  }
+
+  return finalizeChoices(text, [
+    "x > 0",
+    "x < 0",
+    "x ≥ 0",
+    "x ≤ 0",
+    "No Solution",
+    "All Real Numbers"
+  ]);
+}
+
+function generateCompoundInequalityChoices(answer, finalizeChoices) {
+  const text = String(answer || "").trim();
+
+  const orMatch =
+    text.match(/^x\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)\s+OR\s+x\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)$/i);
+
+  if (orMatch) {
+    const s1 = orMatch[1];
+    const v1 = Number(orMatch[2]);
+    const s2 = orMatch[3];
+    const v2 = Number(orMatch[4]);
+
+    return finalizeChoices(text, [
+      `x ${flipInequality(s1)} ${formatNumber(v1)} OR x ${s2} ${formatNumber(v2)}`,
+      `x ${s1} ${formatNumber(v1)} AND x ${s2} ${formatNumber(v2)}`,
+      `x ${s1} ${formatNumber(v1 + 1)} OR x ${s2} ${formatNumber(v2 - 1)}`,
+      `x ${s1} ${formatNumber(-v1)} OR x ${s2} ${formatNumber(-v2)}`,
+      "No Solution"
+    ]);
+  }
+
+  const middleMatch =
+    text.match(/^(-?\d+(?:\.\d+)?)\s*(>|<|≥|≤)\s*x\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)$/);
+
+  if (middleMatch) {
+    const left = Number(middleMatch[1]);
+    const s1 = middleMatch[2];
+    const s2 = middleMatch[3];
+    const right = Number(middleMatch[4]);
+
+    return finalizeChoices(text, [
+      `${formatNumber(left)} ${flipInequality(s1)} x ${s2} ${formatNumber(right)}`,
+      `${formatNumber(left)} ${s1} x ${flipInequality(s2)} ${formatNumber(right)}`,
+      `${formatNumber(left + 1)} ${s1} x ${s2} ${formatNumber(right)}`,
+      `${formatNumber(left)} ${s1} x ${s2} ${formatNumber(right - 1)}`,
+      `x ${s1} ${formatNumber(left)} OR x ${s2} ${formatNumber(right)}`,
+      "No Solution"
+    ]);
+  }
+
+  const reversedMiddleMatch =
+    text.match(/^(-?\d+(?:\.\d+)?)\s*(>|<|≥|≤)\s*x\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)$/);
+
+  if (reversedMiddleMatch) {
+    return generateInequalityChoices(text, finalizeChoices);
+  }
+
+  if (isInequalityChoice(text)) {
+    return finalizeChoices(text, [
+      "x > 0 OR x < 0",
+      "x ≥ 0 AND x ≤ 10",
+      "0 < x < 10",
+      "x < 0 OR x > 10",
+      "No Solution",
+      "All Real Numbers"
+    ]);
+  }
+
+  return finalizeChoices(text, [
+    "x > 0 OR x < 0",
+    "x ≥ 0 AND x ≤ 10",
+    "0 < x < 10",
+    "x < 0 OR x > 10",
+    "No Solution",
+    "All Real Numbers"
+  ]);
+}
+
 
 /* ============================================================
    RIGOR & VARIATION HELPERS
