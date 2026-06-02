@@ -1,5 +1,5 @@
 /* ============================================================
-   Algebra OS — Question Factory 3.0
+   Algebra OS — Question Factory 3.1 Stable
    File: engine/questionFactory.js
 
    PURPOSE:
@@ -31,7 +31,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (!Array.isArray(problemTypes) || problemTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 3.0: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
+      "QuestionFactory 3.1 Stable: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
     );
   }
 
@@ -51,7 +51,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (availableTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 3.0: No supported generators found for this lesson. Add generators for: " +
+      "QuestionFactory 3.1 Stable: No supported generators found for this lesson. Add generators for: " +
       problemTypes.join(", ")
     );
   }
@@ -83,7 +83,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
   }
 
   console.warn(
-    "QuestionFactory 3.0: Could not produce a fully certified question after 30 attempts.",
+    "QuestionFactory 3.1 Stable: Could not produce a fully certified question after 30 attempts.",
     lastQuestion,
     lesson
   );
@@ -112,7 +112,7 @@ export function generateQuestionsForLesson(lesson, count = 10, options = {}) {
 
   if (questions.length < count) {
     throw new Error(
-      "QuestionFactory 3.0: Could not generate enough unique quality questions. Generated " +
+      "QuestionFactory 3.1 Stable: Could not generate enough unique quality questions. Generated " +
       questions.length +
       " of " +
       count +
@@ -801,9 +801,22 @@ function generateMultiStepInequality(difficulty = 1) {
 
 
 function generateCompoundInequality(difficulty = 1) {
-  const mode = pickRandom(["and_simple", "and_two_step", "or_simple"]);
+  /*
+    Stable clean generator for Lesson 1.6.
+    Rules:
+    - Final bounds are integers.
+    - No repeating choices.
+    - No long decimals.
+    - No scatter-plot distractors.
+  */
 
-  if (mode === "or_simple") {
+  const mode = pickRandom([
+    "and_shift",
+    "and_scaled_positive",
+    "or_split"
+  ]);
+
+  if (mode === "or_split") {
     const leftBound = randInt(-12, -2);
     const rightBound = randInt(2, 12);
 
@@ -823,83 +836,52 @@ function generateCompoundInequality(difficulty = 1) {
     });
   }
 
-  const x = pickSolution(difficulty);
-  const coeff = pickIntegerCoefficient(difficulty);
-  const constant = pickConstant(difficulty);
-
-  const centerValue = coeff * x + constant;
-
-  const lowerOffset = randInt(3, 10);
-  const upperOffset = randInt(3, 10);
-
-  let lower = centerValue - lowerOffset;
-  let upper = centerValue + upperOffset;
-
-  if (lower > upper) {
-    const temp = lower;
-    lower = upper;
-    upper = temp;
-  }
-
+  const leftAnswer = randInt(-12, 0);
+  const rightAnswer = randInt(2, 14);
   const leftSymbol = pickRandom(["<", "≤"]);
   const rightSymbol = pickRandom(["<", "≤"]);
 
-  const finalLeftSymbol =
-    coeff < 0 ? flipInequality(rightSymbol) : leftSymbol;
-
-  const finalRightSymbol =
-    coeff < 0 ? flipInequality(leftSymbol) : rightSymbol;
-
-  const lowerAnswer = coeff < 0
-    ? formatNumber((upper - constant) / coeff)
-    : formatNumber((lower - constant) / coeff);
-
-  const upperAnswer = coeff < 0
-    ? formatNumber((lower - constant) / coeff)
-    : formatNumber((upper - constant) / coeff);
-
-  if (mode === "and_simple") {
+  if (mode === "and_shift") {
     const shift = pickConstant(difficulty);
-    const low = randInt(-12, 0);
-    const high = randInt(1, 14);
-
-    const left = low;
-    const right = high;
-    const variableExpression = `x ${formatSigned(shift)}`;
-
-    const answerLow = left - shift;
-    const answerHigh = right - shift;
+    const leftPrompt = leftAnswer + shift;
+    const rightPrompt = rightAnswer + shift;
 
     return buildQuestion({
-      prompt: `Solve the compound inequality: ${left} ${leftSymbol} ${variableExpression} ${rightSymbol} ${right}`,
-      answer: `${formatNumber(answerLow)} ${leftSymbol} x ${rightSymbol} ${formatNumber(answerHigh)}`,
+      prompt: `Solve the compound inequality: ${formatNumber(leftPrompt)} ${leftSymbol} x ${formatSigned(shift)} ${rightSymbol} ${formatNumber(rightPrompt)}`,
+      answer: `${formatNumber(leftAnswer)} ${leftSymbol} x ${rightSymbol} ${formatNumber(rightAnswer)}`,
       problemType: "compound_inequalities",
       difficulty,
       solutionSteps: [
-        `Original inequality: ${left} ${leftSymbol} x ${formatSigned(shift)} ${rightSymbol} ${right}`,
+        `Original inequality: ${formatNumber(leftPrompt)} ${leftSymbol} x ${formatSigned(shift)} ${rightSymbol} ${formatNumber(rightPrompt)}`,
         shift >= 0
           ? `Subtract ${formatNumber(shift)} from all three parts.`
           : `Add ${formatNumber(Math.abs(shift))} to all three parts.`,
-        `${formatNumber(answerLow)} ${leftSymbol} x ${rightSymbol} ${formatNumber(answerHigh)}`
+        `${formatNumber(leftAnswer)} ${leftSymbol} x ${rightSymbol} ${formatNumber(rightAnswer)}`
       ]
     });
   }
 
+  // Scaled AND inequality with a positive coefficient.
+  // Constructed from integer solution bounds so results are always clean.
+  const coefficient = randInt(2, 9);
+  const constant = pickConstant(difficulty);
+
+  const leftPrompt = coefficient * leftAnswer + constant;
+  const rightPrompt = coefficient * rightAnswer + constant;
+
   return buildQuestion({
-    prompt: `Solve the compound inequality: ${formatNumber(lower)} ${leftSymbol} ${formatTerm(coeff, "x")} ${formatSigned(constant)} ${rightSymbol} ${formatNumber(upper)}`,
-    answer: `${lowerAnswer} ${finalLeftSymbol} x ${finalRightSymbol} ${upperAnswer}`,
+    prompt: `Solve the compound inequality: ${formatNumber(leftPrompt)} ${leftSymbol} ${formatTerm(coefficient, "x")} ${formatSigned(constant)} ${rightSymbol} ${formatNumber(rightPrompt)}`,
+    answer: `${formatNumber(leftAnswer)} ${leftSymbol} x ${rightSymbol} ${formatNumber(rightAnswer)}`,
     problemType: "compound_inequalities",
     difficulty,
     solutionSteps: [
-      `Original inequality: ${formatNumber(lower)} ${leftSymbol} ${formatTerm(coeff, "x")} ${formatSigned(constant)} ${rightSymbol} ${formatNumber(upper)}`,
+      `Original inequality: ${formatNumber(leftPrompt)} ${leftSymbol} ${formatTerm(coefficient, "x")} ${formatSigned(constant)} ${rightSymbol} ${formatNumber(rightPrompt)}`,
       constant >= 0
         ? `Subtract ${formatNumber(constant)} from all three parts.`
         : `Add ${formatNumber(Math.abs(constant))} to all three parts.`,
-      `Divide all three parts by ${formatNumber(coeff)}.`,
-      coeff < 0
-        ? "Because you divided by a negative number, reverse both inequality symbols."
-        : "Because you divided by a positive number, keep the inequality symbols.",
-      `${lowerAnswer} ${finalLeftSymbol} x ${finalRightSymbol} ${upperAnswer}`
+      `Divide all three parts by ${formatNumber(coefficient)}.`,
+      "Because you divided by a positive number, keep the inequality symbols.",
+      `${formatNumber(leftAnswer)} ${leftSymbol} x ${rightSymbol} ${formatNumber(rightAnswer)}`
     ]
   });
 }
@@ -1606,6 +1588,8 @@ function isInequalityChoice(choice) {
 function generateChoices(answer, problemType) {
   if (typeof answer !== "string") answer = String(answer);
 
+  const type = String(problemType || "").toLowerCase();
+
   const addUnique = (list, choice) => {
     if (choice === undefined || choice === null) return;
     const cleaned = String(choice).trim();
@@ -1624,18 +1608,53 @@ function generateChoices(answer, problemType) {
     let safety = 0;
     while (choices.length < 4 && safety < 200) {
       safety++;
-      const randomChoice =
-        correctAnswer.startsWith("x ") && !correctAnswer.startsWith("x = ")
-          ? `x ${pickRandom([">", "<", "≥", "≤"])} ${randInt(-12, 12)}`
-          : `x = ${randInt(-12, 12)}`;
 
-      addUnique(choices, randomChoice);
+      if (type.includes("compound_inequalit")) {
+        addUnique(
+          choices,
+          pickRandom([
+            "x < -2 OR x > 2",
+            "-4 < x < 6",
+            "x ≤ -3 OR x ≥ 5",
+            "0 ≤ x ≤ 10",
+            "No Solution",
+            "All Real Numbers"
+          ])
+        );
+      } else if (type.includes("inequalit")) {
+        addUnique(
+          choices,
+          `x ${pickRandom([">", "<", "≥", "≤"])} ${randInt(-12, 12)}`
+        );
+      } else if (type.includes("scatter")) {
+        addUnique(
+          choices,
+          pickRandom([
+            "positive association",
+            "negative association",
+            "no association",
+            "linear association",
+            "nonlinear association"
+          ])
+        );
+      } else {
+        addUnique(choices, `x = ${randInt(-12, 12)}`);
+      }
     }
 
     return shuffle(choices.slice(0, 4));
   };
 
   if (answer === "No Solution") {
+    if (type.includes("inequalit")) {
+      return finalizeChoices(answer, [
+        "x > 0",
+        "x < 0",
+        "x ≥ 0",
+        "All Real Numbers"
+      ]);
+    }
+
     return finalizeChoices(answer, [
       "x = 0",
       "x = 1",
@@ -1644,17 +1663,15 @@ function generateChoices(answer, problemType) {
     ]);
   }
 
-  const normalizedProblemType = String(problemType || "").toLowerCase();
-
-  if (normalizedProblemType.includes("compound_inequalit")) {
-    return generateCompoundInequalityChoices(answer, finalizeChoices);
+  if (type.includes("compound_inequalit")) {
+    return generateCompoundInequalityAnswerChoices(answer, finalizeChoices);
   }
 
-  if (normalizedProblemType.includes("inequalit")) {
-    return generateInequalityChoices(answer, finalizeChoices);
+  if (type.includes("inequalit")) {
+    return generateSimpleInequalityAnswerChoices(answer, finalizeChoices);
   }
 
-  if (normalizedProblemType.includes("scatter")) {
+  if (type.includes("scatter")) {
     return finalizeChoices(answer, [
       "positive association",
       "negative association",
@@ -1745,38 +1762,6 @@ function generateChoices(answer, problemType) {
         if (choice !== answer) distractors.add(choice);
       });
     }
-  } else if (answer.startsWith("x ")) {
-    const match = answer.match(/^x\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)$/);
-    if (match) {
-      const symbol = match[1];
-      const value = Number(match[2]);
-      const flipped = flipInequality(symbol);
-      [
-        `x ${flipped} ${formatNumber(value)}`,
-        `x ${symbol} ${formatNumber(-value)}`,
-        `x ${symbol} ${formatNumber(value + 1)}`,
-        `x ${symbol} ${formatNumber(value - 1)}`,
-        `x ${flipped} ${formatNumber(value + 1)}`
-      ].forEach(choice => { if (choice !== answer) distractors.add(choice); });
-    }
-  } else if (answer.includes(" OR ")) {
-    const match = answer.match(/^x\s*(>|<|≥|≤)\s*(-?\d+)\s+OR\s+x\s*(>|<|≥|≤)\s*(-?\d+)$/);
-    if (match) {
-      const s1 = match[1], v1 = Number(match[2]), s2 = match[3], v2 = Number(match[4]);
-      distractors.add(`x ${flipInequality(s1)} ${formatNumber(v1)} OR x ${s2} ${formatNumber(v2)}`);
-      distractors.add(`x ${s1} ${formatNumber(v1)} AND x ${s2} ${formatNumber(v2)}`);
-      distractors.add(`x ${s1} ${formatNumber(v1 + 1)} OR x ${s2} ${formatNumber(v2 - 1)}`);
-      distractors.add(`x ${s1} ${formatNumber(-v1)} OR x ${s2} ${formatNumber(-v2)}`);
-    }
-  } else if (answer.match(/^-?\d+\s*(<|≤)\s*x\s*(<|≤)\s*-?\d+$/)) {
-    const match = answer.match(/^(-?\d+)\s*(<|≤)\s*x\s*(<|≤)\s*(-?\d+)$/);
-    if (match) {
-      const a = Number(match[1]), s1 = match[2], s2 = match[3], b = Number(match[4]);
-      distractors.add(`${formatNumber(a)} ${s1} x ${flipInequality(s2)} ${formatNumber(b)}`);
-      distractors.add(`${formatNumber(a + 1)} ${s1} x ${s2} ${formatNumber(b)}`);
-      distractors.add(`${formatNumber(a)} ${s1} x ${s2} ${formatNumber(b - 1)}`);
-      distractors.add(`x ${s1} ${formatNumber(a)} OR x ${s2} ${formatNumber(b)}`);
-    }
   } else if (answer.startsWith("x = ") && answer.includes(",")) {
     const nums = answer.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
     if (nums.length >= 2) {
@@ -1820,55 +1805,40 @@ function generateChoices(answer, problemType) {
     });
   }
 
-  const finalChoices = finalizeChoices(answer, shuffle(Array.from(distractors)));
-
-  if (
-    String(problemType || "").toLowerCase().includes("inequalit") &&
-    finalChoices.some(isAssociationChoice)
-  ) {
-    return generateInequalityChoices(answer, finalizeChoices);
-  }
-
-  return finalChoices;
+  return finalizeChoices(answer, shuffle(Array.from(distractors)));
 }
 
+function generateSimpleInequalityAnswerChoices(answer, finalizeChoices) {
+  const match = String(answer).match(/^x\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)$/);
 
-function generateInequalityChoices(answer, finalizeChoices) {
-  const text = String(answer || "").trim();
-
-  const simpleMatch =
-    text.match(/^x\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)$/);
-
-  if (simpleMatch) {
-    const symbol = simpleMatch[1];
-    const value = Number(simpleMatch[2]);
-    const flipped = flipInequality(symbol);
-
-    return finalizeChoices(text, [
-      `x ${flipped} ${formatNumber(value)}`,
-      `x ${symbol} ${formatNumber(value + 1)}`,
-      `x ${symbol} ${formatNumber(value - 1)}`,
-      `x ${flipped} ${formatNumber(value + 1)}`,
-      `x ${symbol} ${formatNumber(-value)}`,
+  if (!match) {
+    return finalizeChoices(answer, [
+      "x > 0",
+      "x < 0",
+      "x ≥ 0",
+      "x ≤ 0",
       "No Solution"
     ]);
   }
 
-  return finalizeChoices(text, [
-    "x > 0",
-    "x < 0",
-    "x ≥ 0",
-    "x ≤ 0",
-    "No Solution",
-    "All Real Numbers"
+  const symbol = match[1];
+  const value = Number(match[2]);
+  const flipped = flipInequality(symbol);
+
+  return finalizeChoices(answer, [
+    `x ${flipped} ${formatNumber(value)}`,
+    `x ${symbol} ${formatNumber(value + 1)}`,
+    `x ${symbol} ${formatNumber(value - 1)}`,
+    `x ${flipped} ${formatNumber(value + 1)}`,
+    `x ${symbol} ${formatNumber(-value)}`,
+    "No Solution"
   ]);
 }
 
-function generateCompoundInequalityChoices(answer, finalizeChoices) {
-  const text = String(answer || "").trim();
+function generateCompoundInequalityAnswerChoices(answer, finalizeChoices) {
+  const text = String(answer).trim();
 
-  const orMatch =
-    text.match(/^x\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)\s+OR\s+x\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)$/i);
+  const orMatch = text.match(/^x\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)\s+OR\s+x\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)$/i);
 
   if (orMatch) {
     const s1 = orMatch[1];
@@ -1885,8 +1855,7 @@ function generateCompoundInequalityChoices(answer, finalizeChoices) {
     ]);
   }
 
-  const middleMatch =
-    text.match(/^(-?\d+(?:\.\d+)?)\s*(>|<|≥|≤)\s*x\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)$/);
+  const middleMatch = text.match(/^(-?\d+(?:\.\d+)?)\s*(<|≤)\s*x\s*(<|≤)\s*(-?\d+(?:\.\d+)?)$/);
 
   if (middleMatch) {
     const left = Number(middleMatch[1]);
@@ -1895,38 +1864,20 @@ function generateCompoundInequalityChoices(answer, finalizeChoices) {
     const right = Number(middleMatch[4]);
 
     return finalizeChoices(text, [
-      `${formatNumber(left)} ${flipInequality(s1)} x ${s2} ${formatNumber(right)}`,
       `${formatNumber(left)} ${s1} x ${flipInequality(s2)} ${formatNumber(right)}`,
       `${formatNumber(left + 1)} ${s1} x ${s2} ${formatNumber(right)}`,
       `${formatNumber(left)} ${s1} x ${s2} ${formatNumber(right - 1)}`,
       `x ${s1} ${formatNumber(left)} OR x ${s2} ${formatNumber(right)}`,
-      "No Solution"
-    ]);
-  }
-
-  const reversedMiddleMatch =
-    text.match(/^(-?\d+(?:\.\d+)?)\s*(>|<|≥|≤)\s*x\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)$/);
-
-  if (reversedMiddleMatch) {
-    return generateInequalityChoices(text, finalizeChoices);
-  }
-
-  if (isInequalityChoice(text)) {
-    return finalizeChoices(text, [
-      "x > 0 OR x < 0",
-      "x ≥ 0 AND x ≤ 10",
-      "0 < x < 10",
-      "x < 0 OR x > 10",
       "No Solution",
       "All Real Numbers"
     ]);
   }
 
   return finalizeChoices(text, [
-    "x > 0 OR x < 0",
-    "x ≥ 0 AND x ≤ 10",
-    "0 < x < 10",
-    "x < 0 OR x > 10",
+    "x < -2 OR x > 2",
+    "-4 < x < 6",
+    "x ≤ -3 OR x ≥ 5",
+    "0 ≤ x ≤ 10",
     "No Solution",
     "All Real Numbers"
   ]);
