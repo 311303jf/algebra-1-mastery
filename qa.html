@@ -2,15 +2,29 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Algebra OS | QA Certification</title>
 
 <style>
+:root{
+  --blue:#2563eb;
+  --ink:#0f172a;
+  --muted:#64748b;
+  --bg:#f1f5f9;
+  --card:#ffffff;
+  --line:#e2e8f0;
+  --green:#166534;
+  --red:#991b1b;
+  --amber:#92400e;
+}
+
+*{box-sizing:border-box}
+
 body{
   margin:0;
   font-family:Arial,sans-serif;
-  background:#f1f5f9;
-  color:#0f172a;
+  background:var(--bg);
+  color:var(--ink);
 }
 
 .page{
@@ -21,11 +35,26 @@ body{
 
 .card{
   background:white;
-  border:1px solid #e2e8f0;
+  border:1px solid var(--line);
   border-radius:18px;
   padding:22px;
   margin-bottom:18px;
   box-shadow:0 10px 28px rgba(15,23,42,.06);
+}
+
+.header{
+  display:flex;
+  justify-content:space-between;
+  gap:18px;
+  align-items:flex-start;
+  flex-wrap:wrap;
+}
+
+.btn-row{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:14px;
 }
 
 .btn{
@@ -38,9 +67,16 @@ body{
   cursor:pointer;
 }
 
-.btn:hover{
-  filter:brightness(.95);
+.btn.secondary{
+  background:#e2e8f0;
+  color:#0f172a;
 }
+
+.btn.danger{
+  background:#991b1b;
+}
+
+.btn:hover{filter:brightness(.95)}
 
 .status{
   display:inline-block;
@@ -48,6 +84,7 @@ body{
   border-radius:999px;
   font-size:12px;
   font-weight:900;
+  white-space:nowrap;
 }
 
 .pass{
@@ -65,13 +102,46 @@ body{
   color:#1e40af;
 }
 
+.running{
+  background:#fef3c7;
+  color:#92400e;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:12px;
+}
+
+.metric{
+  background:#f8fafc;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:14px;
+}
+
+.metric span{
+  display:block;
+  font-size:11px;
+  color:var(--muted);
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.04em;
+}
+
+.metric strong{
+  display:block;
+  font-size:24px;
+  margin-top:5px;
+}
+
 .lesson-row{
   display:grid;
-  grid-template-columns:80px 1fr auto;
+  grid-template-columns:80px 1fr 120px 130px;
   gap:12px;
   align-items:center;
   padding:12px;
-  border-bottom:1px solid #e2e8f0;
+  border-bottom:1px solid var(--line);
 }
 
 .lesson-row:last-child{
@@ -82,6 +152,53 @@ body{
   color:#64748b;
   font-size:13px;
   margin-top:3px;
+  line-height:1.35;
+}
+
+.error-list{
+  margin-top:8px;
+  font-size:12px;
+  color:#991b1b;
+  line-height:1.45;
+}
+
+.error-list details{
+  background:#fff1f2;
+  border:1px solid #fecdd3;
+  border-radius:10px;
+  padding:8px;
+  margin-top:6px;
+}
+
+pre{
+  white-space:pre-wrap;
+  background:#0f172a;
+  color:#e2e8f0;
+  border-radius:12px;
+  padding:12px;
+  font-size:12px;
+  overflow:auto;
+}
+
+.progress-bar{
+  height:8px;
+  background:#e2e8f0;
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:8px;
+}
+
+.progress-fill{
+  height:100%;
+  width:0%;
+  background:#2563eb;
+  border-radius:999px;
+  transition:.2s;
+}
+
+@media(max-width:850px){
+  .grid{grid-template-columns:1fr 1fr}
+  .lesson-row{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -90,17 +207,57 @@ body{
 <div class="page">
 
   <div class="card">
-    <h1>Algebra OS — QA Certification Dashboard</h1>
-    <p>
-      This dashboard will certify question generation quality before lessons are released.
-    </p>
+    <div class="header">
+      <div>
+        <h1>Algebra OS — QA Certification Dashboard</h1>
+        <p>
+          This dashboard certifies question generation quality before lessons are released.
+        </p>
+      </div>
 
-    <button class="btn" onclick="loadQA()">Load Curriculum QA</button>
+      <button class="btn secondary" onclick="window.location.href='index.html'">
+        Back to Dashboard
+      </button>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn" onclick="loadQA()">Load Curriculum QA</button>
+      <button class="btn" onclick="runUnit1Certification()">Run Unit 1 Certification</button>
+      <button class="btn secondary" onclick="runAllLoadedCertification()">Run All Loaded Lessons</button>
+      <button class="btn danger" onclick="clearQAResults()">Clear QA Results</button>
+    </div>
+
+    <div class="progress-bar">
+      <div id="globalProgressFill" class="progress-fill"></div>
+    </div>
+    <div id="runStatus" class="small">Ready.</div>
   </div>
 
   <div class="card">
     <h2>Curriculum Summary</h2>
     <div id="summaryBox">Not loaded yet.</div>
+  </div>
+
+  <div class="card">
+    <h2>QA Summary</h2>
+    <div class="grid">
+      <div class="metric">
+        <span>Lessons Tested</span>
+        <strong id="qaLessonsTested">0</strong>
+      </div>
+      <div class="metric">
+        <span>Questions Generated</span>
+        <strong id="qaQuestionsGenerated">0</strong>
+      </div>
+      <div class="metric">
+        <span>Total Failures</span>
+        <strong id="qaFailures">0</strong>
+      </div>
+      <div class="metric">
+        <span>Certification</span>
+        <strong id="qaCertification">Pending</strong>
+      </div>
+    </div>
   </div>
 
   <div class="card">
@@ -118,7 +275,278 @@ import {
   getCurriculumStats
 } from "./engine/curriculumEngine.js";
 
+import {
+  generateQuestionForLesson
+} from "./engine/questionFactory.js?v=3101";
+
+import "./engine/questionQualityGate.js";
+
 let curriculum = null;
+let allLessons = [];
+let qaResults = new Map();
+
+const QUESTIONS_PER_LESSON = 100;
+
+function sleep(ms){
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+function setRunStatus(message){
+  document.getElementById("runStatus").textContent = message;
+}
+
+function setProgress(current, total){
+  const pct = total > 0 ? Math.round((current / total) * 100) : 0;
+  document.getElementById("globalProgressFill").style.width = pct + "%";
+}
+
+function isBadDecimal(value){
+  const text = String(value || "");
+  return /-?\d+\.\d{4,}/.test(text);
+}
+
+function hasAssociationChoice(question){
+  return (question.choices || []).some(choice => {
+    const text = String(choice).toLowerCase();
+
+    return (
+      text.includes("positive association") ||
+      text.includes("negative association") ||
+      text.includes("no association") ||
+      text.includes("linear association") ||
+      text.includes("nonlinear association") ||
+      text.includes("linear relationship")
+    );
+  });
+}
+
+function isInequalityType(problemType){
+  return String(problemType || "").toLowerCase().includes("inequalit");
+}
+
+function isInequalityChoice(choice){
+  const text = String(choice || "");
+  return (
+    /[<>≤≥]/.test(text) ||
+    /\bOR\b/i.test(text) ||
+    /\bAND\b/i.test(text) ||
+    /\bNo Solution\b/i.test(text) ||
+    /\bAll Real Numbers\b/i.test(text)
+  );
+}
+
+function validateQuestionForQA(question, lesson){
+  const errors = [];
+
+  if(!question){
+    errors.push("Missing question object.");
+    return errors;
+  }
+
+  if(
+    window.AlgebraQuestionQualityGate &&
+    typeof window.AlgebraQuestionQualityGate.validateQuestion === "function"
+  ){
+    const gateResult =
+      window.AlgebraQuestionQualityGate.validateQuestion(question, lesson);
+
+    if(!gateResult.valid){
+      errors.push(...gateResult.errors);
+    }
+  }
+
+  const allowed =
+    lesson.problemTypes ||
+    lesson.allowedProblemTypes ||
+    lesson.problem_types ||
+    [];
+
+  if(Array.isArray(allowed) && allowed.length){
+    if(!allowed.includes(question.problemType)){
+      errors.push(
+        "Problem type is not allowed for this lesson: " + question.problemType
+      );
+    }
+  }
+
+  if(isBadDecimal(question.prompt)){
+    errors.push("Prompt contains long decimal.");
+  }
+
+  if(isBadDecimal(question.answer)){
+    errors.push("Answer contains long decimal.");
+  }
+
+  if(Array.isArray(question.choices)){
+    question.choices.forEach(choice => {
+      if(isBadDecimal(choice)){
+        errors.push("Choice contains long decimal: " + choice);
+      }
+    });
+
+    const uniqueChoices = new Set(question.choices.map(choice => String(choice).trim()));
+
+    if(uniqueChoices.size !== question.choices.length){
+      errors.push("Duplicate choices found.");
+    }
+  }
+
+  if(isInequalityType(question.problemType)){
+    if(hasAssociationChoice(question)){
+      errors.push("Inequality question contains association/scatter choices.");
+    }
+
+    const choices = question.choices || [];
+    const inequalityChoiceCount =
+      choices.filter(choice => isInequalityChoice(choice)).length;
+
+    if(inequalityChoiceCount < 3){
+      errors.push("Inequality question choices are not mostly inequality-style.");
+    }
+  }
+
+  return [...new Set(errors)];
+}
+
+function renderLessonRows(){
+  const lessonList = document.getElementById("lessonList");
+
+  if(!allLessons.length){
+    lessonList.innerHTML = "No lessons loaded.";
+    return;
+  }
+
+  lessonList.innerHTML = allLessons.map(lesson => {
+    const result = qaResults.get(lesson.id);
+
+    let statusClass = "pending";
+    let statusText = "Detected";
+    let detail = "";
+    let countText = "—";
+
+    if(result){
+      statusClass = result.failures === 0 ? "pass" : "fail";
+      statusText = result.failures === 0 ? "PASS" : "FAIL";
+      countText = `${result.passed}/${result.generated}`;
+
+      if(result.errors.length){
+        detail = `
+          <div class="error-list">
+            ${result.errors.slice(0, 4).map(err => `
+              <details>
+                <summary>${err.message}</summary>
+                <pre>${err.example}</pre>
+              </details>
+            `).join("")}
+          </div>
+        `;
+      }
+    }
+
+    return `
+      <div class="lesson-row">
+        <strong>${lesson.id}</strong>
+
+        <div>
+          <div>${lesson.title}</div>
+          <div class="small">${lesson.unitTitle || ""}</div>
+          ${detail}
+        </div>
+
+        <div>
+          <strong>${countText}</strong>
+          <div class="small">passed/generated</div>
+        </div>
+
+        <span class="status ${statusClass}">${statusText}</span>
+      </div>
+    `;
+  }).join("");
+}
+
+function updateQASummary(){
+  const results = Array.from(qaResults.values());
+
+  const lessonsTested = results.length;
+  const questionsGenerated =
+    results.reduce((sum, item) => sum + item.generated, 0);
+  const failures =
+    results.reduce((sum, item) => sum + item.failures, 0);
+
+  document.getElementById("qaLessonsTested").textContent = lessonsTested;
+  document.getElementById("qaQuestionsGenerated").textContent = questionsGenerated;
+  document.getElementById("qaFailures").textContent = failures;
+
+  const cert = document.getElementById("qaCertification");
+
+  if(lessonsTested === 0){
+    cert.textContent = "Pending";
+    cert.style.color = "#0f172a";
+  }else if(failures === 0){
+    cert.textContent = "PASS";
+    cert.style.color = "#166534";
+  }else{
+    cert.textContent = "FAIL";
+    cert.style.color = "#991b1b";
+  }
+}
+
+async function certifyLesson(lesson, count = QUESTIONS_PER_LESSON){
+  const errors = [];
+  let generated = 0;
+  let passed = 0;
+  let failures = 0;
+
+  for(let i = 0; i < count; i++){
+    let question = null;
+
+    try{
+      question = generateQuestionForLesson(lesson);
+      generated++;
+
+      const questionErrors = validateQuestionForQA(question, lesson);
+
+      if(questionErrors.length){
+        failures++;
+
+        if(errors.length < 8){
+          errors.push({
+            message: questionErrors.join(" | "),
+            example: JSON.stringify(question, null, 2)
+          });
+        }
+      }else{
+        passed++;
+      }
+    }catch(error){
+      generated++;
+      failures++;
+
+      if(errors.length < 8){
+        errors.push({
+          message: error.message,
+          example: JSON.stringify({
+            lesson: lesson.id,
+            title: lesson.title
+          }, null, 2)
+        });
+      }
+    }
+  }
+
+  const result = {
+    lessonId: lesson.id,
+    title: lesson.title,
+    generated,
+    passed,
+    failures,
+    errors
+  };
+
+  qaResults.set(lesson.id, result);
+
+  return result;
+}
 
 window.loadQA = async function loadQA(){
   const summaryBox = document.getElementById("summaryBox");
@@ -126,13 +554,15 @@ window.loadQA = async function loadQA(){
 
   summaryBox.innerHTML = "Loading curriculum...";
   lessonList.innerHTML = "";
+  setRunStatus("Loading curriculum...");
+  setProgress(0, 1);
 
   try{
     curriculum = await loadCurriculum();
 
     const stats = getCurriculumStats(curriculum);
     const units = getAllUnits(curriculum);
-    const lessons = getAllLessons(curriculum);
+    allLessons = getAllLessons(curriculum);
 
     summaryBox.innerHTML = `
       <p><strong>Total Units:</strong> ${stats.totalUnits}</p>
@@ -142,16 +572,10 @@ window.loadQA = async function loadQA(){
       <p><strong>Blueprint Loader:</strong> ${stats.blueprintLoader || "active"}</p>
     `;
 
-    lessonList.innerHTML = lessons.map(lesson => `
-      <div class="lesson-row">
-        <strong>${lesson.id}</strong>
-        <div>
-          <div>${lesson.title}</div>
-          <div class="small">${lesson.unitTitle || ""}</div>
-        </div>
-        <span class="status pending">Detected</span>
-      </div>
-    `).join("");
+    renderLessonRows();
+    updateQASummary();
+    setProgress(1, 1);
+    setRunStatus("Curriculum loaded. Ready to run certification.");
 
     console.log("QA curriculum loaded:", curriculum);
     console.log("QA stats:", stats);
@@ -161,8 +585,87 @@ window.loadQA = async function loadQA(){
       <span class="status fail">FAILED TO LOAD</span>
       <p>${error.message}</p>
     `;
+    setRunStatus("Failed to load curriculum.");
   }
 };
+
+window.runUnit1Certification = async function runUnit1Certification(){
+  if(!curriculum){
+    await window.loadQA();
+  }
+
+  const unit1Lessons =
+    allLessons.filter(lesson => lesson.unitId === "unit-1" || String(lesson.id).startsWith("1."));
+
+  await runCertificationForLessons(unit1Lessons, "Unit 1");
+};
+
+window.runAllLoadedCertification = async function runAllLoadedCertification(){
+  if(!curriculum){
+    await window.loadQA();
+  }
+
+  await runCertificationForLessons(allLessons, "All Loaded Lessons");
+};
+
+async function runCertificationForLessons(lessons, label){
+  if(!lessons.length){
+    setRunStatus("No lessons found for " + label + ".");
+    return;
+  }
+
+  setRunStatus("Running " + label + " certification...");
+  setProgress(0, lessons.length);
+
+  for(let i = 0; i < lessons.length; i++){
+    const lesson = lessons[i];
+
+    setRunStatus(
+      `Testing ${label}: ${lesson.id} ${lesson.title} (${i + 1}/${lessons.length})`
+    );
+
+    qaResults.set(lesson.id, {
+      lessonId: lesson.id,
+      title: lesson.title,
+      generated: 0,
+      passed: 0,
+      failures: 0,
+      errors: []
+    });
+
+    renderLessonRows();
+
+    await sleep(20);
+    await certifyLesson(lesson, QUESTIONS_PER_LESSON);
+
+    renderLessonRows();
+    updateQASummary();
+    setProgress(i + 1, lessons.length);
+
+    await sleep(20);
+  }
+
+  const tested = lessons.map(lesson => qaResults.get(lesson.id));
+  const failedLessons = tested.filter(result => result && result.failures > 0);
+
+  if(failedLessons.length === 0){
+    setRunStatus(label + " certification completed: PASS.");
+  }else{
+    setRunStatus(label + " certification completed: FAIL — " + failedLessons.length + " lesson(s) need review.");
+  }
+}
+
+window.clearQAResults = function clearQAResults(){
+  qaResults.clear();
+  setProgress(0, 1);
+  setRunStatus("QA results cleared.");
+  renderLessonRows();
+  updateQASummary();
+};
+
+window.addEventListener("load", () => {
+  window.loadQA();
+});
 </script>
 </body>
 </html>
