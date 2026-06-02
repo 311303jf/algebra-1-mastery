@@ -1,5 +1,5 @@
 /* ============================================================
-   Algebra OS — Question Factory 3.3 Systems
+   Algebra OS — Question Factory 3.5 Semantic QA
    File: engine/questionFactory.js
 
    PURPOSE:
@@ -31,7 +31,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (!Array.isArray(problemTypes) || problemTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 3.3 Systems: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
+      "QuestionFactory 3.5 Semantic QA: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
     );
   }
 
@@ -51,7 +51,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
 
   if (availableTypes.length === 0) {
     throw new Error(
-      "QuestionFactory 3.3 Systems: No supported generators found for this lesson. Add generators for: " +
+      "QuestionFactory 3.5 Semantic QA: No supported generators found for this lesson. Add generators for: " +
       problemTypes.join(", ")
     );
   }
@@ -83,7 +83,7 @@ export function generateQuestionForLesson(lesson, options = {}) {
   }
 
   console.warn(
-    "QuestionFactory 3.3 Systems: Could not produce a fully certified question after 30 attempts.",
+    "QuestionFactory 3.5 Semantic QA: Could not produce a fully certified question after 30 attempts.",
     lastQuestion,
     lesson
   );
@@ -112,7 +112,7 @@ export function generateQuestionsForLesson(lesson, count = 10, options = {}) {
 
   if (questions.length < count) {
     throw new Error(
-      "QuestionFactory 3.3 Systems: Could not generate enough unique quality questions. Generated " +
+      "QuestionFactory 3.5 Semantic QA: Could not generate enough unique quality questions. Generated " +
       questions.length +
       " of " +
       count +
@@ -1126,67 +1126,74 @@ function generateSimpleCompoundInequality(difficulty = 1) {
 }
 
 function generateAbsoluteValueEquation(difficulty = 1) {
+  /*
+    Absolute Value Equations — Stable Semantic Version
+    Rules:
+    - Multiple-solution answers are always canonical.
+    - Example: x = -12, x = -8, never x = -8, x = -12.
+    - Equivalent answer choices are blocked globally.
+  */
+
   const mode = pickRandom(["basic", "scaled"]);
 
-  const x1 = pickSolution(difficulty);
-  const distance = randInt(2, 9);
+  const m = pickRandom([-5, -4, -3, -2, 2, 3, 4, 5]);
 
-const m = pickRandom([-5, -4, -3, -2, 2, 3, 4, 5]);
+  const solutionA = pickSolution(difficulty);
+  const solutionB = solutionA + pickRandom([2, 4, 6, 8]);
 
-const solutionA = pickSolution(difficulty);
-const solutionB = solutionA + pickRandom([2, 4, 6, 8]);
+  const midpoint = (solutionA + solutionB) / 2;
+  const distanceFromMidpoint = Math.abs(solutionA - solutionB) / 2;
 
-const midpoint = (solutionA + solutionB) / 2;
-const distanceFromMidpoint = Math.abs(solutionA - solutionB) / 2;
+  const b = -m * midpoint;
+  const target = Math.abs(m * distanceFromMidpoint);
 
-const b = -m * midpoint;
-const target = Math.abs(m * distanceFromMidpoint);
+  const solution1 = (target - b) / m;
+  const solution2 = (-target - b) / m;
 
-  //const insideValue = Math.abs(m * x1 + b);
-  //const target = insideValue === 0 ? distance : insideValue;
+  const canonicalAnswer = normalizeMultipleSolutions(solution1, solution2);
 
   if (mode === "basic") {
     return buildQuestion({
       prompt: `Solve for x: |${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(target)}`,
-      answer: `x = ${formatNumber((target - b) / m)}, x = ${formatNumber((-target - b) / m)}`,
+      answer: canonicalAnswer,
       problemType: "absolute_value_equations",
       difficulty,
       solutionSteps: [
         `Original equation: |${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(target)}`,
         `Set up two equations: ${formatTerm(m, "x")} ${formatSigned(b)} = ${formatNumber(target)} OR ${formatTerm(m, "x")} ${formatSigned(b)} = ${formatNumber(-target)}`,
         `Solve both equations.`,
-        `x = ${formatNumber((target - b) / m)}, x = ${formatNumber((-target - b) / m)}`
+        canonicalAnswer
       ]
     });
   }
 
   const a = pickRandom([-5, -4, -3, -2, 2, 3, 4, 5]);
   const c = a * target;
-   const createNoSolution = Math.random() < 0.15;
+  const createNoSolution = Math.random() < 0.15;
 
-if (createNoSolution) {
-  const badC = a > 0
-    ? -Math.abs(c)
-    : Math.abs(c);
+  if (createNoSolution) {
+    const badC = a > 0
+      ? -Math.abs(c)
+      : Math.abs(c);
 
-  return buildQuestion({
-    prompt: `Solve for x: ${formatNumber(a)}|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(badC)}`,
-    answer: "No Solution",
-    problemType: "absolute_value_equations",
-    difficulty,
-    solutionSteps: [
-      `Original equation: ${formatNumber(a)}|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(badC)}`,
-      `Divide both sides by ${formatNumber(a)}.`,
-      `|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(badC / a)}`,
-      "Absolute value can never equal a negative number.",
-      "No Solution"
-    ]
-  });
-}
-  
+    return buildQuestion({
+      prompt: `Solve for x: ${formatNumber(a)}|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(badC)}`,
+      answer: "No Solution",
+      problemType: "absolute_value_equations",
+      difficulty,
+      solutionSteps: [
+        `Original equation: ${formatNumber(a)}|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(badC)}`,
+        `Divide both sides by ${formatNumber(a)}.`,
+        `|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(badC / a)}`,
+        "Absolute value can never equal a negative number.",
+        "No Solution"
+      ]
+    });
+  }
+
   return buildQuestion({
     prompt: `Solve for x: ${formatNumber(a)}|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(c)}`,
-    answer: `x = ${formatNumber((target - b) / m)}, x = ${formatNumber((-target - b) / m)}`,
+    answer: canonicalAnswer,
     problemType: "absolute_value_equations",
     difficulty,
     solutionSteps: [
@@ -1195,11 +1202,10 @@ if (createNoSolution) {
       `|${formatTerm(m, "x")} ${formatSigned(b)}| = ${formatNumber(target)}`,
       `Set up two equations: ${formatTerm(m, "x")} ${formatSigned(b)} = ${formatNumber(target)} OR ${formatTerm(m, "x")} ${formatSigned(b)} = ${formatNumber(-target)}`,
       `Solve both equations.`,
-      `x = ${formatNumber((target - b) / m)}, x = ${formatNumber((-target - b) / m)}`
+      canonicalAnswer
     ]
   });
 }
-
 
 function generateAbsoluteValueFunction(difficulty = 1) {
   const a = pickRandom([-3, -2, -1, 1, 2, 3]);
@@ -2087,16 +2093,30 @@ function generateQuadraticRoots(difficulty = 1) {
    QUALITY CONTROL
    ============================================================ */
 
+function cleanDisplayText(text) {
+  return String(text)
+    .replace(/\+\s*-/g, "- ")
+    .replace(/-\s*-/g, "+ ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function buildQuestion({ prompt, answer, problemType, difficulty, solutionSteps }) {
   const meta = METADATA[problemType] || METADATA[normalizeMetaType(problemType)] || {};
 
-  const choices = generateChoices(answer, problemType);
+  const cleanPrompt = cleanDisplayText(prompt);
+  const cleanAnswer = cleanDisplayText(answer);
+  const cleanSolutionSteps = Array.isArray(solutionSteps)
+    ? solutionSteps.map(step => cleanDisplayText(step))
+    : [];
+
+  const choices = generateChoices(cleanAnswer, problemType);
 
   return {
     id: createId(),
-    prompt,
+    prompt: cleanPrompt,
     choices,
-    answer,
+    answer: cleanAnswer,
     problemType,
     difficulty,
     hintSteps: meta.hintSteps || [
@@ -2104,7 +2124,7 @@ function buildQuestion({ prompt, answer, problemType, difficulty, solutionSteps 
       "Identify what the problem is asking.",
       "Use the correct algebraic procedure."
     ],
-    solutionSteps: solutionSteps || [],
+    solutionSteps: cleanSolutionSteps || [],
     misconception: meta.misconception || "Students often rush and skip the setup step."
   };
 }
@@ -2131,7 +2151,7 @@ function isQualityQuestion(q) {
   if (!Array.isArray(q.choices)) return false;
   if (q.choices.length !== 4) return false;
 
-  const uniqueChoices = new Set(q.choices);
+  const uniqueChoices = new Set(q.choices.map(normalizeAnswerChoiceForEquivalence));
   if (uniqueChoices.size !== q.choices.length) return false;
 
   if (!q.choices.includes(q.answer)) return false;
@@ -2191,16 +2211,60 @@ function isInequalityChoice(choice) {
 
 
 
+function normalizeMultipleSolutions(a, b) {
+  const values = [Number(a), Number(b)]
+    .map(cleanZero)
+    .sort((x, y) => x - y);
+
+  return `x = ${formatNumber(values[0])}, x = ${formatNumber(values[1])}`;
+}
+
+function normalizeAnswerChoiceForEquivalence(choice) {
+  const text = String(choice || "").trim();
+
+  if (/^x\s*=/.test(text) && text.includes(",")) {
+    const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+
+    if (nums.length === 2) {
+      return normalizeMultipleSolutions(nums[0], nums[1])
+        .replace(/\s+/g, "")
+        .toLowerCase();
+    }
+  }
+
+  if (text.startsWith("{") && text.endsWith("}")) {
+    const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+
+    if (nums.length > 1) {
+      return "{" + nums.sort((a, b) => a - b).map(formatNumber).join(",") + "}";
+    }
+  }
+
+  return text.replace(/\s+/g, "").toLowerCase();
+}
+
+function addUniqueByEquivalence(list, choice) {
+  if (choice === undefined || choice === null) return;
+
+  const cleaned = String(choice).trim();
+  if (!cleaned) return;
+
+  const normalized = normalizeAnswerChoiceForEquivalence(cleaned);
+  const existing = list.map(normalizeAnswerChoiceForEquivalence);
+
+  if (!existing.includes(normalized)) {
+    list.push(cleaned);
+  }
+}
+
+
 function generateChoices(answer, problemType) {
   if (typeof answer !== "string") answer = String(answer);
 
   const type = String(problemType || "").toLowerCase();
 
   const addUnique = (list, choice) => {
-    if (choice === undefined || choice === null) return;
-    const cleaned = String(choice).trim();
-    if (!cleaned) return;
-    if (!list.includes(cleaned)) list.push(cleaned);
+    addUniqueByEquivalence(list, choice);
   };
 
   const finalizeChoices = (correctAnswer, candidates) => {
@@ -2353,14 +2417,14 @@ function generateChoices(answer, problemType) {
     if (matches) {
       const a = Number(matches[1]);
       const b = Number(matches[2]);
+      const canonicalAnswer = normalizeMultipleSolutions(a, b);
 
-      return finalizeChoices(answer, [
+      return finalizeChoices(canonicalAnswer, [
         `x = ${formatNumber(a)}`,
         `x = ${formatNumber(b)}`,
-        `x = ${formatNumber(b)}, x = ${formatNumber(a)}`,
-        `x = ${formatNumber(a)}, x = ${formatNumber(-b)}`,
-        `x = ${formatNumber(-a)}, x = ${formatNumber(b)}`,
-        `x = ${formatNumber(-a)}, x = ${formatNumber(-b)}`,
+        normalizeMultipleSolutions(-a, b),
+        normalizeMultipleSolutions(a, -b),
+        normalizeMultipleSolutions(-a, -b),
         "No Solution"
       ]);
     }
@@ -2382,8 +2446,9 @@ function generateChoices(answer, problemType) {
       const [a, b] = nums;
       distractors.add(`x = ${formatNumber(a)}`);
       distractors.add(`x = ${formatNumber(b)}`);
-      distractors.add(`x = ${formatNumber(b)}, x = ${formatNumber(a)}`);
-      distractors.add(`x = ${formatNumber(-a)}, x = ${formatNumber(-b)}`);
+      distractors.add(normalizeMultipleSolutions(-a, b));
+      distractors.add(normalizeMultipleSolutions(a, -b));
+      distractors.add(normalizeMultipleSolutions(-a, -b));
       distractors.add("No Solution");
     }
   } else if (answer.startsWith("(")) {
