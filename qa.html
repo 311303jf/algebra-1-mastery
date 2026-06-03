@@ -196,6 +196,33 @@ pre{
   transition:.2s;
 }
 
+
+.audit-box{
+  margin-top:10px;
+  background:#f8fafc;
+  border:1px solid var(--line);
+  border-radius:14px;
+  padding:12px;
+}
+.audit-counts{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+  margin-top:8px;
+}
+.audit-chip{
+  background:#e2e8f0;
+  color:#0f172a;
+  border-radius:999px;
+  padding:5px 8px;
+  font-size:11px;
+  font-weight:900;
+}
+.audit-chip.low{
+  background:#fee2e2;
+  color:#991b1b;
+}
+
 @media(max-width:850px){
   .grid{grid-template-columns:1fr 1fr}
   .lesson-row{grid-template-columns:1fr}
@@ -224,6 +251,7 @@ pre{
       <button class="btn" onclick="loadQA()">Load Curriculum QA</button>
       <button class="btn" onclick="runUnit1Certification()">Run Unit 1 Certification</button>
       <button class="btn secondary" onclick="runAllLoadedCertification()">Run All Loaded Lessons</button>
+      <button class="btn secondary" onclick="runCoverageAudit()">Run Coverage Audit</button>
       <button class="btn danger" onclick="clearQAResults()">Clear QA Results</button>
     </div>
 
@@ -260,6 +288,32 @@ pre{
     </div>
   </div>
 
+
+  <div class="card">
+    <h2>Coverage Audit Summary</h2>
+    <div class="grid">
+      <div class="metric">
+        <span>Lessons Audited</span>
+        <strong id="auditLessonsTested">0</strong>
+      </div>
+      <div class="metric">
+        <span>Coverage Failures</span>
+        <strong id="auditCoverageFailures">0</strong>
+      </div>
+      <div class="metric">
+        <span>Distribution Failures</span>
+        <strong id="auditDistributionFailures">0</strong>
+      </div>
+      <div class="metric">
+        <span>Audit Status</span>
+        <strong id="auditCertification">Pending</strong>
+      </div>
+    </div>
+    <div class="small" style="margin-top:10px;">
+      Standard B: every allowedProblemType must appear and each must represent at least 15% of generated questions.
+    </div>
+  </div>
+
   <div class="card">
     <h2>Lessons Detected</h2>
     <div id="lessonList">No lessons loaded.</div>
@@ -281,9 +335,12 @@ import {
 
 import "./engine/questionQualityGate.js";
 
+import { AlgebraQAAuditEngine } from "./engine/qaAuditEngine.js?v=1000";
+
 let curriculum = null;
 let allLessons = [];
 let qaResults = new Map();
+let auditResults = new Map();
 
 const QUESTIONS_PER_LESSON = 100;
 
@@ -443,6 +500,38 @@ function renderLessonRows(){
       }
     }
 
+    const audit = auditResults.get(lesson.id);
+
+    if(audit){
+      const auditClass = audit.pass ? "pass" : "fail";
+      const chips = Object.entries(audit.counts || {}).map(([type,count]) => {
+        const pct = audit.generated > 0 ? Math.round((count / audit.generated) * 100) : 0;
+        const low = pct < AlgebraQAAuditEngine.MIN_DISTRIBUTION_PERCENT;
+        return `<span class="audit-chip ${low ? "low" : ""}">${type}: ${count} (${pct}%)</span>`;
+      }).join("");
+
+      detail += `
+        <div class="audit-box">
+          <span class="status ${auditClass}">
+            Coverage ${audit.coveragePercent}% — ${audit.pass ? "AUDIT PASS" : "AUDIT FAIL"}
+          </span>
+          <div class="audit-counts">${chips}</div>
+          ${
+            audit.errors && audit.errors.length
+              ? `<div class="error-list">
+                  ${audit.errors.slice(0, 4).map(err => `
+                    <details>
+                      <summary>${err.message}</summary>
+                      <pre>${err.example}</pre>
+                    </details>
+                  `).join("")}
+                </div>`
+              : ""
+          }
+        </div>
+      `;
+    }
+
     return `
       <div class="lesson-row">
         <strong>${lesson.id}</strong>
@@ -574,6 +663,7 @@ window.loadQA = async function loadQA(){
 
     renderLessonRows();
     updateQASummary();
+    updateAuditSummary();
     setProgress(1, 1);
     setRunStatus("Curriculum loaded. Ready to run certification.");
 
@@ -655,8 +745,92 @@ async function runCertificationForLessons(lessons, label){
   }
 }
 
+
+function updateAuditSummary(){
+  const results = Array.from(auditResults.values());
+
+  const lessonsAudited = results.length;
+  const coverageFailures =
+    results.filter(item => !item.coveragePass).length;
+  const distributionFailures =
+    results.filter(item => !item.distributionPass).length;
+
+  const lessonsEl = document.getElementById("auditLessonsTested");
+  const coverageEl = document.getElementById("auditCoverageFailures");
+  const distributionEl = document.getElementById("auditDistributionFailures");
+  const certEl = document.getElementById("auditCertification");
+
+  if(lessonsEl) lessonsEl.textContent = lessonsAudited;
+  if(coverageEl) coverageEl.textContent = coverageFailures;
+  if(distributionEl) distributionEl.textContent = distributionFailures;
+
+  if(certEl){
+    if(lessonsAudited === 0){
+      certEl.textContent = "Pending";
+      certEl.style.color = "#0f172a";
+    }else if(coverageFailures === 0 && distributionFailures === 0){
+      certEl.textContent = "PASS";
+      certEl.style.color = "#166534";
+    }else{
+      certEl.textContent = "FAIL";
+      certEl.style.color = "#991b1b";
+    }
+  }
+}
+
+window.runCoverageAudit = async function runCoverageAudit(){
+  if(!curriculum){
+    await window.loadQA();
+  }
+
+  if(!allLessons.length){
+    setRunStatus("No lessons loaded for coverage audit.");
+    return;
+  }
+
+  auditResults.clear();
+
+  setRunStatus("Running Coverage Audit — Standard B...");
+  setProgress(0, allLessons.length);
+
+  for(let i = 0; i < allLessons.length; i++){
+    const lesson = allLessons[i];
+
+    setRunStatus(
+      `Auditing coverage: ${lesson.id} ${lesson.title} (${i + 1}/${allLessons.length})`
+    );
+
+    await sleep(20);
+
+    const audit = AlgebraQAAuditEngine.auditLessonCoverage({
+      lesson,
+      generateQuestionForLesson,
+      validateQuestionForQA,
+      count: QUESTIONS_PER_LESSON
+    });
+
+    auditResults.set(lesson.id, audit);
+
+    renderLessonRows();
+    updateAuditSummary();
+    setProgress(i + 1, allLessons.length);
+
+    await sleep(20);
+  }
+
+  const failed = Array.from(auditResults.values()).filter(item => !item.pass);
+
+  if(failed.length === 0){
+    setRunStatus("Coverage Audit completed: PASS.");
+  }else{
+    setRunStatus("Coverage Audit completed: FAIL — " + failed.length + " lesson(s) need review.");
+  }
+};
+
 window.clearQAResults = function clearQAResults(){
   qaResults.clear();
+  auditResults.clear();
+  updateAuditSummary();
   setProgress(0, 1);
   setRunStatus("QA results cleared.");
   renderLessonRows();
