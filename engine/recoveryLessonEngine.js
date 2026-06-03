@@ -21,6 +21,7 @@
    - Does NOT show + 0.
    - Adds Enter key support for tutor workflow.
    - Includes certification.
+   - v1901: Does not reveal the final solution before the final tutor step.
 ========================================================= */
 
 const RECOVERY_PREFIX = "algebra_recovery_";
@@ -1277,15 +1278,49 @@ function renderMultiplicationDivisionTransformation(parsed) {
 }
 
 function renderMultiStepTransformation(parsed, stage = "solution") {
+  /*
+    v1901 Step Visibility Fix:
+    The tutor must teach step-by-step.
+    It must NOT reveal the final solution during the first or simplified step.
+  */
+
+  const showFirst =
+    stage === "first" ||
+    stage === "simplified" ||
+    stage === "solution";
+
+  const showSimplified =
+    stage === "simplified" ||
+    stage === "solution";
+
+  const showSolution =
+    stage === "solution";
+
   return `
     <div class="aos-math-workspace">
       ${mathRendererStyle()}
       <div class="aos-work-title">Multi-step equation work</div>
+
       <div class="aos-vertical-work">
         <div><strong>Original:</strong> ${escapeHtml(parsed.equationBefore)}</div>
-        <div><strong>First:</strong> ${escapeHtml(parsed.firstAction)}</div>
-        <div><strong>Simplified:</strong> ${escapeHtml(parsed.simplifiedEquation)}</div>
-        <div><strong>Solution:</strong> <span class="aos-green">${escapeHtml(parsed.equationAfter)}</span></div>
+
+        ${
+          showFirst
+            ? `<div><strong>First:</strong> ${escapeHtml(parsed.firstAction)}</div>`
+            : ""
+        }
+
+        ${
+          showSimplified
+            ? `<div><strong>Simplified:</strong> ${escapeHtml(parsed.simplifiedEquation)}</div>`
+            : ""
+        }
+
+        ${
+          showSolution
+            ? `<div><strong>Solution:</strong> <span class="aos-green">${escapeHtml(parsed.equationAfter)}</span></div>`
+            : ""
+        }
       </div>
     </div>
   `;
