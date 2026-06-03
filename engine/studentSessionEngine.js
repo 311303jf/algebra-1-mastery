@@ -1,6 +1,6 @@
 /*
   Algebra OS — Student Session Engine
-  Version: 2.1 Mastery v2
+  Version: 2.2 Mastery v2 + Skill Intervention System
 
   Mastery v2 unlock rule:
   - Minimum Attempts >= 12
@@ -133,6 +133,75 @@ const AlgebraStudentSessionEngine = (() => {
     );
   }
 
+
+  function getInterventionLevel(consecutiveErrors) {
+    const errors = Number(consecutiveErrors || 0);
+
+    if (errors >= 8) return "recovery";
+    if (errors >= 5) return "learning";
+    if (errors >= 3) return "recommendation";
+
+    return "none";
+  }
+
+  function getInterventionMessage(problemType, level) {
+    if (level === "recovery") {
+      return `Skill Recovery Required: review the lesson and complete guided practice for ${problemType} before continuing independent mastery.`;
+    }
+
+    if (level === "learning") {
+      return `Learning Mode Activated: study the worked example for ${problemType}, then try a guided practice question.`;
+    }
+
+    if (level === "recommendation") {
+      return `Recommendation: you have missed this skill several times. Review the lesson example for ${problemType} before continuing.`;
+    }
+
+    return "";
+  }
+
+  function getSkillIntervention(lessonId = "1.1", problemType = null) {
+    const state = loadSession(lessonId);
+
+    if (!problemType || !state.skillProgress || !state.skillProgress[problemType]) {
+      return {
+        problemType,
+        level: "none",
+        consecutiveErrors: 0,
+        message: ""
+      };
+    }
+
+    const skill = state.skillProgress[problemType];
+    const consecutiveErrors = Number(skill.consecutiveErrors || 0);
+    const level = getInterventionLevel(consecutiveErrors);
+
+    return {
+      problemType,
+      level,
+      consecutiveErrors,
+      message: getInterventionMessage(problemType, level)
+    };
+  }
+
+  function getActiveInterventions(lessonId = "1.1", requiredProblemTypes = []) {
+    const state = loadSession(lessonId);
+    const progress = state.skillProgress || {};
+    const types =
+      Array.isArray(requiredProblemTypes) && requiredProblemTypes.length
+        ? requiredProblemTypes
+        : Object.keys(progress);
+
+    return types
+      .map(problemType => getSkillIntervention(lessonId, problemType))
+      .filter(item => item.level !== "none")
+      .sort((a, b) => {
+        const order = { recovery: 3, learning: 2, recommendation: 1, none: 0 };
+        return order[b.level] - order[a.level] ||
+          Number(b.consecutiveErrors || 0) - Number(a.consecutiveErrors || 0);
+      });
+  }
+
   function ensureSkillProgress(state, problemType) {
     if (!problemType) return null;
 
@@ -147,6 +216,8 @@ const AlgebraStudentSessionEngine = (() => {
         wrong: 0,
         accuracy: 0,
         mastery: 0,
+        consecutiveErrors: 0,
+        interventionLevel: "none",
         lastActivity: null
       };
     }
@@ -163,12 +234,15 @@ const AlgebraStudentSessionEngine = (() => {
 
     if (isCorrect) {
       skill.correct += 1;
+      skill.consecutiveErrors = 0;
     } else {
       skill.wrong += 1;
+      skill.consecutiveErrors = Number(skill.consecutiveErrors || 0) + 1;
     }
 
     skill.accuracy = calculateSkillAccuracy(skill);
     skill.mastery = calculateSkillMastery(skill);
+    skill.interventionLevel = getInterventionLevel(skill.consecutiveErrors);
     skill.lastActivity = new Date().toISOString();
 
     return state;
@@ -188,7 +262,9 @@ const AlgebraStudentSessionEngine = (() => {
       correct: Number(data.correct || 0),
       wrong: Number(data.wrong || 0),
       accuracy: Number(data.accuracy || 0),
-      mastery: Number(data.mastery || 0)
+      mastery: Number(data.mastery || 0),
+      consecutiveErrors: Number(data.consecutiveErrors || 0),
+      interventionLevel: data.interventionLevel || getInterventionLevel(data.consecutiveErrors)
     }));
   }
 
@@ -629,6 +705,7 @@ const AlgebraStudentSessionEngine = (() => {
       skillSummary: getSkillSummaryForRequiredTypes(lessonId, requiredProblemTypes),
       weakestSkills: getWeakestSkills(lessonId, 3, requiredProblemTypes),
       strongestSkills: getStrongestSkills(lessonId, 3, requiredProblemTypes),
+      activeInterventions: getActiveInterventions(lessonId, requiredProblemTypes),
       masteryV2,
       ...state
     };
@@ -655,6 +732,9 @@ const AlgebraStudentSessionEngine = (() => {
     getStrongestSkills,
     calculateCoveragePercent,
     getSkillMasteryStatus,
+    getSkillIntervention,
+    getActiveInterventions,
+    getInterventionLevel,
 
     evaluateMasteryV2,
     canUnlockLesson,
