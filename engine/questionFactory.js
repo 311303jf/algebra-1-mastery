@@ -254,6 +254,34 @@ const GENERATORS = {
   special_product_identify: generateSpecialProductIdentify,
   special_product_application: generateSpecialProductApplication,
 
+  // ============================================================
+  // UNIT 8 — FACTORING
+  // ============================================================
+  factor_gcf_monomial: generateFactorGCFMonomial,
+  factor_gcf_polynomial: generateFactorGCFPolynomial,
+  factor_gcf_with_negative: generateFactorGCFWithNegative,
+  factor_gcf_application: generateFactorGCFApplication,
+
+  factor_trinomial_a1: generateFactorTrinomialA1,
+  factor_trinomial_positive_c: generateFactorTrinomialPositiveC,
+  factor_trinomial_negative_c: generateFactorTrinomialNegativeC,
+  identify_factor_pair: generateIdentifyFactorPair,
+
+  factor_trinomial_a_not_1: generateFactorTrinomialANot1,
+  factor_by_grouping_quadratic: generateFactorByGroupingQuadratic,
+  factor_ac_method: generateFactorACMethod,
+  identify_equivalent_factored_form: generateIdentifyEquivalentFactoredForm,
+
+  factor_difference_of_squares: generateFactorDifferenceOfSquares,
+  factor_perfect_square_trinomial: generateFactorPerfectSquareTrinomial,
+  identify_special_factoring_pattern: generateIdentifySpecialFactoringPattern,
+  mixed_special_factoring: generateMixedSpecialFactoring,
+
+  solve_quadratic_by_factoring: generateSolveQuadraticByFactoring,
+  zero_product_property: generateZeroProductProperty,
+  quadratic_factoring_word_problem: generateQuadraticFactoringWordProblem,
+  identify_quadratic_solutions: generateIdentifyQuadraticSolutions,
+
   // LEGACY GENERATORS
   exponent_rules: generateExponentRules,
   factoring: generateFactoring,
@@ -817,6 +845,51 @@ one_step_division_equation: {
     misconception: "Students often include a middle term even though the middle terms cancel."
   },
 
+
+  factor_gcf_monomial: {
+    hintSteps: [
+      "Find the greatest common factor of all terms.",
+      "Factor out the common number and variable factor.",
+      "Check by distributing the factor back in."
+    ],
+    misconception: "Students often factor out only the number and forget the common variable factor."
+  },
+
+  factor_trinomial_a1: {
+    hintSteps: [
+      "For x² + bx + c, find two numbers that multiply to c and add to b.",
+      "Use those numbers to write two binomial factors.",
+      "Multiply the factors to check your answer."
+    ],
+    misconception: "Students often find numbers that multiply to c but do not add to b."
+  },
+
+  factor_trinomial_a_not_1: {
+    hintSteps: [
+      "Look for two binomial factors whose first terms multiply to ax².",
+      "Check that the outer and inner products combine to the middle term.",
+      "Multiply the factors to verify the trinomial."
+    ],
+    misconception: "Students often factor as if a = 1 and ignore the leading coefficient."
+  },
+
+  factor_difference_of_squares: {
+    hintSteps: [
+      "Recognize the pattern a² - b².",
+      "Write the factors as (a + b)(a - b).",
+      "Check that the middle terms cancel."
+    ],
+    misconception: "Students often try to factor a difference of squares as a trinomial."
+  },
+
+  solve_quadratic_by_factoring: {
+    hintSteps: [
+      "Set the quadratic equation equal to zero.",
+      "Factor the quadratic expression.",
+      "Use the zero product property to solve each factor."
+    ],
+    misconception: "Students often factor correctly but forget to set each factor equal to zero."
+  },
   exponent_rules: {
     hintSteps: [
       "Identify whether the expression uses multiplication, division, or a power of a power.",
@@ -2924,6 +2997,348 @@ function generateSpecialProductApplication(difficulty = 1) {
 }
 
 
+
+/* ============================================================
+   GENERATORS — UNIT 8: FACTORING
+   QuestionFactory 4.0 Phase C
+   ============================================================ */
+
+function generateFactorGCFMonomial(difficulty = 1) {
+  const g = randInt(2, 9);
+  const a = randInt(2, 7);
+  const b = randInt(2, 9);
+  const prompt = `Factor completely: ${formatTermPower(g * a, "x", 2)} ${formatSignedTerm(g * b, "x")}`;
+  const answer = `${formatTerm(g, "x")}(${formatTerm(a, "x")} ${formatSigned(b)})`;
+
+  return buildQuestion({
+    prompt,
+    answer,
+    problemType: "factor_gcf_monomial",
+    difficulty,
+    solutionSteps: [
+      "Find the greatest common factor of both terms.",
+      `The GCF of ${formatTermPower(g * a, "x", 2)} and ${formatTerm(g * b, "x")} is ${formatTerm(g, "x")}.`,
+      `Factor out ${formatTerm(g, "x")}.`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generateFactorGCFPolynomial(difficulty = 1) {
+  const g = randInt(2, 8);
+  const a = randInt(1, 5);
+  const b = randInt(2, 7);
+  const c = randInt(2, 9);
+  const inside = formatQuadraticPolynomial(a, b, c);
+  const prompt = `Factor completely: ${formatQuadraticPolynomial(g * a, g * b, g * c)}`;
+  const answer = `${g}(${inside})`;
+
+  return buildQuestion({
+    prompt,
+    answer,
+    problemType: "factor_gcf_polynomial",
+    difficulty,
+    solutionSteps: [
+      "Find the greatest common factor of all terms.",
+      `The GCF is ${g}.`,
+      `Divide each term by ${g}.`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generateFactorGCFWithNegative(difficulty = 1) {
+  const g = randInt(2, 7);
+  const a = randInt(1, 5);
+  const b = randInt(2, 8);
+  const c = randInt(2, 9);
+  const inside = formatQuadraticPolynomial(a, b, c);
+  const prompt = `Factor completely: ${formatQuadraticPolynomial(-g * a, -g * b, -g * c)}`;
+  const answer = `-${g}(${inside})`;
+
+  return buildQuestion({
+    prompt,
+    answer,
+    problemType: "factor_gcf_with_negative",
+    difficulty,
+    solutionSteps: [
+      "When the leading term is negative, factor out a negative GCF.",
+      `The negative GCF is -${g}.`,
+      `Divide each term by -${g}.`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generateFactorGCFApplication(difficulty = 1) {
+  const widthGcf = randInt(2, 6);
+  const a = randInt(2, 6);
+  const b = randInt(2, 9);
+  const expression = `${formatTermPower(widthGcf * a, "x", 2)} ${formatSignedTerm(widthGcf * b, "x")}`;
+  const answer = `${formatTerm(widthGcf, "x")}(${formatTerm(a, "x")} ${formatSigned(b)})`;
+
+  return buildQuestion({
+    prompt: `A rectangle has area ${expression}. Which factored expression can represent its area?`,
+    answer,
+    problemType: "factor_gcf_application",
+    difficulty,
+    solutionSteps: [
+      "Factor the area expression by finding the GCF.",
+      `The GCF is ${formatTerm(widthGcf, "x")}.`,
+      `The factored area expression is ${answer}.`
+    ]
+  });
+}
+
+function generateFactorTrinomialA1(difficulty = 1) {
+  const r = randInt(1, 9);
+  const s = randInt(1, 9);
+  const b = r + s;
+  const c = r * s;
+  const answer = `(x + ${r})(x + ${s})`;
+
+  return buildQuestion({
+    prompt: `Factor: x² + ${b}x + ${c}`,
+    answer,
+    problemType: "factor_trinomial_a1",
+    difficulty,
+    solutionSteps: [
+      `Find two numbers that multiply to ${c} and add to ${b}.`,
+      `${r} × ${s} = ${c}`,
+      `${r} + ${s} = ${b}`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generateFactorTrinomialPositiveC(difficulty = 1) {
+  return generateFactorTrinomialA1(difficulty, "factor_trinomial_positive_c");
+}
+
+function generateFactorTrinomialNegativeC(difficulty = 1) {
+  const r = randInt(2, 9);
+  const s = -randInt(1, 8, [r]);
+  const b = r + s;
+  const c = r * s;
+  const answer = `(x ${formatSigned(r)})(x ${formatSigned(s)})`;
+
+  return buildQuestion({
+    prompt: `Factor: x² ${formatSignedTerm(b, "x")} ${formatSigned(c)}`,
+    answer,
+    problemType: "factor_trinomial_negative_c",
+    difficulty,
+    solutionSteps: [
+      `Find two numbers that multiply to ${c} and add to ${b}.`,
+      `${r} × ${s} = ${c}`,
+      `${r} + ${s} = ${b}`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generateIdentifyFactorPair(difficulty = 1) {
+  const r = randInt(1, 9);
+  const s = randInt(1, 9);
+  const b = r + s;
+  const c = r * s;
+  const answer = `${r} and ${s}`;
+
+  return buildQuestion({
+    prompt: `For x² + ${b}x + ${c}, which pair of numbers multiplies to ${c} and adds to ${b}?`,
+    answer,
+    problemType: "identify_factor_pair",
+    difficulty,
+    solutionSteps: [
+      `The pair must multiply to ${c}.`,
+      `The pair must add to ${b}.`,
+      `${r} × ${s} = ${c} and ${r} + ${s} = ${b}.`
+    ]
+  });
+}
+
+function generateFactorTrinomialANot1(difficulty = 1, overrideType = "factor_trinomial_a_not_1") {
+  const p = randInt(2, 5);
+  const q = randInt(2, 5, [p]);
+  const r = randInt(1, 6);
+  const s = randInt(1, 6);
+  const a = p * q;
+  const b = p * s + q * r;
+  const c = r * s;
+  const answer = `(${formatTerm(p, "x")} + ${r})(${formatTerm(q, "x")} + ${s})`;
+
+  return buildQuestion({
+    prompt: `Factor: ${formatQuadraticPolynomial(a, b, c)}`,
+    answer,
+    problemType: overrideType,
+    difficulty,
+    solutionSteps: [
+      "Factor into two binomials.",
+      `${formatTerm(p, "x")} × ${formatTerm(q, "x")} = ${formatTermPower(a, "x", 2)}.`,
+      `The outer and inner products combine to ${formatTerm(b, "x")}.`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generateFactorByGroupingQuadratic(difficulty = 1) {
+  return generateFactorTrinomialANot1(difficulty, "factor_by_grouping_quadratic");
+}
+
+function generateFactorACMethod(difficulty = 1) {
+  return generateFactorTrinomialANot1(difficulty, "factor_ac_method");
+}
+
+function generateIdentifyEquivalentFactoredForm(difficulty = 1) {
+  return generateFactorTrinomialANot1(difficulty, "identify_equivalent_factored_form");
+}
+
+function generateFactorDifferenceOfSquares(difficulty = 1) {
+  const n = randInt(2, 12);
+  const answer = `(x + ${n})(x - ${n})`;
+
+  return buildQuestion({
+    prompt: `Factor: x² - ${n * n}`,
+    answer,
+    problemType: "factor_difference_of_squares",
+    difficulty,
+    solutionSteps: [
+      "Recognize the pattern a² - b².",
+      `x² - ${n * n} = x² - ${n}²`,
+      `Use a² - b² = (a + b)(a - b).`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generateFactorPerfectSquareTrinomial(difficulty = 1) {
+  const sign = pickRandom([1, -1]);
+  const n = randInt(2, 9);
+  const b = sign * 2 * n;
+  const c = n * n;
+  const answer = `(x ${formatSigned(sign * n)})²`;
+
+  return buildQuestion({
+    prompt: `Factor: ${formatQuadraticPolynomial(1, b, c)}`,
+    answer,
+    problemType: "factor_perfect_square_trinomial",
+    difficulty,
+    solutionSteps: [
+      "Recognize the perfect square trinomial pattern.",
+      `The first term is x² and the last term is ${n}².`,
+      `The middle term is ${formatTerm(b, "x")}.`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generateIdentifySpecialFactoringPattern(difficulty = 1) {
+  const mode = pickRandom(["Difference of squares", "Perfect square trinomial"]);
+  const n = randInt(2, 9);
+  const prompt = mode === "Difference of squares"
+    ? `Identify the factoring pattern: x² - ${n * n}`
+    : `Identify the factoring pattern: x² + ${2 * n}x + ${n * n}`;
+
+  return buildQuestion({
+    prompt,
+    answer: mode,
+    problemType: "identify_special_factoring_pattern",
+    difficulty,
+    solutionSteps: [
+      "Look for a special factoring pattern.",
+      mode === "Difference of squares"
+        ? "A difference of squares has the form a² - b²."
+        : "A perfect square trinomial has the form a² + 2ab + b².",
+      `The pattern is ${mode}.`
+    ]
+  });
+}
+
+function generateMixedSpecialFactoring(difficulty = 1) {
+  return Math.random() < 0.5
+    ? generateFactorDifferenceOfSquares(difficulty)
+    : generateFactorPerfectSquareTrinomial(difficulty);
+}
+
+function generateSolveQuadraticByFactoring(difficulty = 1) {
+  const r = randInt(-9, 9, [0]);
+  const s = randInt(-9, 9, [0, r]);
+  const b = -(r + s);
+  const c = r * s;
+  const answer = normalizeMultipleSolutions(r, s);
+
+  return buildQuestion({
+    prompt: `Solve by factoring: ${formatQuadraticPolynomial(1, b, c)} = 0`,
+    answer,
+    problemType: "solve_quadratic_by_factoring",
+    difficulty,
+    solutionSteps: [
+      `Factor the quadratic: ${formatQuadraticPolynomial(1, b, c)} = (x ${formatSigned(-r)})(x ${formatSigned(-s)}).`,
+      "Use the zero product property.",
+      `Set each factor equal to zero.`,
+      `Solutions: ${answer}`
+    ]
+  });
+}
+
+function generateZeroProductProperty(difficulty = 1) {
+  const r = randInt(-9, 9, [0]);
+  const s = randInt(-9, 9, [0, r]);
+  const answer = normalizeMultipleSolutions(r, s);
+
+  return buildQuestion({
+    prompt: `Use the zero product property to solve: (x ${formatSigned(-r)})(x ${formatSigned(-s)}) = 0`,
+    answer,
+    problemType: "zero_product_property",
+    difficulty,
+    solutionSteps: [
+      "If a product equals zero, at least one factor must equal zero.",
+      `Set x ${formatSigned(-r)} = 0 and x ${formatSigned(-s)} = 0.`,
+      `Solutions: ${answer}`
+    ]
+  });
+}
+
+function generateQuadraticFactoringWordProblem(difficulty = 1) {
+  const solution = randInt(2, 10);
+  const other = -randInt(1, 8);
+  const b = -(solution + other);
+  const c = solution * other;
+
+  return buildQuestion({
+    prompt: `The height of an object is modeled by h(t) = ${formatQuadraticPolynomial(1, b, c)}. When does the object hit the ground? Use h(t) = 0 and choose the positive solution.`,
+    answer: `t = ${solution}`,
+    problemType: "quadratic_factoring_word_problem",
+    difficulty,
+    solutionSteps: [
+      "Set the height equal to zero.",
+      `Factor ${formatQuadraticPolynomial(1, b, c)} = 0.`,
+      `The solutions are ${normalizeMultipleSolutions(solution, other)}.`,
+      `Time cannot be negative, so t = ${solution}.`
+    ]
+  });
+}
+
+function generateIdentifyQuadraticSolutions(difficulty = 1) {
+  const r = randInt(-8, 8, [0]);
+  const s = randInt(-8, 8, [0, r]);
+  const b = -(r + s);
+  const c = r * s;
+  const answer = normalizeMultipleSolutions(r, s);
+
+  return buildQuestion({
+    prompt: `What are the solutions of ${formatQuadraticPolynomial(1, b, c)} = 0?`,
+    answer,
+    problemType: "identify_quadratic_solutions",
+    difficulty,
+    solutionSteps: [
+      `Factor the quadratic.`,
+      `${formatQuadraticPolynomial(1, b, c)} = (x ${formatSigned(-r)})(x ${formatSigned(-s)})`,
+      "Set each factor equal to zero.",
+      `Solutions: ${answer}`
+    ]
+  });
+}
+
 function generateExponentRules(difficulty = 1) {
   const base = pickRandom(["x", "a", "m"]);
   const p = randInt(2, 6);
@@ -3285,6 +3700,9 @@ function generateChoices(answer, problemType) {
   if (
     type.includes("polynomial") ||
     type.includes("binomial") ||
+    type.includes("factor") ||
+    type.includes("factoring") ||
+    type.includes("zero_product") ||
     type.includes("special_product") ||
     type.includes("difference_of_squares") ||
     type.includes("monomial_times") ||
