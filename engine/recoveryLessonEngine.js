@@ -69,11 +69,31 @@ function loadTutorState(lessonId, problemType) {
 }
 
 function markRecoveryOpened(lessonId, problemType) {
-  const state = loadRecoveryState(lessonId, problemType);
-  state.opened = true;
-  saveRecoveryState(lessonId, problemType, state);
+  const previousState = loadRecoveryState(lessonId, problemType);
+
+  const freshState = {
+    ...defaultRecoveryState(),
+    opened: true,
+
+    // IMPORTANT:
+    // Every time the student opens the Recovery Tutor from the button,
+    // the tutor must begin from Step 1.
+    tutorStep: 0,
+    tutorAttempts: Number(previousState.tutorAttempts || 0),
+    tutorCompleted: false,
+
+    // Keep recovery practice progress only if the student already completed it.
+    recoveryCorrectStreak: previousState.completed
+      ? Number(previousState.recoveryCorrectStreak || 0)
+      : 0,
+
+    completed: previousState.completed === true
+  };
+
+  saveRecoveryState(lessonId, problemType, freshState);
   installRecoveryTutorKeyboardSupport();
-  return state;
+
+  return freshState;
 }
 
 function recordTutorAnswer(lessonId, problemType, isCorrect, totalSteps = 1) {
