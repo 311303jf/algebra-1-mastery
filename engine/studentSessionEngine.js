@@ -1,12 +1,11 @@
 /*
   Algebra OS — Student Session Engine
-  Version: 1.1 Minimum Questions Gate
+  Version: 2.0 Skill Tracking Foundation
 
-  New mastery rule:
-  - A student cannot unlock full mastery before 12 independent attempts.
-  - Before 12 attempts, mastery is capped at 79%.
-  - Assisted questions/hints do not count as independent attempts because lesson.html
-    already prevents hinted questions from calling recordAttempt().
+  Purpose:
+  - Keeps existing mastery gate stable.
+  - Adds skill/problemType tracking for Mastery v2.
+  - Does NOT change unlock rules yet.
 */
 
 const AlgebraStudentSessionEngine = (() => {
@@ -26,7 +25,8 @@ const AlgebraStudentSessionEngine = (() => {
     difficulty: "core",
     lastActivity: null,
 
-    // Added for transparency/debugging
+    skillProgress: {},
+
     minAttemptsForUnlock: MIN_ATTEMPTS_FOR_UNLOCK,
     attemptsRemainingForUnlock: MIN_ATTEMPTS_FOR_UNLOCK,
     masteryGateActive: true
@@ -36,55 +36,161 @@ const AlgebraStudentSessionEngine = (() => {
     return `algebra_session_${lessonId}`;
   }
 
+  function cloneDefaultState() {
+    return JSON.parse(JSON.stringify(DEFAULT_STATE));
+  }
+
   function loadSession(lessonId = "1.1") {
     const saved = localStorage.getItem(storageKey(lessonId));
 
     if (!saved) {
-      return { ...DEFAULT_STATE };
+      return cloneDefaultState();
     }
 
     try {
       const loaded = {
-        ...DEFAULT_STATE,
+        ...cloneDefaultState(),
         ...JSON.parse(saved)
       };
 
-      // Keep old saved sessions compatible with the new gate.
-      loaded.minAttemptsForUnlock = MIN_ATTEMPTS_FOR_UNLOCK;
-      loaded.attemptsRemainingForUnlock = Math.max(
-        0,
-        MIN_ATTEMPTS_FOR_UNLOCK - Number(loaded.attempted || 0)
-      );
-      loaded.masteryGateActive =
-        Number(loaded.attempted || 0) < MIN_ATTEMPTS_FOR_UNLOCK;
+      if (!loaded.skillProgress || typeof loaded.skillProgress !== "object") {
+        loaded.skillProgress = {};
+      }
 
-      // Recalculate mastery using the new rule so old sessions do not bypass the gate.
       loaded.accuracy = calculateAccuracy(
         Number(loaded.correct || 0),
         Number(loaded.attempted || 0)
       );
 
+      updateGateFields(loaded);
       loaded.mastery = calculateMastery(loaded);
 
       return loaded;
     } catch (error) {
-      return { ...DEFAULT_STATE };
+      return cloneDefaultState();
     }
   }
 
   function saveSession(lessonId = "1.1", state) {
-    localStorage.setItem(
-      storageKey(lessonId),
-      JSON.stringify(state)
-    );
+    localStorage.setItem(storageKey(lessonId), JSON.stringify(state));
   }
 
   function calculateAccuracy(correct, attempted) {
-    if (attempted <= 0) {
+    if (attempted <= 0) return 0;
+    return Math.round((correct / attempted) * 100);
+  }
+
+  function calculateSkillAccuracy(skill) {
+    if (!skill || Number(skill.attempted || 0) <= 0) return 0;
+
+    return calculateAccuracy(
+      Number(skill.correct || 0),
+      Number(skill.attempted || 0)
+    );
+  }
+
+  function calculateSkillMastery(skill) {
+    const attempted = Number(skill?.attempted || 0);
+
+    if (attempted <= 0) return 0;
+
+    const accuracy = calculateSkillAccuracy(skill);
+
+    const confidence =
+      attempted >= 3
+        ? 1
+        : attempted / 3;
+
+    return Math.round(
+      Math.max(0, Math.min(100, accuracy * confidence))
+    );
+  }
+
+  function ensureSkillProgress(state, problemType) {
+    if (!problemType) return null;
+
+    if (!state.skillProgress) {
+      state.skillProgress = {};
+    }
+
+    if (!state.skillProgress[problemType]) {
+      state.skillProgress[problemType] = {
+        attempted: 0,
+        correct: 0,
+        wrong: 0,
+        accuracy: 0,
+        mastery: 0,
+        lastActivity: null
+      };
+    }
+
+    return state.skillProgress[problemType];
+  }
+
+  function updateSkillProgress(state, problemType, isCorrect) {
+    const skill = ensureSkillProgress(state, problemType);
+
+    if (!skill) return state;
+
+    skill.attempted += 1;
+
+    if (isCorrect) {
+      skill.correct += 1;
+    } else {
+      skill.wrong += 1;
+    }
+
+    skill.accuracy = calculateSkillAccuracy(skill);
+    skill.mastery = calculateSkillMastery(skill);
+    skill.lastActivity = new Date().toISOString();
+
+    return state;
+  }
+
+  function getSkillProgress(lessonId = "1.1") {
+    const state = loadSession(lessonId);
+    return state.skillProgress || {};
+  }
+
+  function getSkillSummary(lessonId = "1.1") {
+    const progress = getSkillProgress(lessonId);
+
+    return Object.entries(progress).map(([problemType, data]) => ({
+      problemType,
+      attempted: Number(data.attempted || 0),
+      correct: Number(data.correct || 0),
+      wrong: Number(data.wrong || 0),
+      accuracy: Number(data.accuracy || 0),
+      mastery: Number(data.mastery || 0)
+    }));
+  }
+
+  function getWeakestSkills(lessonId = "1.1", limit = 3) {
+    return getSkillSummary(lessonId)
+      .filter(skill => skill.attempted > 0)
+      .sort((a, b) => a.mastery - b.mastery)
+      .slice(0, limit);
+  }
+
+  function getStrongestSkills(lessonId = "1.1", limit = 3) {
+    return getSkillSummary(lessonId)
+      .filter(skill => skill.attempted > 0)
+      .sort((a, b) => b.mastery - a.mastery)
+      .slice(0, limit);
+  }
+
+  function calculateCoveragePercent(lessonId = "1.1", requiredProblemTypes = []) {
+    const progress = getSkillProgress(lessonId);
+
+    if (!Array.isArray(requiredProblemTypes) || requiredProblemTypes.length === 0) {
       return 0;
     }
 
-    return Math.round((correct / attempted) * 100);
+    const covered = requiredProblemTypes.filter(type => {
+      return Number(progress?.[type]?.attempted || 0) > 0;
+    }).length;
+
+    return Math.round((covered / requiredProblemTypes.length) * 100);
   }
 
   function applyMinimumAttemptGate(rawMastery, state) {
@@ -105,40 +211,34 @@ const AlgebraStudentSessionEngine = (() => {
       0,
       MIN_ATTEMPTS_FOR_UNLOCK - attempted
     );
+
     state.masteryGateActive = attempted < MIN_ATTEMPTS_FOR_UNLOCK;
 
     return state;
   }
 
   function calculateMastery(state) {
-    if (state.attempted <= 0) {
-      return 0;
-    }
+    if (Number(state.attempted || 0) <= 0) return 0;
 
     const accuracyScore = calculateAccuracy(
-      state.correct,
-      state.attempted
+      Number(state.correct || 0),
+      Number(state.attempted || 0)
     );
 
     const hintPenalty = Math.min(
-      state.hintsUsed * 4,
+      Number(state.hintsUsed || 0) * 4,
       20
     );
 
     const streakBonus = Math.min(
-      state.bestStreak * 3,
+      Number(state.bestStreak || 0) * 3,
       15
     );
 
-    /*
-      Previous version reached full confidence after 5 attempts.
-      New version builds confidence toward 12 attempts.
-      This prevents fast unlocking after only 4–6 correct questions.
-    */
     const attemptConfidence =
-      state.attempted >= MIN_ATTEMPTS_FOR_UNLOCK
+      Number(state.attempted || 0) >= MIN_ATTEMPTS_FOR_UNLOCK
         ? 1
-        : state.attempted / MIN_ATTEMPTS_FOR_UNLOCK;
+        : Number(state.attempted || 0) / MIN_ATTEMPTS_FOR_UNLOCK;
 
     let mastery =
       (accuracyScore - hintPenalty + streakBonus) *
@@ -147,15 +247,14 @@ const AlgebraStudentSessionEngine = (() => {
     mastery = Math.max(0, Math.min(100, mastery));
     mastery = Math.round(mastery);
 
-    mastery = applyMinimumAttemptGate(mastery, state);
-
-    return mastery;
+    return applyMinimumAttemptGate(mastery, state);
   }
 
   function recordAttempt(
     lessonId = "1.1",
     isCorrect = false,
-    difficulty = "core"
+    difficulty = "core",
+    problemType = null
   ) {
     const state = loadSession(lessonId);
 
@@ -174,6 +273,8 @@ const AlgebraStudentSessionEngine = (() => {
       state.wrong += 1;
       state.currentStreak = 0;
     }
+
+    updateSkillProgress(state, problemType, isCorrect);
 
     state.accuracy = calculateAccuracy(
       state.correct,
@@ -196,7 +297,6 @@ const AlgebraStudentSessionEngine = (() => {
     state.lastActivity = new Date().toISOString();
 
     updateGateFields(state);
-
     state.mastery = calculateMastery(state);
 
     saveSession(lessonId, state);
@@ -205,7 +305,7 @@ const AlgebraStudentSessionEngine = (() => {
   }
 
   function resetSession(lessonId = "1.1") {
-    const fresh = { ...DEFAULT_STATE };
+    const fresh = cloneDefaultState();
     saveSession(lessonId, fresh);
     return fresh;
   }
@@ -274,7 +374,7 @@ const AlgebraStudentSessionEngine = (() => {
     return "Keep practicing. Accuracy, coverage, and consistency will build mastery.";
   }
 
-  function exportSessionSummary(lessonId = "1.1") {
+  function exportSessionSummary(lessonId = "1.1", requiredProblemTypes = []) {
     const state = loadSession(lessonId);
 
     return {
@@ -282,6 +382,10 @@ const AlgebraStudentSessionEngine = (() => {
       status: getLessonStatus(lessonId),
       canUnlock: canUnlockLesson(lessonId),
       coachMessage: getCoachMessage(lessonId),
+      coveragePercent: calculateCoveragePercent(lessonId, requiredProblemTypes),
+      skillSummary: getSkillSummary(lessonId),
+      weakestSkills: getWeakestSkills(lessonId),
+      strongestSkills: getStrongestSkills(lessonId),
       ...state
     };
   }
@@ -292,13 +396,20 @@ const AlgebraStudentSessionEngine = (() => {
     recordAttempt,
     recordHint,
     resetSession,
+
     getLessonStatus,
     getCoachMessage,
     exportSessionSummary,
+
     calculateAccuracy,
     calculateMastery,
 
-    // New exports
+    getSkillProgress,
+    getSkillSummary,
+    getWeakestSkills,
+    getStrongestSkills,
+    calculateCoveragePercent,
+
     canUnlockLesson,
     MIN_ATTEMPTS_FOR_UNLOCK
   };
