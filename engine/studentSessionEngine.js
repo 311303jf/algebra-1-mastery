@@ -1,9 +1,18 @@
 /*
   Algebra OS — Student Session Engine
-  Version: 1.0
+  Version: 1.1 Minimum Questions Gate
+
+  New mastery rule:
+  - A student cannot unlock full mastery before 12 independent attempts.
+  - Before 12 attempts, mastery is capped at 79%.
+  - Assisted questions/hints do not count as independent attempts because lesson.html
+    already prevents hinted questions from calling recordAttempt().
 */
 
 const AlgebraStudentSessionEngine = (() => {
+
+  const MIN_ATTEMPTS_FOR_UNLOCK = 12;
+  const MASTERY_CAP_BEFORE_MIN_ATTEMPTS = 79;
 
   const DEFAULT_STATE = {
     attempted: 0,
@@ -15,7 +24,12 @@ const AlgebraStudentSessionEngine = (() => {
     mastery: 0,
     accuracy: 0,
     difficulty: "core",
-    lastActivity: null
+    lastActivity: null,
+
+    // Added for transparency/debugging
+    minAttemptsForUnlock: MIN_ATTEMPTS_FOR_UNLOCK,
+    attemptsRemainingForUnlock: MIN_ATTEMPTS_FOR_UNLOCK,
+    masteryGateActive: true
   };
 
   function storageKey(lessonId) {
@@ -30,10 +44,29 @@ const AlgebraStudentSessionEngine = (() => {
     }
 
     try {
-      return {
+      const loaded = {
         ...DEFAULT_STATE,
         ...JSON.parse(saved)
       };
+
+      // Keep old saved sessions compatible with the new gate.
+      loaded.minAttemptsForUnlock = MIN_ATTEMPTS_FOR_UNLOCK;
+      loaded.attemptsRemainingForUnlock = Math.max(
+        0,
+        MIN_ATTEMPTS_FOR_UNLOCK - Number(loaded.attempted || 0)
+      );
+      loaded.masteryGateActive =
+        Number(loaded.attempted || 0) < MIN_ATTEMPTS_FOR_UNLOCK;
+
+      // Recalculate mastery using the new rule so old sessions do not bypass the gate.
+      loaded.accuracy = calculateAccuracy(
+        Number(loaded.correct || 0),
+        Number(loaded.attempted || 0)
+      );
+
+      loaded.mastery = calculateMastery(loaded);
+
+      return loaded;
     } catch (error) {
       return { ...DEFAULT_STATE };
     }
@@ -52,6 +85,29 @@ const AlgebraStudentSessionEngine = (() => {
     }
 
     return Math.round((correct / attempted) * 100);
+  }
+
+  function applyMinimumAttemptGate(rawMastery, state) {
+    const attempted = Number(state.attempted || 0);
+
+    if (attempted < MIN_ATTEMPTS_FOR_UNLOCK) {
+      return Math.min(rawMastery, MASTERY_CAP_BEFORE_MIN_ATTEMPTS);
+    }
+
+    return rawMastery;
+  }
+
+  function updateGateFields(state) {
+    const attempted = Number(state.attempted || 0);
+
+    state.minAttemptsForUnlock = MIN_ATTEMPTS_FOR_UNLOCK;
+    state.attemptsRemainingForUnlock = Math.max(
+      0,
+      MIN_ATTEMPTS_FOR_UNLOCK - attempted
+    );
+    state.masteryGateActive = attempted < MIN_ATTEMPTS_FOR_UNLOCK;
+
+    return state;
   }
 
   function calculateMastery(state) {
@@ -74,16 +130,26 @@ const AlgebraStudentSessionEngine = (() => {
       15
     );
 
+    /*
+      Previous version reached full confidence after 5 attempts.
+      New version builds confidence toward 12 attempts.
+      This prevents fast unlocking after only 4–6 correct questions.
+    */
     const attemptConfidence =
-      state.attempted >= 5 ? 1 : state.attempted / 5;
+      state.attempted >= MIN_ATTEMPTS_FOR_UNLOCK
+        ? 1
+        : state.attempted / MIN_ATTEMPTS_FOR_UNLOCK;
 
     let mastery =
       (accuracyScore - hintPenalty + streakBonus) *
       attemptConfidence;
 
     mastery = Math.max(0, Math.min(100, mastery));
+    mastery = Math.round(mastery);
 
-    return Math.round(mastery);
+    mastery = applyMinimumAttemptGate(mastery, state);
+
+    return mastery;
   }
 
   function recordAttempt(
@@ -114,6 +180,8 @@ const AlgebraStudentSessionEngine = (() => {
       state.attempted
     );
 
+    updateGateFields(state);
+
     state.mastery = calculateMastery(state);
 
     saveSession(lessonId, state);
@@ -126,6 +194,9 @@ const AlgebraStudentSessionEngine = (() => {
 
     state.hintsUsed += 1;
     state.lastActivity = new Date().toISOString();
+
+    updateGateFields(state);
+
     state.mastery = calculateMastery(state);
 
     saveSession(lessonId, state);
@@ -139,14 +210,29 @@ const AlgebraStudentSessionEngine = (() => {
     return fresh;
   }
 
+  function canUnlockLesson(lessonId = "1.1", targetMastery = 80) {
+    const state = loadSession(lessonId);
+
+    return (
+      state.attempted >= MIN_ATTEMPTS_FOR_UNLOCK &&
+      state.mastery >= targetMastery
+    );
+  }
+
   function getLessonStatus(lessonId = "1.1") {
     const state = loadSession(lessonId);
 
-    if (state.mastery >= 85) {
+    if (
+      state.attempted >= MIN_ATTEMPTS_FOR_UNLOCK &&
+      state.mastery >= 85
+    ) {
       return "mastered";
     }
 
-    if (state.mastery >= 70) {
+    if (
+      state.attempted >= MIN_ATTEMPTS_FOR_UNLOCK &&
+      state.mastery >= 70
+    ) {
       return "proficient";
     }
 
@@ -161,8 +247,12 @@ const AlgebraStudentSessionEngine = (() => {
     const state = loadSession(lessonId);
     const status = getLessonStatus(lessonId);
 
+    if (state.attempted > 0 && state.attempted < MIN_ATTEMPTS_FOR_UNLOCK) {
+      return `Good start. Complete at least ${MIN_ATTEMPTS_FOR_UNLOCK} independent questions before mastery can unlock the next lesson.`;
+    }
+
     if (status === "mastered") {
-      return "Excellent. You have demonstrated strong mastery. You are ready for the next lesson.";
+      return "Excellent. You have demonstrated strong mastery across enough practice. You are ready for the next lesson.";
     }
 
     if (status === "proficient") {
@@ -178,10 +268,10 @@ const AlgebraStudentSessionEngine = (() => {
     }
 
     if (state.attempted === 0) {
-      return "Start with one question. Focus on what operation is attached to x.";
+      return `Start with one question. You need at least ${MIN_ATTEMPTS_FOR_UNLOCK} independent attempts before mastery can unlock the next lesson.`;
     }
 
-    return "Keep practicing. Accuracy and consistency will build mastery.";
+    return "Keep practicing. Accuracy, coverage, and consistency will build mastery.";
   }
 
   function exportSessionSummary(lessonId = "1.1") {
@@ -190,6 +280,7 @@ const AlgebraStudentSessionEngine = (() => {
     return {
       lessonId,
       status: getLessonStatus(lessonId),
+      canUnlock: canUnlockLesson(lessonId),
       coachMessage: getCoachMessage(lessonId),
       ...state
     };
@@ -205,8 +296,13 @@ const AlgebraStudentSessionEngine = (() => {
     getCoachMessage,
     exportSessionSummary,
     calculateAccuracy,
-    calculateMastery
+    calculateMastery,
+
+    // New exports
+    canUnlockLesson,
+    MIN_ATTEMPTS_FOR_UNLOCK
   };
 
 })();
+
 window.AlgebraStudentSessionEngine = AlgebraStudentSessionEngine;
