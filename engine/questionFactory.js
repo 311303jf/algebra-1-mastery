@@ -231,6 +231,29 @@ const GENERATORS = {
   identify_exponential_function: generateIdentifyExponentialFunction,
   compare_exponential_growth: generateCompareExponentialGrowth,
 
+  // ============================================================
+  // UNIT 7 — POLYNOMIALS
+  // ============================================================
+  classify_polynomial_degree: generateClassifyPolynomialDegree,
+  classify_polynomial_terms: generateClassifyPolynomialTerms,
+  identify_leading_coefficient: generateIdentifyLeadingCoefficient,
+  standard_form_polynomial: generateStandardFormPolynomial,
+
+  add_polynomials: generateAddPolynomials,
+  subtract_polynomials: generateSubtractPolynomials,
+  combine_like_terms_polynomial: generateCombineLikeTermsPolynomial,
+  polynomial_expression_equivalence: generatePolynomialExpressionEquivalence,
+
+  monomial_times_polynomial: generateMonomialTimesPolynomial,
+  binomial_times_binomial: generateBinomialTimesBinomial,
+  polynomial_area_model: generatePolynomialAreaModel,
+  distributive_polynomial: generateDistributivePolynomial,
+
+  square_of_binomial: generateSquareOfBinomial,
+  difference_of_squares_expand: generateDifferenceOfSquaresExpand,
+  special_product_identify: generateSpecialProductIdentify,
+  special_product_application: generateSpecialProductApplication,
+
   // LEGACY GENERATORS
   exponent_rules: generateExponentRules,
   factoring: generateFactoring,
@@ -702,6 +725,96 @@ one_step_division_equation: {
       "Keep the same base."
     ],
     misconception: "Students often add the exponents instead of multiplying them in a power of a power."
+  },
+
+  classify_polynomial_degree: {
+    hintSteps: [
+      "Write the polynomial in standard form.",
+      "Find the term with the greatest exponent.",
+      "The greatest exponent is the degree of the polynomial."
+    ],
+    misconception: "Students often use the number of terms instead of the greatest exponent to identify degree."
+  },
+
+  classify_polynomial_terms: {
+    hintSteps: [
+      "Count the terms separated by plus or minus signs.",
+      "One term is a monomial, two terms is a binomial, and three terms is a trinomial.",
+      "Use the term count to classify the polynomial."
+    ],
+    misconception: "Students often count factors inside a term as separate terms."
+  },
+
+  identify_leading_coefficient: {
+    hintSteps: [
+      "Write the polynomial in standard form.",
+      "Identify the term with the highest degree.",
+      "The coefficient of that term is the leading coefficient."
+    ],
+    misconception: "Students often choose the first coefficient shown instead of rewriting in standard form first."
+  },
+
+  standard_form_polynomial: {
+    hintSteps: [
+      "Identify the degree of each term.",
+      "Order the terms from greatest degree to least degree.",
+      "Keep each coefficient and sign with its term."
+    ],
+    misconception: "Students often move terms but forget to keep the correct signs."
+  },
+
+  add_polynomials: {
+    hintSteps: [
+      "Group like terms with the same variable and exponent.",
+      "Add the coefficients of like terms.",
+      "Write the result in standard form."
+    ],
+    misconception: "Students often combine terms with different exponents as if they were like terms."
+  },
+
+  subtract_polynomials: {
+    hintSteps: [
+      "Distribute the subtraction sign to every term in the second polynomial.",
+      "Group like terms.",
+      "Combine coefficients and write the result in standard form."
+    ],
+    misconception: "Students often change only the first sign of the second polynomial instead of all signs."
+  },
+
+  monomial_times_polynomial: {
+    hintSteps: [
+      "Distribute the monomial to each term in the polynomial.",
+      "Multiply the coefficients.",
+      "Use exponent rules for matching variables."
+    ],
+    misconception: "Students often multiply only the first term and forget to distribute to every term."
+  },
+
+  binomial_times_binomial: {
+    hintSteps: [
+      "Multiply each term in the first binomial by each term in the second binomial.",
+      "Combine like terms if possible.",
+      "Write the product in standard form."
+    ],
+    misconception: "Students often multiply first and last terms only and forget the middle products."
+  },
+
+  square_of_binomial: {
+    hintSteps: [
+      "Use the pattern (a + b)² = a² + 2ab + b² or (a - b)² = a² - 2ab + b².",
+      "Square the first term.",
+      "Double the product of the two terms, then square the last term."
+    ],
+    misconception: "Students often think (a + b)² equals a² + b² and forget the middle term."
+  },
+
+  difference_of_squares_expand: {
+    hintSteps: [
+      "Recognize the pattern (a + b)(a - b).",
+      "Square the first term and square the second term.",
+      "Subtract the squares."
+    ],
+    misconception: "Students often include a middle term even though the middle terms cancel."
   },
 
   exponent_rules: {
@@ -2471,6 +2584,346 @@ function generateCompareExponentialGrowth(difficulty = 1) {
 }
 
 
+/* ============================================================
+   GENERATORS — UNIT 7: POLYNOMIALS
+   QuestionFactory 4.0 Phase B
+   ============================================================ */
+
+function generateClassifyPolynomialDegree(difficulty = 1) {
+  const mode = pickRandom([
+    { degree: 1, name: "Linear" },
+    { degree: 2, name: "Quadratic" },
+    { degree: 3, name: "Cubic" },
+    { degree: 4, name: "Quartic" }
+  ]);
+  const a = randInt(2, 8);
+  const b = randInt(1, 9);
+  const c = randInt(-9, 9, [0]);
+  const prompt = `Classify the polynomial by degree: ${formatTermPower(a, "x", mode.degree)} ${formatSignedTermPower(b, "x", Math.max(1, mode.degree - 1))} ${formatSigned(c)}`;
+  return buildQuestion({
+    prompt,
+    answer: mode.name,
+    problemType: "classify_polynomial_degree",
+    difficulty,
+    solutionSteps: [
+      "The degree of a polynomial is the greatest exponent of the variable.",
+      `The greatest exponent is ${mode.degree}.`,
+      `A polynomial with degree ${mode.degree} is ${mode.name.toLowerCase()}.`
+    ]
+  });
+}
+
+function generateClassifyPolynomialTerms(difficulty = 1) {
+  const modes = [
+    { terms: 1, name: "Monomial" },
+    { terms: 2, name: "Binomial" },
+    { terms: 3, name: "Trinomial" },
+    { terms: 4, name: "Polynomial with 4 terms" }
+  ];
+  const mode = pickRandom(modes);
+  const a = randInt(2, 9);
+  const b = randInt(1, 9);
+  const c = randInt(1, 9);
+  const d = randInt(1, 9);
+  let expression = `${formatTermPower(a, "x", 3)}`;
+  if (mode.terms >= 2) expression += ` ${formatSignedTermPower(b, "x", 2)}`;
+  if (mode.terms >= 3) expression += ` ${formatSignedTerm(c, "x")}`;
+  if (mode.terms >= 4) expression += ` ${formatSigned(d)}`;
+  return buildQuestion({
+    prompt: `Classify the polynomial by number of terms: ${expression}`,
+    answer: mode.name,
+    problemType: "classify_polynomial_terms",
+    difficulty,
+    solutionSteps: [
+      "Count the terms separated by plus or minus signs.",
+      `This expression has ${mode.terms} term(s).`,
+      `Therefore, it is a ${mode.name.toLowerCase()}.`
+    ]
+  });
+}
+
+function generateIdentifyLeadingCoefficient(difficulty = 1) {
+  const leading = pickRandom([-7, -5, -3, 2, 4, 6, 8]);
+  const mid = randInt(-9, 9, [0]);
+  const constant = randInt(-12, 12, [0]);
+  const degree = pickRandom([2, 3, 4]);
+  const prompt = `Identify the leading coefficient of ${formatTermPower(mid, "x", degree - 1)} ${formatSigned(constant)} ${formatSignedTermPower(leading, "x", degree)}.`;
+  return buildQuestion({
+    prompt,
+    answer: `${leading}`,
+    problemType: "identify_leading_coefficient",
+    difficulty,
+    solutionSteps: [
+      "Write the polynomial in standard form from greatest exponent to least exponent.",
+      `The highest-degree term is ${formatTermPower(leading, "x", degree)}.`,
+      `The leading coefficient is ${leading}.`
+    ]
+  });
+}
+
+function generateStandardFormPolynomial(difficulty = 1) {
+  const a = pickRandom([-6, -4, -2, 2, 3, 5, 7]);
+  const b = randInt(-8, 8, [0]);
+  const c = randInt(-10, 10, [0]);
+  const expression = `${formatTermPower(b, "x", 1)} ${formatSigned(c)} ${formatSignedTermPower(a, "x", 3)}`;
+  const answer = `${formatTermPower(a, "x", 3)} ${formatSignedTerm(b, "x")} ${formatSigned(c)}`;
+  return buildQuestion({
+    prompt: `Write the polynomial in standard form: ${expression}`,
+    answer,
+    problemType: "standard_form_polynomial",
+    difficulty,
+    solutionSteps: [
+      "Standard form orders terms from greatest degree to least degree.",
+      "The cubic term goes first, then the linear term, then the constant.",
+      `Standard form: ${answer}`
+    ]
+  });
+}
+
+function generateAddPolynomials(difficulty = 1) {
+  const a = randInt(-6, 6, [0]);
+  const b = randInt(-8, 8, [0]);
+  const c = randInt(-10, 10, [0]);
+  const d = randInt(-6, 6, [0]);
+  const e = randInt(-8, 8, [0]);
+  const f = randInt(-10, 10, [0]);
+  const answer = formatQuadraticPolynomial(a + d, b + e, c + f);
+  return buildQuestion({
+    prompt: `Add: (${formatQuadraticPolynomial(a, b, c)}) + (${formatQuadraticPolynomial(d, e, f)})`,
+    answer,
+    problemType: "add_polynomials",
+    difficulty,
+    solutionSteps: [
+      "Combine like terms with the same exponent.",
+      `x² terms: ${a} + ${d} = ${a + d}`,
+      `x terms: ${b} + ${e} = ${b + e}`,
+      `constants: ${c} + ${f} = ${c + f}`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generateSubtractPolynomials(difficulty = 1) {
+  const a = randInt(-6, 6, [0]);
+  const b = randInt(-8, 8, [0]);
+  const c = randInt(-10, 10, [0]);
+  const d = randInt(-6, 6, [0]);
+  const e = randInt(-8, 8, [0]);
+  const f = randInt(-10, 10, [0]);
+  const answer = formatQuadraticPolynomial(a - d, b - e, c - f);
+  return buildQuestion({
+    prompt: `Subtract: (${formatQuadraticPolynomial(a, b, c)}) - (${formatQuadraticPolynomial(d, e, f)})`,
+    answer,
+    problemType: "subtract_polynomials",
+    difficulty,
+    solutionSteps: [
+      "Distribute the subtraction sign to every term in the second polynomial.",
+      `x² terms: ${a} - (${d}) = ${a - d}`,
+      `x terms: ${b} - (${e}) = ${b - e}`,
+      `constants: ${c} - (${f}) = ${c - f}`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generateCombineLikeTermsPolynomial(difficulty = 1) {
+  const a = randInt(2, 7);
+  const b = randInt(-6, 6, [0]);
+  const c = randInt(2, 7);
+  const d = randInt(-8, 8, [0]);
+  const answer = `${formatTermPower(a + c, "x", 2)} ${formatSignedTerm(b + d, "x")}`;
+  return buildQuestion({
+    prompt: `Combine like terms: ${formatTermPower(a, "x", 2)} ${formatSignedTerm(b, "x")} ${formatSignedTermPower(c, "x", 2)} ${formatSignedTerm(d, "x")}`,
+    answer,
+    problemType: "combine_like_terms_polynomial",
+    difficulty,
+    solutionSteps: [
+      "Combine x² terms with x² terms and x terms with x terms.",
+      `${a}x² + ${c}x² = ${a + c}x²`,
+      `${b}x + ${d}x = ${b + d}x`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generatePolynomialExpressionEquivalence(difficulty = 1) {
+  const a = randInt(2, 6);
+  const b = randInt(-6, 6, [0]);
+  const c = randInt(-8, 8, [0]);
+  const answer = formatQuadraticPolynomial(a, b, c);
+  return buildQuestion({
+    prompt: `Which expression is equivalent to ${formatTermPower(a - 1, "x", 2)} + ${formatTermPower(1, "x", 2)} ${formatSignedTerm(b, "x")} ${formatSigned(c)}?`,
+    answer,
+    problemType: "polynomial_expression_equivalence",
+    difficulty,
+    solutionSteps: [
+      "Combine like terms.",
+      `${a - 1}x² + x² = ${a}x²`,
+      `The equivalent expression is ${answer}.`
+    ]
+  });
+}
+
+function generateMonomialTimesPolynomial(difficulty = 1) {
+  const k = pickRandom([-5, -3, -2, 2, 3, 4, 5]);
+  const a = randInt(1, 6);
+  const b = randInt(-8, 8, [0]);
+  const c = randInt(-8, 8, [0]);
+  const answer = `${formatTermPower(k * a, "x", 3)} ${formatSignedTermPower(k * b, "x", 2)} ${formatSignedTerm(k * c, "x")}`;
+  return buildQuestion({
+    prompt: `Multiply: ${formatTerm(k, "x")}(${formatQuadraticPolynomial(a, b, c)})`,
+    answer,
+    problemType: "monomial_times_polynomial",
+    difficulty,
+    solutionSteps: [
+      "Distribute the monomial to each term.",
+      `Multiply ${formatTerm(k, "x")} by each term inside the parentheses.`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generateBinomialTimesBinomial(difficulty = 1) {
+  const r = randInt(-7, 7, [0]);
+  const s = randInt(-7, 7, [0]);
+  const b = r + s;
+  const c = r * s;
+  const answer = formatQuadraticPolynomial(1, b, c);
+  return buildQuestion({
+    prompt: `Multiply: (x ${formatSigned(r)})(x ${formatSigned(s)})`,
+    answer,
+    problemType: "binomial_times_binomial",
+    difficulty,
+    solutionSteps: [
+      "Multiply each term in the first binomial by each term in the second binomial.",
+      `The middle coefficient is ${r} + ${s} = ${b}.`,
+      `The constant is ${r} × ${s} = ${c}.`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generatePolynomialAreaModel(difficulty = 1) {
+  const length = randInt(2, 8);
+  const width = randInt(2, 8);
+  const answer = formatQuadraticPolynomial(1, length + width, length * width);
+  return buildQuestion({
+    prompt: `A rectangle has side lengths (x + ${length}) and (x + ${width}). What polynomial represents the area?`,
+    answer,
+    problemType: "polynomial_area_model",
+    difficulty,
+    solutionSteps: [
+      "Area is length times width.",
+      `(x + ${length})(x + ${width})`,
+      `Multiply the binomials to get ${answer}.`
+    ]
+  });
+}
+
+function generateDistributivePolynomial(difficulty = 1) {
+  const k = randInt(2, 7);
+  const a = randInt(1, 6);
+  const b = randInt(-8, 8, [0]);
+  const answer = `${formatTermPower(k * a, "x", 2)} ${formatSignedTerm(k * b, "x")}`;
+  return buildQuestion({
+    prompt: `Use the distributive property to simplify: ${k}x(${formatTerm(a, "x")} ${formatSigned(b)})`,
+    answer,
+    problemType: "distributive_polynomial",
+    difficulty,
+    solutionSteps: [
+      "Distribute the monomial to each term inside the parentheses.",
+      `${k}x × ${formatTerm(a, "x")} = ${formatTermPower(k * a, "x", 2)}`,
+      `${k}x × ${b} = ${formatTerm(k * b, "x")}`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generateSquareOfBinomial(difficulty = 1) {
+  const sign = pickRandom([1, -1]);
+  const b = randInt(2, 9);
+  const mid = sign * 2 * b;
+  const answer = formatQuadraticPolynomial(1, mid, b * b);
+  return buildQuestion({
+    prompt: `Expand: (x ${formatSigned(sign * b)})²`,
+    answer,
+    problemType: "square_of_binomial",
+    difficulty,
+    solutionSteps: [
+      "Use the square of a binomial pattern.",
+      `(x ${formatSigned(sign * b)})² = x² ${formatSignedTerm(mid, "x")} ${formatSigned(b * b)}`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generateDifferenceOfSquaresExpand(difficulty = 1) {
+  const b = randInt(2, 9);
+  const answer = `x² - ${b * b}`;
+  return buildQuestion({
+    prompt: `Expand: (x + ${b})(x - ${b})`,
+    answer,
+    problemType: "difference_of_squares_expand",
+    difficulty,
+    solutionSteps: [
+      "This is the difference of squares pattern.",
+      `(x + ${b})(x - ${b}) = x² - ${b}²`,
+      `Result: ${answer}`
+    ]
+  });
+}
+
+function generateSpecialProductIdentify(difficulty = 1) {
+  const mode = pickRandom(["Perfect square trinomial", "Difference of squares"]);
+  const b = randInt(2, 9);
+  const prompt = mode === "Perfect square trinomial"
+    ? `Identify the special product pattern: x² + ${2 * b}x + ${b * b}`
+    : `Identify the special product pattern: x² - ${b * b}`;
+  return buildQuestion({
+    prompt,
+    answer: mode,
+    problemType: "special_product_identify",
+    difficulty,
+    solutionSteps: [
+      "Look for a known special product pattern.",
+      mode === "Perfect square trinomial"
+        ? "A perfect square trinomial has the form a² + 2ab + b² or a² - 2ab + b²."
+        : "A difference of squares has the form a² - b².",
+      `The pattern is ${mode}.`
+    ]
+  });
+}
+
+function generateSpecialProductApplication(difficulty = 1) {
+  const b = randInt(2, 9);
+  const mode = pickRandom(["square", "difference"]);
+  if (mode === "square") {
+    const answer = formatQuadraticPolynomial(1, 2 * b, b * b);
+    return buildQuestion({
+      prompt: `Use a special product pattern to expand: (x + ${b})²`,
+      answer,
+      problemType: "special_product_application",
+      difficulty,
+      solutionSteps: [
+        "Use (a + b)² = a² + 2ab + b².",
+        `The result is ${answer}.`
+      ]
+    });
+  }
+  const answer = `x² - ${b * b}`;
+  return buildQuestion({
+    prompt: `Use a special product pattern to expand: (x + ${b})(x - ${b})`,
+    answer,
+    problemType: "special_product_application",
+    difficulty,
+    solutionSteps: [
+      "Use (a + b)(a - b) = a² - b².",
+      `The result is ${answer}.`
+    ]
+  });
+}
+
+
 function generateExponentRules(difficulty = 1) {
   const base = pickRandom(["x", "a", "m"]);
   const p = randInt(2, 6);
@@ -2829,6 +3282,17 @@ function generateChoices(answer, problemType) {
     ]);
   }
 
+  if (
+    type.includes("polynomial") ||
+    type.includes("binomial") ||
+    type.includes("special_product") ||
+    type.includes("difference_of_squares") ||
+    type.includes("monomial_times") ||
+    type.includes("distributive_polynomial")
+  ) {
+    return generatePolynomialAnswerChoices(answer, problemType, finalizeChoices);
+  }
+
   if (problemType === "absolute_value_functions") {
     if (answer === "opens up" || answer === "opens down") {
       return finalizeChoices(answer, [
@@ -2955,6 +3419,73 @@ function generateChoices(answer, problemType) {
   }
 
   return finalizeChoices(answer, shuffle(Array.from(distractors)));
+}
+
+
+function generatePolynomialAnswerChoices(answer, problemType, finalizeChoices) {
+  const text = String(answer || "").trim();
+  const type = String(problemType || "").toLowerCase();
+
+  if (["Linear", "Quadratic", "Cubic", "Quartic"].includes(text)) {
+    return finalizeChoices(text, [
+      "Linear",
+      "Quadratic",
+      "Cubic",
+      "Quartic"
+    ]);
+  }
+
+  if (["Monomial", "Binomial", "Trinomial", "Polynomial with 4 terms"].includes(text)) {
+    return finalizeChoices(text, [
+      "Monomial",
+      "Binomial",
+      "Trinomial",
+      "Polynomial with 4 terms"
+    ]);
+  }
+
+  if (text === "Perfect square trinomial" || text === "Difference of squares") {
+    return finalizeChoices(text, [
+      "Perfect square trinomial",
+      "Difference of squares",
+      "Sum of cubes",
+      "Not a special product"
+    ]);
+  }
+
+  if (!Number.isNaN(Number(text))) {
+    const value = Number(text);
+    return finalizeChoices(text, [
+      `${value + 1}`,
+      `${value - 1}`,
+      `${-value}`,
+      "Cannot be determined"
+    ]);
+  }
+
+  const coeffs = text.match(/-?\d+/g)?.map(Number) || [];
+  const candidates = [];
+
+  if (text.includes("x²")) {
+    candidates.push(text.replace("x²", "x"));
+    candidates.push(text.replace(/\+\s*/g, "- "));
+    candidates.push(text.replace(/-\s*/g, "+ "));
+  }
+
+  if (coeffs.length > 0) {
+    const changedFirst = text.replace(String(coeffs[0]), String(coeffs[0] + 1));
+    candidates.push(changedFirst);
+  }
+
+  candidates.push(
+    "x² + 2x + 1",
+    "x² - 2x + 1",
+    "2x² + 3x + 1",
+    "x² - 4",
+    "Cannot be determined"
+  );
+
+  return finalizeChoices(text, candidates);
 }
 
 function generateSimpleInequalityAnswerChoices(answer, finalizeChoices) {
@@ -3161,6 +3692,42 @@ function pickCleanPoint() {
   };
 }
 
+
+
+/* ============================================================
+   POLYNOMIAL FORMAT HELPERS
+   ============================================================ */
+
+function formatTermPower(coefficient, variable, power) {
+  if (power === 0) return formatNumber(coefficient);
+  if (power === 1) return formatTerm(coefficient, variable);
+  if (coefficient === 1) return `${variable}²`.replace("²", power === 2 ? "²" : `^${power}`);
+  if (coefficient === -1) return `-${variable}${power === 2 ? "²" : `^${power}`}`;
+  return `${formatNumber(coefficient)}${variable}${power === 2 ? "²" : `^${power}`}`;
+}
+
+function formatSignedTermPower(coefficient, variable, power) {
+  if (coefficient < 0) return `- ${formatTermPower(Math.abs(coefficient), variable, power)}`;
+  return `+ ${formatTermPower(coefficient, variable, power)}`;
+}
+
+function formatQuadraticPolynomial(a, b, c) {
+  const parts = [];
+
+  if (a !== 0) parts.push(formatTermPower(a, "x", 2));
+
+  if (b !== 0) {
+    if (parts.length === 0) parts.push(formatTerm(b, "x"));
+    else parts.push(formatSignedTerm(b, "x"));
+  }
+
+  if (c !== 0) {
+    if (parts.length === 0) parts.push(formatNumber(c));
+    else parts.push(formatSigned(c));
+  }
+
+  return parts.join(" ").trim() || "0";
+}
 
 /* ============================================================
    RIGOR & VARIATION HELPERS
