@@ -1,6 +1,6 @@
 /* =========================================================
    ALGEBRA OS — recoveryLessonEngine.js
-   Version: 1900 — SEMANTIC SKILL VERIFIED RECOVERY TUTOR ROUTING
+   Version: 2000 — RECOVERY TUTOR CERTIFICATION ENGINE
 
    PURPOSE:
    - Compatible with current lesson.html.
@@ -23,6 +23,7 @@
    - Includes certification.
    - v1901: Does not reveal the final solution before the final tutor step.
    - v1902: Adds Tutor Choice Quality Gate for all tutor-generated choices.
+   - v2000: Adds Recovery Tutor Certification Engine for mathematical integrity.
 ========================================================= */
 
 const RECOVERY_PREFIX = "algebra_recovery_";
@@ -168,35 +169,29 @@ function tutorAnswerMatches(input, expectedList) {
 ========================================================= */
 
 function generateRecoveryLesson(problemType = "one_step_addition_equation", metadata = {}, currentQuestion = null) {
+  /*
+    v2000 Recovery Tutor Certification Engine:
+    The tutor must not trust labels or stale answers blindly.
+    It builds the tutor, verifies the math, repairs the final solution if needed,
+    and only then returns a tutor session.
+  */
+
   installRecoveryTutorKeyboardSupport();
 
-  const requestedSkill = normalizeSkill(problemType);
-  const semanticSkill = detectRecoverySkillFromQuestion(currentQuestion);
-  const effectiveSkill = chooseEffectiveRecoverySkill(requestedSkill, semanticSkill);
+  const skill = normalizeSkill(problemType);
+  let lesson;
 
-  if (semanticSkill && semanticSkill !== effectiveSkill) {
-    console.warn("Recovery Tutor v1900 Semantic Skill Guard adjusted routing:", {
-      requestedProblemType: problemType,
-      requestedSkill,
-      semanticSkill,
-      effectiveSkill,
-      question: currentQuestion?.prompt || currentQuestion?.question || currentQuestion?.text || currentQuestion
-    });
+  if (isOneStepEquationSkill(skill)) {
+    lesson = buildOneStepEquationLesson(problemType, metadata, currentQuestion);
+  } else if (isMultiStepEquationSkill(skill)) {
+    lesson = buildMultiStepEquationLesson(problemType, metadata, currentQuestion);
+  } else if (isVariablesBothSidesSkill(skill)) {
+    lesson = buildVariablesBothSidesLesson(problemType, metadata, currentQuestion);
+  } else {
+    lesson = buildGenericLesson(problemType, metadata, currentQuestion);
   }
 
-  if (isOneStepEquationSkill(effectiveSkill)) {
-    return buildOneStepEquationLesson(problemType, metadata, currentQuestion);
-  }
-
-  if (isMultiStepEquationSkill(effectiveSkill)) {
-    return buildMultiStepEquationLesson(problemType, metadata, currentQuestion);
-  }
-
-  if (isVariablesBothSidesSkill(effectiveSkill)) {
-    return buildVariablesBothSidesLesson(problemType, metadata, currentQuestion);
-  }
-
-  return buildGenericLesson(problemType, metadata, currentQuestion);
+  return certifyAndRepairRecoveryLesson(lesson, problemType, currentQuestion);
 }
 
 function isOneStepEquationSkill(skill) {
@@ -418,6 +413,10 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
 
 function buildMultiStepEquationLesson(problemType, metadata, currentQuestion) {
   const parsed = parseMultiStepEquation(currentQuestion);
+  if (parsed.tutorType === "certified_mismatch") {
+    return buildSkillMismatchLesson(problemType, metadata, currentQuestion, parsed);
+  }
+
   const recoveryPractice = buildMultiStepRecoveryPracticeItems(parsed);
 
   return {
@@ -513,6 +512,10 @@ function buildMultiStepEquationLesson(problemType, metadata, currentQuestion) {
 
 function buildVariablesBothSidesLesson(problemType, metadata, currentQuestion) {
   const parsed = parseVariablesBothSidesEquation(currentQuestion);
+  if (parsed.tutorType === "certified_mismatch") {
+    return buildSkillMismatchLesson(problemType, metadata, currentQuestion, parsed);
+  }
+
   const recoveryPractice = buildVariablesBothSidesRecoveryPracticeItems(parsed);
 
   return {
@@ -605,6 +608,81 @@ function buildVariablesBothSidesLesson(problemType, metadata, currentQuestion) {
     recoveryPractice
   };
 }
+
+/* =========================================================
+   v2000 — SKILL MISMATCH SAFE TUTOR
+========================================================= */
+
+function buildSkillMismatchLesson(problemType, metadata, currentQuestion, parsed) {
+  const equation = parsed?.equationBefore || extractEquation(getQuestionText(currentQuestion)) || "this problem";
+
+  return {
+    title: "Recovery Tutor: Skill Check Needed",
+
+    diagnostic: {
+      equationBefore: equation,
+      tutorType: "certified_mismatch",
+      reason: parsed?.certificationReason || "The problem structure does not match the requested recovery tutor."
+    },
+
+    conceptSummary: [
+      "Algebra OS detected that the requested tutor skill does not match the structure of this equation.",
+      "To protect students from incorrect instruction, the tutor will not force this problem into the wrong lesson.",
+      "The app should generate a new recovery item that matches the current lesson skill."
+    ],
+
+    misconception:
+      "A tutor should never teach a skill that does not match the equation being shown.",
+
+    tutorDialogue: [
+      {
+        id: "skill_mismatch",
+        tutor: `
+          <div><strong>Equation:</strong> ${escapeHtml(equation)}</div>
+          <div style="margin-top:8px;">This problem does not match the requested tutor skill.</div>
+        `,
+        choices: [
+          "Generate a matching recovery problem",
+          "Force this tutor anyway",
+          "Guess the answer",
+          "Ignore the mismatch"
+        ],
+        expected: ["Generate a matching recovery problem"],
+        explanation:
+          "Correct. Algebra OS should not force a problem into the wrong tutor. A new matching recovery item should be generated.",
+        theory:
+          "A recovery tutor must match the exact skill being taught. Otherwise, students may learn the wrong procedure."
+      }
+    ],
+
+    workedExample: [
+      `Detected equation: ${equation}.`,
+      `Requested skill: ${formatSkillName(problemType)}.`,
+      "The Recovery Tutor Certification Engine blocked this mismatch.",
+      "Generate a new recovery item aligned to the current lesson skill."
+    ],
+
+    video: null,
+
+    recoveryPractice: [
+      {
+        prompt: "What should happen when the tutor skill does not match the equation?",
+        answer: "Generate a matching recovery problem"
+      },
+      {
+        prompt: "Should the app force the wrong tutor?",
+        answer: "No"
+      }
+    ],
+
+    certification: {
+      passed: false,
+      repaired: false,
+      failures: [parsed?.certificationReason || "Skill mismatch detected."]
+    }
+  };
+}
+
 
 /* =========================================================
    GENERIC TUTOR
@@ -784,8 +862,20 @@ function parseOneStepEquation(currentQuestion) {
 ========================================================= */
 
 function parseMultiStepEquation(currentQuestion) {
+  /*
+    v2000 Math Integrity Rule:
+    Do NOT trust currentQuestion.answer for Recovery Tutor math.
+    The tutor must solve the equation independently.
+
+    Example:
+    3x + 5 + 2x = 20
+    Simplified: 5x + 5 = 20
+    Solution: x = 3
+
+    If currentQuestion.answer incorrectly says x = -5, the tutor must repair it.
+  */
+
   const text = getQuestionText(currentQuestion);
-  const answer = getQuestionAnswer(currentQuestion);
   const equation = extractEquation(text) || "3x + 5 + 2x = 20";
 
   const compact = equation.replace(/\s+/g, "").replace(/−/g, "-");
@@ -799,6 +889,14 @@ function parseMultiStepEquation(currentQuestion) {
     const c = coefficientValue(match[3]);
     const d = Number(match[4]);
     const combined = a + c;
+
+    if (combined === 0) {
+      return buildCertifiedTutorMismatchFallback(
+        prettyEquation(equation),
+        "The variable terms cancel out, so this equation needs a special identity/no-solution tutor."
+      );
+    }
+
     const simplifiedEquation = `${formatCoefficient(combined)}x ${signedNumber(b)} = ${formatNumber(d)}`;
     const solution = (d - b) / combined;
 
@@ -806,7 +904,8 @@ function parseMultiStepEquation(currentQuestion) {
       equationBefore: prettyEquation(equation),
       firstAction: "Combine like terms",
       simplifiedEquation: normalizeEquationSpacing(simplifiedEquation),
-      equationAfter: answer || `x = ${formatNumber(solution)}`,
+      equationAfter: `x = ${formatNumber(solution)}`,
+      certifiedSolution: `x = ${formatNumber(solution)}`,
       combineA: a,
       combineC: c,
       constant: b,
@@ -816,8 +915,34 @@ function parseMultiStepEquation(currentQuestion) {
     };
   }
 
-  // Two-step equations such as 3x + 4 = 16 are intentionally NOT accepted here.
-  // They belong to a different skill and should not be forced into Lesson 1.2.
+  // a(x + b) + c = d
+  match = compact.match(/^(-?\d+)\(([a-z])([+\-]-?\d+)\)([+\-]-?\d+)=(-?\d+)$/i);
+  if (match) {
+    const a = Number(match[1]);
+    const variable = match[2];
+    const b = Number(match[3]);
+    const c = Number(match[4]);
+    const d = Number(match[5]);
+    const distributedConstant = a * b;
+    const combinedConstant = distributedConstant + c;
+    const simplifiedEquation = `${formatCoefficient(a)}${variable} ${signedNumber(combinedConstant)} = ${formatNumber(d)}`;
+    const solution = (d - combinedConstant) / a;
+
+    return {
+      equationBefore: prettyEquation(equation),
+      firstAction: "Use the distributive property",
+      simplifiedEquation: normalizeEquationSpacing(simplifiedEquation),
+      equationAfter: `${variable} = ${formatNumber(solution)}`,
+      certifiedSolution: `${variable} = ${formatNumber(solution)}`,
+      coefficient: a,
+      innerConstant: b,
+      outsideConstant: c,
+      distributedConstant,
+      combinedConstant,
+      rightValue: d,
+      tutorType: "distributive_property"
+    };
+  }
 
   // a(x + b) = d
   match = compact.match(/^(-?\d+)\(([a-z])([+\-]-?\d+)\)=(-?\d+)$/i);
@@ -834,7 +959,8 @@ function parseMultiStepEquation(currentQuestion) {
       equationBefore: prettyEquation(equation),
       firstAction: "Use the distributive property",
       simplifiedEquation: normalizeEquationSpacing(simplifiedEquation),
-      equationAfter: answer || `${variable} = ${formatNumber(solution)}`,
+      equationAfter: `${variable} = ${formatNumber(solution)}`,
+      certifiedSolution: `${variable} = ${formatNumber(solution)}`,
       coefficient: a,
       innerConstant: b,
       distributedConstant,
@@ -843,13 +969,17 @@ function parseMultiStepEquation(currentQuestion) {
     };
   }
 
-  return {
-    equationBefore: prettyEquation(equation),
-    firstAction: "Combine like terms",
-    simplifiedEquation: prettyEquation(equation),
-    equationAfter: answer || "x = 3",
-    tutorType: "multi_step_equation"
-  };
+  /*
+    Important:
+    Do NOT accept ax + b = d as Lesson 1.2 here.
+    In Algebra OS, Lesson 1.2 recovery is for:
+    - combine like terms
+    - distributive property
+  */
+  return buildCertifiedTutorMismatchFallback(
+    prettyEquation(equation),
+    "This equation does not show combine-like-terms or distributive-property structure for the multi-step tutor."
+  );
 }
 
 /* =========================================================
@@ -860,8 +990,12 @@ function parseMultiStepEquation(currentQuestion) {
 ========================================================= */
 
 function parseVariablesBothSidesEquation(currentQuestion) {
+  /*
+    v2000 Math Integrity Rule:
+    Do NOT trust currentQuestion.answer for Recovery Tutor math.
+  */
+
   const text = getQuestionText(currentQuestion);
-  const answer = getQuestionAnswer(currentQuestion);
   const equation = extractEquation(text) || "2x + 5 = x + 12";
   const compact = equation.replace(/\s+/g, "").replace(/−/g, "-");
 
@@ -874,6 +1008,14 @@ function parseVariablesBothSidesEquation(currentQuestion) {
     const rightConst = Number(match[4]);
 
     const newCoeff = leftCoeff - rightCoeff;
+
+    if (newCoeff === 0) {
+      return buildCertifiedTutorMismatchFallback(
+        prettyEquation(equation),
+        "The variable terms cancel out, so this equation needs a special identity/no-solution tutor."
+      );
+    }
+
     const afterMoveVariables = `${formatCoefficient(newCoeff)}x ${signedNumber(leftConst)} = ${formatNumber(rightConst)}`;
     const solution = (rightConst - leftConst) / newCoeff;
 
@@ -884,21 +1026,16 @@ function parseVariablesBothSidesEquation(currentQuestion) {
       rightCoeff,
       rightConst,
       afterMoveVariables: normalizeEquationSpacing(afterMoveVariables),
-      equationAfter: answer || `x = ${formatNumber(solution)}`,
+      equationAfter: `x = ${formatNumber(solution)}`,
+      certifiedSolution: `x = ${formatNumber(solution)}`,
       tutorType: "variables_on_both_sides"
     };
   }
 
-  return {
-    equationBefore: prettyEquation(equation),
-    leftCoeff: 2,
-    leftConst: 5,
-    rightCoeff: 1,
-    rightConst: 12,
-    afterMoveVariables: "x + 5 = 12",
-    equationAfter: answer || "x = 7",
-    tutorType: "variables_on_both_sides"
-  };
+  return buildCertifiedTutorMismatchFallback(
+    prettyEquation(equation),
+    "This equation does not show variables on both sides."
+  );
 }
 
 /* =========================================================
@@ -1830,6 +1967,257 @@ function escapeHtml(value) {
 }
 
 /* =========================================================
+   v2000 — RECOVERY TUTOR CERTIFICATION ENGINE
+========================================================= */
+
+function certifyAndRepairRecoveryLesson(lesson, problemType, currentQuestion) {
+  if (!lesson || typeof lesson !== "object") return lesson;
+
+  const diagnostic = lesson.diagnostic || {};
+  const tutorType = diagnostic.tutorType || "";
+
+  if (
+    tutorType === "certified_mismatch" ||
+    tutorType === "generic" ||
+    !diagnostic.equationBefore
+  ) {
+    lesson.certification = {
+      passed: tutorType !== "certified_mismatch",
+      repaired: false,
+      failures: tutorType === "certified_mismatch"
+        ? ["Tutor mismatch fallback activated."]
+        : []
+    };
+    return lesson;
+  }
+
+  const certification = certifyTutorMathematics(lesson, problemType, currentQuestion);
+
+  if (certification.repairedSolution) {
+    repairLessonSolution(lesson, certification.repairedSolution);
+    certification.repaired = true;
+  }
+
+  const finalCertification = certifyTutorMathematics(lesson, problemType, currentQuestion);
+
+  lesson.certification = {
+    passed: finalCertification.failures.length === 0,
+    repaired: Boolean(certification.repairedSolution),
+    originalFailures: certification.failures,
+    failures: finalCertification.failures,
+    solverSolution: finalCertification.solverSolution || certification.solverSolution || null,
+    message: finalCertification.failures.length === 0
+      ? "Recovery Tutor Certification PASS"
+      : "Recovery Tutor Certification FAIL"
+  };
+
+  if (!lesson.certification.passed) {
+    console.error("❌ Recovery Tutor Certification FAIL", {
+      problemType,
+      question: currentQuestion,
+      diagnostic: lesson.diagnostic,
+      certification: lesson.certification
+    });
+  }
+
+  return lesson;
+}
+
+function certifyTutorMathematics(lesson, problemType, currentQuestion) {
+  const failures = [];
+  const diagnostic = lesson.diagnostic || {};
+  const equationBefore = diagnostic.equationBefore;
+  const simplifiedEquation = diagnostic.simplifiedEquation || diagnostic.afterMoveVariables || equationBefore;
+  const tutorSolution = diagnostic.equationAfter;
+
+  const solverSolution = solveSupportedLinearEquation(simplifiedEquation || equationBefore);
+
+  if (!solverSolution) {
+    return {
+      failures: [],
+      solverSolution: null,
+      repairedSolution: null
+    };
+  }
+
+  if (!tutorSolution || normalizeTutorChoiceForEquivalence(tutorSolution) !== normalizeTutorChoiceForEquivalence(solverSolution)) {
+    failures.push(`Tutor solution mismatch. Tutor=${tutorSolution}; Solver=${solverSolution}.`);
+  }
+
+  if (!verifySolutionBySubstitution(simplifiedEquation || equationBefore, solverSolution)) {
+    failures.push(`Solver solution does not verify by substitution: ${solverSolution}.`);
+  }
+
+  if (tutorSolution && !verifySolutionBySubstitution(simplifiedEquation || equationBefore, tutorSolution)) {
+    failures.push(`Tutor solution does not verify by substitution: ${tutorSolution}.`);
+  }
+
+  if (Array.isArray(lesson.workedExample)) {
+    const workedText = lesson.workedExample.join(" ");
+    const workedSolutions = workedText.match(/[a-z]\s*=\s*-?\d+(?:\.\d+)?/gi) || [];
+
+    if (workedSolutions.length > 0) {
+      const lastWorkedSolution = workedSolutions[workedSolutions.length - 1];
+      if (normalizeTutorChoiceForEquivalence(lastWorkedSolution) !== normalizeTutorChoiceForEquivalence(solverSolution)) {
+        failures.push(`Worked example solution mismatch. Worked=${lastWorkedSolution}; Solver=${solverSolution}.`);
+      }
+    }
+  }
+
+  if (Array.isArray(lesson.tutorDialogue)) {
+    lesson.tutorDialogue.forEach((step, index) => {
+      if (!Array.isArray(step.choices) || step.choices.length !== 4) {
+        failures.push(`Tutor step ${index + 1} does not have exactly 4 choices.`);
+      }
+
+      if (Array.isArray(step.expected) && step.expected.length > 0) {
+        const expected = String(step.expected[0] || "").trim();
+
+        if (
+          /^x\s*=/i.test(expected) &&
+          normalizeTutorChoiceForEquivalence(expected) !== normalizeTutorChoiceForEquivalence(solverSolution) &&
+          step.id === "solve_simplified"
+        ) {
+          failures.push(`Tutor final expected answer mismatch. Expected=${expected}; Solver=${solverSolution}.`);
+        }
+
+        if (Array.isArray(step.choices)) {
+          const choiceKeys = step.choices.map(normalizeTutorChoiceForEquivalence);
+          if (new Set(choiceKeys).size !== choiceKeys.length) {
+            failures.push(`Tutor step ${index + 1} has duplicate/equivalent choices.`);
+          }
+
+          const expectedKeys = step.expected.map(normalizeTutorChoiceForEquivalence);
+          const hasExpectedChoice = choiceKeys.some(key => expectedKeys.includes(key));
+
+          if (!hasExpectedChoice) {
+            failures.push(`Tutor step ${index + 1} choices do not include expected answer.`);
+          }
+        }
+      }
+    });
+  }
+
+  return {
+    failures,
+    solverSolution,
+    repairedSolution: failures.length > 0 ? solverSolution : null
+  };
+}
+
+function repairLessonSolution(lesson, certifiedSolution) {
+  if (!lesson || !certifiedSolution) return lesson;
+
+  if (lesson.diagnostic) {
+    lesson.diagnostic.equationAfter = certifiedSolution;
+    lesson.diagnostic.certifiedSolution = certifiedSolution;
+  }
+
+  if (Array.isArray(lesson.tutorDialogue)) {
+    lesson.tutorDialogue = lesson.tutorDialogue.map(step => {
+      if (step.id === "solve_simplified" || step.id === "solution") {
+        return {
+          ...step,
+          expected: [certifiedSolution],
+          choices: buildEquationChoices(certifiedSolution),
+          explanation: String(step.explanation || "")
+            .replace(/[a-z]\s*=\s*-?\d+(?:\.\d+)?/gi, certifiedSolution)
+        };
+      }
+
+      return step;
+    });
+  }
+
+  if (Array.isArray(lesson.workedExample)) {
+    lesson.workedExample = lesson.workedExample.map(line => {
+      if (/The result is/i.test(line) || /solution/i.test(line)) {
+        return line.replace(/[a-z]\s*=\s*-?\d+(?:\.\d+)?/gi, certifiedSolution);
+      }
+      return line;
+    });
+
+    const hasFinal = lesson.workedExample.some(line =>
+      normalizeTutorChoiceForEquivalence(line).includes(normalizeTutorChoiceForEquivalence(certifiedSolution))
+    );
+
+    if (!hasFinal) {
+      lesson.workedExample.push(`The result is ${certifiedSolution}.`);
+    }
+  }
+
+  return lesson;
+}
+
+function solveSupportedLinearEquation(equation) {
+  const parsed = parseSupportedLinearEquation(equation);
+  if (!parsed) return null;
+
+  const { variable, coefficient, constant, rightSide } = parsed;
+
+  if (coefficient === 0) return null;
+
+  const solution = (rightSide - constant) / coefficient;
+  return `${variable} = ${formatNumber(solution)}`;
+}
+
+function parseSupportedLinearEquation(equation) {
+  const compact = String(equation || "")
+    .replace(/−/g, "-")
+    .replace(/\s+/g, "");
+
+  let match = compact.match(/^(-?\d*)x([+\-]-?\d+)=(-?\d+)$/i);
+  if (match) {
+    return {
+      variable: "x",
+      coefficient: coefficientValue(match[1]),
+      constant: Number(match[2]),
+      rightSide: Number(match[3])
+    };
+  }
+
+  match = compact.match(/^(-?\d*)x=(-?\d+)$/i);
+  if (match) {
+    return {
+      variable: "x",
+      coefficient: coefficientValue(match[1]),
+      constant: 0,
+      rightSide: Number(match[2])
+    };
+  }
+
+  return null;
+}
+
+function verifySolutionBySubstitution(equation, solutionText) {
+  const parsed = parseSupportedLinearEquation(equation);
+  if (!parsed) return true;
+
+  const solutionMatch = String(solutionText || "")
+    .replace(/−/g, "-")
+    .match(/^([a-z])\s*=\s*(-?\d+(?:\.\d+)?)$/i);
+
+  if (!solutionMatch) return false;
+
+  const x = Number(solutionMatch[2]);
+  const leftValue = parsed.coefficient * x + parsed.constant;
+
+  return Math.abs(leftValue - parsed.rightSide) < 1e-9;
+}
+
+function buildCertifiedTutorMismatchFallback(equationBefore, reason) {
+  return {
+    equationBefore: equationBefore || "Unknown equation",
+    firstAction: "Identify the correct skill",
+    simplifiedEquation: equationBefore || "Unknown equation",
+    equationAfter: "",
+    tutorType: "certified_mismatch",
+    certificationReason: reason
+  };
+}
+
+
+/* =========================================================
    ENTER KEY SUPPORT
 ========================================================= */
 
@@ -2020,6 +2408,25 @@ function certifyRecoveryTutor() {
   }
 
 
+  
+  // v2000 Mathematical Integrity Certification test
+  const badAnswerQuestion = {
+    prompt: "Solve for x. 3x + 5 + 2x = 20",
+    answer: "x = -5"
+  };
+  const repairedLesson = generateRecoveryLesson("combine_like_terms", {}, badAnswerQuestion);
+  if (repairedLesson.diagnostic?.equationAfter !== "x = 3") {
+    failures.push("v2000: failed to repair stale/wrong answer for 3x + 5 + 2x = 20.");
+  }
+  if (!repairedLesson.certification?.passed) {
+    failures.push("v2000: repaired lesson did not pass certification.");
+  }
+  const solverCheck = solveSupportedLinearEquation("5x + 5 = 20");
+  if (solverCheck !== "x = 3") {
+    failures.push("v2000: internal solver failed 5x + 5 = 20.");
+  }
+
+
   const result = {
     passed: failures.length === 0,
     failures,
@@ -2067,7 +2474,10 @@ const AlgebraRecoveryLessonEngine = {
     normalizeAnswer,
     renderEquationTransformation,
     renderMultiStepTransformation,
-    renderVariablesBothSidesTransformation
+    renderVariablesBothSidesTransformation,
+    certifyTutorMathematics,
+    solveSupportedLinearEquation,
+    verifySolutionBySubstitution
   }
 };
 
