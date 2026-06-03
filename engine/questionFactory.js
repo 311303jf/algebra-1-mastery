@@ -1,5 +1,5 @@
 /* ============================================================
-   Algebra OS — Question Factory 4.5 Coverage-Balanced Certified
+   Algebra OS — Question Factory 4.6 Coverage-Balanced Certified + Hint Quality Expansion
    File: engine/questionFactory.js
 
    PURPOSE:
@@ -1052,7 +1052,752 @@ one_step_division_equation: {
     ],
     misconception:
       "Students often factor correctly but forget to set each factor equal to zero."
-  }
+  },
+
+  /* ============================================================
+     HINT QUALITY EXPANSION — Algebra OS 4.6
+     Added to reduce generic Help Panel fallback across all units.
+     ============================================================ */
+
+  distributive_property_equation: {
+    hintSteps: [
+      "Distribute the outside number to every term inside the parentheses.",
+      "Combine like terms after distributing.",
+      "Use inverse operations to isolate the variable."
+    ],
+    misconception:
+      "Students often distribute to only the first term or forget to keep the signs."
+  },
+
+  combine_like_terms_equation: {
+    hintSteps: [
+      "Identify terms with the same variable part.",
+      "Combine coefficients of like terms.",
+      "Solve the simplified equation using inverse operations."
+    ],
+    misconception:
+      "Students often combine constants with variable terms even though they are not like terms."
+  },
+
+  inequality: {
+    hintSteps: [
+      "Solve the inequality using the same steps as an equation.",
+      "Keep the inequality balanced by doing the same operation on both sides.",
+      "Reverse the inequality symbol only if multiplying or dividing by a negative number."
+    ],
+    misconception:
+      "Students often forget to reverse the inequality symbol after dividing by a negative coefficient."
+  },
+
+  one_step_inequality: {
+    hintSteps: [
+      "Identify the operation attached to the variable.",
+      "Use the inverse operation on both sides.",
+      "Reverse the symbol if you multiply or divide by a negative number."
+    ],
+    misconception:
+      "Students often solve correctly but keep the wrong inequality direction."
+  },
+
+  one_step_inequalities: {
+    hintSteps: [
+      "Identify the operation attached to the variable.",
+      "Use the inverse operation on both sides.",
+      "Check whether the operation requires reversing the inequality symbol."
+    ],
+    misconception:
+      "Students often treat inequalities exactly like equations and forget the symbol rule."
+  },
+
+  multi_step_inequality: {
+    hintSteps: [
+      "Simplify the inequality first if there are like terms or parentheses.",
+      "Move constants away from the variable term.",
+      "Divide by the coefficient and reverse the symbol if the coefficient is negative."
+    ],
+    misconception:
+      "Students often reverse the inequality too early or forget to reverse it when dividing by a negative."
+  },
+
+  multi_step_inequalities: {
+    hintSteps: [
+      "Simplify each side before solving.",
+      "Use inverse operations to isolate the variable term.",
+      "Reverse the inequality symbol if the final division is by a negative number."
+    ],
+    misconception:
+      "Students often make sign errors when combining terms before solving the inequality."
+  },
+
+  compound_inequality: {
+    hintSteps: [
+      "Decide whether the compound statement uses AND or OR.",
+      "Solve each part carefully.",
+      "For AND, keep the overlap. For OR, include values from either side."
+    ],
+    misconception:
+      "Students often confuse AND with OR and choose the wrong solution region."
+  },
+
+  absolute_value_equation: {
+    hintSteps: [
+      "Isolate the absolute value expression first.",
+      "Create two cases: the inside equals the positive value and the negative value.",
+      "Solve both cases and check for no-solution situations."
+    ],
+    misconception:
+      "Students often solve only one case or forget that absolute value cannot equal a negative number."
+  },
+
+  function_evaluation: {
+    hintSteps: [
+      "Identify the input value inside the parentheses.",
+      "Substitute that value for x everywhere in the function.",
+      "Simplify using order of operations."
+    ],
+    misconception:
+      "Students often confuse the input with the output or treat function notation as multiplication."
+  },
+
+  slope_from_graph: {
+    hintSteps: [
+      "Choose two clear points on the line.",
+      "Count the vertical change, then the horizontal change.",
+      "Slope equals rise ÷ run."
+    ],
+    misconception:
+      "Students often reverse rise and run or count in only one direction."
+  },
+
+  slope_from_table: {
+    hintSteps: [
+      "Find the change in y between two rows.",
+      "Find the change in x using the same two rows.",
+      "Divide change in y by change in x."
+    ],
+    misconception:
+      "Students often compare non-matching rows or calculate change in x over change in y."
+  },
+
+  graph_linear_function: {
+    hintSteps: [
+      "Write the equation in slope-intercept form if needed.",
+      "Start at the y-intercept.",
+      "Use the slope to locate another point on the line."
+    ],
+    misconception:
+      "Students often start with the slope instead of first locating the y-intercept."
+  },
+
+  power_of_product: {
+    hintSteps: [
+      "Apply the exponent to each factor inside the parentheses.",
+      "Raise the coefficient to the power.",
+      "Raise the variable factor to the power."
+    ],
+    misconception:
+      "Students often apply the exponent only to the variable and forget the coefficient."
+  },
+
+  power_of_quotient: {
+    hintSteps: [
+      "Apply the exponent to the numerator.",
+      "Apply the exponent to the denominator.",
+      "Simplify each part separately."
+    ],
+    misconception:
+      "Students often apply the exponent to only one part of the quotient."
+  },
+
+  zero_exponent: {
+    hintSteps: [
+      "Check that the base is not zero.",
+      "Any nonzero base raised to the zero power equals 1.",
+      "The answer is 1."
+    ],
+    misconception:
+      "Students often think a zero exponent makes the answer 0."
+  },
+
+  negative_exponent: {
+    hintSteps: [
+      "A negative exponent means move the factor across the fraction bar.",
+      "Change the exponent to positive after moving it.",
+      "Do not make the value negative just because the exponent is negative."
+    ],
+    misconception:
+      "Students often think a negative exponent creates a negative answer."
+  },
+
+  mixed_exponent_simplify: {
+    hintSteps: [
+      "Apply the rule inside the parentheses first.",
+      "Then apply the outside exponent.",
+      "Use the correct exponent rule at each step."
+    ],
+    misconception:
+      "Students often mix up when to add, subtract, or multiply exponents."
+  },
+
+  rewrite_with_positive_exponents: {
+    hintSteps: [
+      "Locate every negative exponent.",
+      "Move each factor with a negative exponent across the fraction bar.",
+      "Rewrite the exponent as positive."
+    ],
+    misconception:
+      "Students often leave negative exponents in the final answer."
+  },
+
+  convert_to_scientific_notation: {
+    hintSteps: [
+      "Move the decimal to create a number at least 1 and less than 10.",
+      "Count how many places the decimal moved.",
+      "Use that count as the power of 10."
+    ],
+    misconception:
+      "Students often use the wrong exponent sign when converting large or small numbers."
+  },
+
+  convert_from_scientific_notation: {
+    hintSteps: [
+      "Look at the exponent on 10.",
+      "Move the decimal right for a positive exponent and left for a negative exponent.",
+      "Write the number in standard form."
+    ],
+    misconception:
+      "Students often move the decimal in the wrong direction."
+  },
+
+  multiply_scientific_notation: {
+    hintSteps: [
+      "Multiply the decimal coefficients.",
+      "Add the powers of 10.",
+      "Adjust the coefficient if it is not between 1 and 10."
+    ],
+    misconception:
+      "Students often multiply the exponents instead of adding them."
+  },
+
+  divide_scientific_notation: {
+    hintSteps: [
+      "Divide the decimal coefficients.",
+      "Subtract the powers of 10.",
+      "Adjust the coefficient if needed."
+    ],
+    misconception:
+      "Students often subtract the coefficients instead of dividing them."
+  },
+
+  compare_scientific_notation: {
+    hintSteps: [
+      "Compare the powers of 10 first.",
+      "If the powers match, compare the decimal coefficients.",
+      "Choose the number with the greater overall value."
+    ],
+    misconception:
+      "Students often compare only the decimal coefficient and ignore the exponent."
+  },
+
+  exponential_growth_evaluate: {
+    hintSteps: [
+      "Identify the initial value.",
+      "Use a growth factor greater than 1.",
+      "Raise the growth factor to the time value and multiply."
+    ],
+    misconception:
+      "Students often add the percent repeatedly instead of multiplying by the growth factor."
+  },
+
+  exponential_decay_evaluate: {
+    hintSteps: [
+      "Identify the initial value.",
+      "Use a decay factor between 0 and 1.",
+      "Raise the decay factor to the time value and multiply."
+    ],
+    misconception:
+      "Students often subtract the same amount each time instead of using exponential decay."
+  },
+
+  identify_growth_decay: {
+    hintSteps: [
+      "Look at the base of the exponential expression.",
+      "If the base is greater than 1, it is growth.",
+      "If the base is between 0 and 1, it is decay."
+    ],
+    misconception:
+      "Students often look at the starting value instead of the base."
+  },
+
+  write_exponential_model: {
+    hintSteps: [
+      "Use the form y = a(b)^x.",
+      "Let a be the initial value.",
+      "Let b be the multiplier or growth/decay factor."
+    ],
+    misconception:
+      "Students often place the initial value and multiplier in the wrong positions."
+  },
+
+  exponential_table: {
+    hintSteps: [
+      "Identify the starting value.",
+      "Look for a constant multiplier between outputs.",
+      "Use the multiplier to evaluate the requested input."
+    ],
+    misconception:
+      "Students often treat exponential tables as if they had constant differences."
+  },
+
+  exponential_graph_features: {
+    hintSteps: [
+      "Find the value of the function when x = 0.",
+      "Remember that any nonzero base to the zero power equals 1.",
+      "The y-intercept is the output when x = 0."
+    ],
+    misconception:
+      "Students often confuse the y-intercept with the growth factor."
+  },
+
+  identify_exponential_function: {
+    hintSteps: [
+      "Check whether outputs are multiplied by the same factor.",
+      "A constant multiplier indicates an exponential function.",
+      "Do not use constant differences for exponential patterns."
+    ],
+    misconception:
+      "Students often confuse constant first differences with constant ratios."
+  },
+
+  compare_exponential_growth: {
+    hintSteps: [
+      "Compare the exponential bases.",
+      "For growth functions with the same starting value, the larger base grows faster.",
+      "Choose the function with the greater base."
+    ],
+    misconception:
+      "Students often compare only the initial values instead of the growth factors."
+  },
+
+  combine_like_terms_polynomial: {
+    hintSteps: [
+      "Group terms with the same variable and exponent.",
+      "Combine only their coefficients.",
+      "Write the simplified polynomial in standard form."
+    ],
+    misconception:
+      "Students often combine x² terms with x terms."
+  },
+
+  polynomial_expression_equivalence: {
+    hintSteps: [
+      "Simplify the expression by combining like terms.",
+      "Keep the exponent attached to each term.",
+      "Match the simplified expression to the equivalent choice."
+    ],
+    misconception:
+      "Students often match expressions by appearance instead of simplifying."
+  },
+
+  polynomial_area_model: {
+    hintSteps: [
+      "Area means multiply length by width.",
+      "Write the product of the two side expressions.",
+      "Multiply and combine like terms."
+    ],
+    misconception:
+      "Students often add side lengths instead of multiplying them for area."
+  },
+
+  distributive_polynomial: {
+    hintSteps: [
+      "Distribute the monomial to every term in the parentheses.",
+      "Multiply coefficients.",
+      "Use exponent rules for matching variables."
+    ],
+    misconception:
+      "Students often distribute to the first term only."
+  },
+
+  special_product_identify: {
+    hintSteps: [
+      "Look for a perfect square trinomial or a difference of squares.",
+      "Check whether the first and last terms are squares.",
+      "Use the middle term or minus sign to identify the pattern."
+    ],
+    misconception:
+      "Students often confuse difference of squares with perfect square trinomials."
+  },
+
+  special_product_application: {
+    hintSteps: [
+      "Identify the special product pattern.",
+      "Use the matching formula or expansion rule.",
+      "Simplify the resulting polynomial."
+    ],
+    misconception:
+      "Students often expand special products without the middle term or with the wrong sign."
+  },
+
+  factor_gcf_polynomial: {
+    hintSteps: [
+      "Find the greatest common factor of all terms.",
+      "Divide each term by the GCF.",
+      "Write the GCF outside the parentheses."
+    ],
+    misconception:
+      "Students often factor only the first two terms and ignore the entire polynomial."
+  },
+
+  factor_gcf_with_negative: {
+    hintSteps: [
+      "If the leading term is negative, consider factoring out a negative GCF.",
+      "Divide each term by the negative GCF.",
+      "Check by distributing back."
+    ],
+    misconception:
+      "Students often leave a negative leading term inside the parentheses."
+  },
+
+  factor_gcf_application: {
+    hintSteps: [
+      "Identify the expression being factored from the context.",
+      "Find the greatest common factor.",
+      "Interpret the factored form in the situation."
+    ],
+    misconception:
+      "Students often solve for a variable instead of factoring the expression."
+  },
+
+  identify_factor_pair: {
+    hintSteps: [
+      "Find the value of c.",
+      "Find two numbers that multiply to c.",
+      "Check that the same two numbers add to b."
+    ],
+    misconception:
+      "Students often find a pair that multiplies correctly but does not add to the middle coefficient."
+  },
+
+  factor_by_grouping_quadratic: {
+    hintSteps: [
+      "Split the middle term into two terms.",
+      "Group the first two terms and the last two terms.",
+      "Factor out the common binomial."
+    ],
+    misconception:
+      "Students often split the middle term correctly but do not factor by grouping afterward."
+  },
+
+  factor_ac_method: {
+    hintSteps: [
+      "Multiply a and c.",
+      "Find two numbers that multiply to ac and add to b.",
+      "Split the middle term and factor by grouping."
+    ],
+    misconception:
+      "Students often use c instead of ac when the leading coefficient is not 1."
+  },
+
+  identify_equivalent_factored_form: {
+    hintSteps: [
+      "Multiply the factored form mentally or by distribution.",
+      "Compare the result to the original polynomial.",
+      "Choose the form that expands correctly."
+    ],
+    misconception:
+      "Students often choose a factored form with correct constants but wrong middle term."
+  },
+
+  factor_perfect_square_trinomial: {
+    hintSteps: [
+      "Check whether the first and last terms are perfect squares.",
+      "Check whether the middle term is twice the product of the square roots.",
+      "Write the factor as a binomial squared."
+    ],
+    misconception:
+      "Students often recognize the squares but miss the required middle term."
+  },
+
+  identify_special_factoring_pattern: {
+    hintSteps: [
+      "Check whether there are two terms or three terms.",
+      "For two terms, look for a difference of squares.",
+      "For three terms, check for a perfect square trinomial."
+    ],
+    misconception:
+      "Students often apply a trinomial pattern to a two-term expression."
+  },
+
+  zero_product_property: {
+    hintSteps: [
+      "If a product equals zero, at least one factor must be zero.",
+      "Set each factor equal to zero.",
+      "Solve each small equation."
+    ],
+    misconception:
+      "Students often multiply the factors first instead of setting each factor equal to zero."
+  },
+
+  quadratic_factoring_word_problem: {
+    hintSteps: [
+      "Set the quadratic model equal to zero for the relevant event.",
+      "Factor the quadratic expression.",
+      "Choose the solution that makes sense in context."
+    ],
+    misconception:
+      "Students often keep a negative solution even when the context requires a positive value."
+  },
+
+  identify_quadratic_solutions: {
+    hintSteps: [
+      "Set the quadratic equal to zero.",
+      "Factor if possible.",
+      "Use the zero product property to identify both solutions."
+    ],
+    misconception:
+      "Students often give only one solution when a quadratic can have two."
+  },
+
+  identify_quadratic_function: {
+    hintSteps: [
+      "Look for the highest power of x.",
+      "A quadratic function has x² as the highest power.",
+      "Choose the equation with degree 2."
+    ],
+    misconception:
+      "Students often choose any curved-looking or nonlinear expression without checking for x²."
+  },
+
+  quadratic_table_pattern: {
+    hintSteps: [
+      "Find the first differences between y-values.",
+      "Then find the second differences.",
+      "A constant second difference indicates a quadratic pattern."
+    ],
+    misconception:
+      "Students often stop at first differences and miss the constant second difference."
+  },
+
+  quadratic_graph_shape: {
+    hintSteps: [
+      "Remember that quadratic functions graph as curved U-shaped figures.",
+      "The graph of a quadratic function is called a parabola.",
+      "It can open up or down depending on the coefficient of x²."
+    ],
+    misconception:
+      "Students often confuse a parabola with a line or exponential curve."
+  },
+
+  linear_vs_quadratic_vs_exponential: {
+    hintSteps: [
+      "Check first differences for a linear pattern.",
+      "Check second differences for a quadratic pattern.",
+      "Check constant multipliers for an exponential pattern."
+    ],
+    misconception:
+      "Students often identify every increasing pattern as linear."
+  },
+
+  quadratic_vertex: {
+    hintSteps: [
+      "Use vertex form y = a(x - h)² + k when available.",
+      "Read h from inside the parentheses using the opposite sign.",
+      "Read k as the vertical coordinate of the vertex."
+    ],
+    misconception:
+      "Students often read the h-value with the wrong sign."
+  },
+
+  quadratic_axis_of_symmetry: {
+    hintSteps: [
+      "Find the vertex of the parabola.",
+      "The axis of symmetry passes through the vertex.",
+      "Write the axis as x = the x-coordinate of the vertex."
+    ],
+    misconception:
+      "Students often write the axis as y = instead of x =."
+  },
+
+  quadratic_y_intercept: {
+    hintSteps: [
+      "The y-intercept occurs when x = 0.",
+      "Substitute x = 0 into the function.",
+      "Write the intercept as an ordered pair."
+    ],
+    misconception:
+      "Students often choose the vertex instead of the y-intercept."
+  },
+
+  quadratic_graph_features: {
+    hintSteps: [
+      "Identify the vertex.",
+      "Use the sign of a to determine whether the parabola opens up or down.",
+      "Use the vertex to identify the maximum or minimum value."
+    ],
+    misconception:
+      "Students often confuse opening direction with the location of the vertex."
+  },
+
+  vertex_form_identify_vertex: {
+    hintSteps: [
+      "Compare the equation to y = a(x - h)² + k.",
+      "The vertex is (h, k).",
+      "Remember that h has the opposite sign from what appears inside parentheses."
+    ],
+    misconception:
+      "Students often report the inside value directly instead of changing its sign."
+  },
+
+  vertex_form_transformations: {
+    hintSteps: [
+      "Use h to describe the horizontal shift.",
+      "Use k to describe the vertical shift.",
+      "Use the sign of a to identify reflection over the x-axis."
+    ],
+    misconception:
+      "Students often reverse left and right shifts."
+  },
+
+  vertex_form_graph_features: {
+    hintSteps: [
+      "Use vertex form to identify the vertex.",
+      "Use the sign of a to determine opening direction.",
+      "Use the vertex y-value as the maximum or minimum value."
+    ],
+    misconception:
+      "Students often identify the y-intercept instead of the vertex."
+  },
+
+  write_vertex_form_from_graph: {
+    hintSteps: [
+      "Start with vertex form y = a(x - h)² + k.",
+      "Use the vertex for h and k.",
+      "Substitute the a-value or another point if given."
+    ],
+    misconception:
+      "Students often write standard form when the problem asks for vertex form."
+  },
+
+  solve_quadratic_by_graphing: {
+    hintSteps: [
+      "Look for where the parabola crosses the x-axis.",
+      "The x-values of the x-intercepts are the solutions.",
+      "List both solutions if the graph crosses twice."
+    ],
+    misconception:
+      "Students often give the y-values of the intercepts instead of the x-values."
+  },
+
+  identify_x_intercepts: {
+    hintSteps: [
+      "X-intercepts occur where y = 0.",
+      "Solve the quadratic or inspect where the graph crosses the x-axis.",
+      "Write each intercept as an ordered pair with y = 0."
+    ],
+    misconception:
+      "Students often write roots as numbers when the question asks for intercepts as points."
+  },
+
+  quadratic_number_of_solutions: {
+    hintSteps: [
+      "Think about how many times the parabola crosses the x-axis.",
+      "Two crossings mean two real solutions.",
+      "Touching once means one real solution, and no crossing means no real solutions."
+    ],
+    misconception:
+      "Students often assume every quadratic has two real solutions."
+  },
+
+  interpret_quadratic_roots: {
+    hintSteps: [
+      "Roots show where the quadratic equals zero.",
+      "In context, decide which root is meaningful.",
+      "Reject roots that do not make sense, such as negative time."
+    ],
+    misconception:
+      "Students often keep both roots without interpreting the context."
+  },
+
+  quadratic_formula_real_solutions: {
+    hintSteps: [
+      "Identify a, b, and c from ax² + bx + c = 0.",
+      "Substitute into x = (-b ± √(b² - 4ac)) ÷ 2a.",
+      "Simplify to get the real solutions."
+    ],
+    misconception:
+      "Students often forget the negative on -b or divide only part of the numerator by 2a."
+  },
+
+  discriminant_number_of_solutions: {
+    hintSteps: [
+      "Compute the discriminant b² - 4ac.",
+      "Positive means two real solutions.",
+      "Zero means one real solution, and negative means no real solutions."
+    ],
+    misconception:
+      "Students often solve the entire equation when only the number of solutions is needed."
+  },
+
+  quadratic_formula_simplify: {
+    hintSteps: [
+      "Identify a, b, and c.",
+      "Substitute carefully into the quadratic formula.",
+      "Simplify the discriminant and then simplify the final solutions."
+    ],
+    misconception:
+      "Students often make sign errors inside b² - 4ac."
+  },
+
+  choose_correct_quadratic_solution: {
+    hintSteps: [
+      "Use the quadratic formula or given solutions.",
+      "Check which solution satisfies the equation or context.",
+      "Choose the solution set that matches both roots."
+    ],
+    misconception:
+      "Students often choose one root and ignore the ± part of the formula."
+  },
+
+  projectile_motion_quadratic: {
+    hintSteps: [
+      "The object hits the ground when height equals zero.",
+      "Set the quadratic model equal to zero.",
+      "Choose the positive time solution."
+    ],
+    misconception:
+      "Students often choose a negative time or the maximum height instead of the ground time."
+  },
+
+  maximum_minimum_quadratic: {
+    hintSteps: [
+      "Find the vertex of the parabola.",
+      "If a is positive, the vertex gives a minimum.",
+      "If a is negative, the vertex gives a maximum."
+    ],
+    misconception:
+      "Students often use the y-intercept instead of the vertex value."
+  },
+
+  area_quadratic_word_problem: {
+    hintSteps: [
+      "Area of a rectangle is length times width.",
+      "Multiply the two expressions for the side lengths.",
+      "Combine like terms to write the quadratic expression."
+    ],
+    misconception:
+      "Students often add the side lengths instead of multiplying them."
+  },
+
+  interpret_quadratic_context: {
+    hintSteps: [
+      "Identify what the vertex, roots, or intercepts represent in the situation.",
+      "Use the sign of a to decide whether the vertex is a maximum or minimum.",
+      "Match the mathematical feature to the real-world meaning."
+    ],
+    misconception:
+      "Students often give the algebraic value without explaining what it means in context."
+  },
 };
 
 
@@ -5198,6 +5943,60 @@ function normalizeMetaType(type) {
   if (type === "distributive_property_equation") return "distributive_property";
   if (type === "combine_like_terms_equation") return "combine_like_terms";
   return type;
+}
+
+
+
+/* ============================================================
+   HINT QUALITY AUDIT
+   Browser console helper:
+   AlgebraQuestionFactoryHintAudit()
+   ============================================================ */
+
+export function AlgebraQuestionFactoryHintAudit() {
+  const generatorTypes = Object.keys(GENERATORS);
+  const defaultHints = [
+    "Read the question carefully.",
+    "Identify what the problem is asking.",
+    "Use the correct algebraic procedure."
+  ];
+
+  const rows = generatorTypes.map(type => {
+    const normalized = normalizeMetaType(type);
+    const meta = METADATA[type] || METADATA[normalized] || {};
+    const hasSpecificHints =
+      Array.isArray(meta.hintSteps) &&
+      meta.hintSteps.length > 0 &&
+      JSON.stringify(meta.hintSteps) !== JSON.stringify(defaultHints);
+
+    const hasMisconception =
+      typeof meta.misconception === "string" &&
+      meta.misconception.trim().length >= 5;
+
+    return {
+      problemType: type,
+      normalizedType: normalized,
+      hasSpecificHints,
+      hasMisconception,
+      status: hasSpecificHints && hasMisconception ? "PASS" : "WARNING"
+    };
+  });
+
+  const summary = {
+    totalProblemTypes: rows.length,
+    pass: rows.filter(row => row.status === "PASS").length,
+    warning: rows.filter(row => row.status !== "PASS").length,
+    rows
+  };
+
+  console.table(rows);
+  console.log("Hint Quality Audit Summary:", summary);
+
+  return summary;
+}
+
+if (typeof window !== "undefined") {
+  window.AlgebraQuestionFactoryHintAudit = AlgebraQuestionFactoryHintAudit;
 }
 
 
