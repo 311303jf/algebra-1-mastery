@@ -22,6 +22,7 @@
    - Adds Enter key support for tutor workflow.
    - Includes certification.
    - v1901: Does not reveal the final solution before the final tutor step.
+   - v1902: Adds Tutor Choice Quality Gate for all tutor-generated choices.
 ========================================================= */
 
 const RECOVERY_PREFIX = "algebra_recovery_";
@@ -1486,49 +1487,257 @@ function mathRendererStyle() {
 ========================================================= */
 
 function buildEquationChoices(correct) {
-  const parsed = String(correct || "x = 10").match(/^([a-z])\s*=\s*(-?\d+(?:\.\d+)?)$/i);
+  /*
+    v1902 Tutor Choice Quality Gate:
+    Final-solution choices must be mathematically clean and certified.
+  */
+
+  const parsed = String(correct || "x = 10")
+    .replace(/−/g, "-")
+    .match(/^([a-z])\s*=\s*(-?\d+(?:\.\d+)?)$/i);
 
   if (!parsed) {
-    return uniqueChoices([correct, "x = 0", "x = 1", "No solution"]);
+    return certifyTutorChoices(correct, [
+      correct,
+      "x = 0",
+      "x = 1",
+      "No solution",
+      "All Real Numbers"
+    ], {
+      expectedFormat: "equation_solution"
+    });
   }
 
   const variable = parsed[1];
   const value = Number(parsed[2]);
 
-  return uniqueChoices([
+  const candidates = [
     `${variable} = ${formatNumber(value)}`,
     `${variable} = ${formatNumber(value + 1)}`,
     `${variable} = ${formatNumber(value - 1)}`,
-    `${variable} = ${formatNumber(-value)}`
-  ]);
+    `${variable} = ${formatNumber(-value)}`,
+    `${variable} = ${formatNumber(value + 2)}`,
+    `${variable} = ${formatNumber(value - 2)}`
+  ];
+
+  return certifyTutorChoices(`${variable} = ${formatNumber(value)}`, candidates, {
+    expectedFormat: "equation_solution"
+  });
 }
 
 function buildMultiStepSimplifiedChoices(correct) {
-  return uniqueChoices([
-    correct,
-    "x = 3",
+  /*
+    v1902 Tutor Choice Quality Gate:
+    Simplified-equation choices must remain equations, not final answers.
+    This prevents choices like "x = 3" from appearing when the tutor asks:
+    "What equation do we get after simplifying?"
+  */
+
+  const correctText = String(correct || "").trim();
+
+  const parsed = parseLinearEquationForChoiceGeneration(correctText);
+
+  if (parsed) {
+    const { variable, coefficient, constant, rightSide } = parsed;
+
+    const candidates = [
+      correctText,
+      `${formatCoefficient(coefficient)}${variable} = ${formatNumber(rightSide)}`,
+      `${formatCoefficient(coefficient)}${variable} ${signedNumber(constant + 1)} = ${formatNumber(rightSide)}`,
+      `${formatCoefficient(coefficient + 1)}${variable} ${signedNumber(constant)} = ${formatNumber(rightSide)}`,
+      `${formatCoefficient(coefficient)}${variable} ${signedNumber(constant)} = ${formatNumber(rightSide + 1)}`,
+      `${formatCoefficient(Math.max(1, coefficient - 1))}${variable} ${signedNumber(constant)} = ${formatNumber(rightSide)}`
+    ].map(normalizeEquationSpacing);
+
+    return certifyTutorChoices(correctText, candidates, {
+      expectedFormat: "linear_equation"
+    });
+  }
+
+  return certifyTutorChoices(correctText, [
+    correctText,
     "5x = 20",
-    "3x + 2x = 20"
-  ]);
+    "3x + 2x = 20",
+    "5x + 5 = 21",
+    "4x + 5 = 20"
+  ], {
+    expectedFormat: "linear_equation"
+  });
 }
 
-function uniqueChoices(list) {
-  const seen = new Set();
-  const result = [];
+function parseLinearEquationForChoiceGeneration(equation) {
+  const compact = String(equation || "")
+    .replace(/−/g, "-")
+    .replace(/\s+/g, "");
 
-  for (const item of list) {
-    const key = normalizeText(item);
-    if (!seen.has(key)) {
-      seen.add(key);
-      result.push(item);
+  let match = compact.match(/^(-?\d*)x([+\-]-?\d+)=(-?\d+)$/i);
+  if (match) {
+    return {
+      variable: "x",
+      coefficient: coefficientValue(match[1]),
+      constant: Number(match[2]),
+      rightSide: Number(match[3])
+    };
+  }
+
+  match = compact.match(/^(-?\d*)x=(-?\d+)$/i);
+  if (match) {
+    return {
+      variable: "x",
+      coefficient: coefficientValue(match[1]),
+      constant: 0,
+      rightSide: Number(match[2])
+    };
+  }
+
+  return null;
+}
+
+function certifyTutorChoices(correctAnswer, rawCandidates, options = {}) {
+  /*
+    Central Quality Gate for all Recovery Tutor answer choices.
+
+    Rules:
+    - Correct answer must exist.
+    - No duplicate or equivalent choices.
+    - No empty choices.
+    - Respect expected answer format when possible.
+    - Return exactly 4 choices.
+  */
+
+  const expectedFormat = options.expectedFormat || "any";
+  const correct = String(correctAnswer || "").trim();
+  const choices = [];
+
+  function add(choice) {
+    const cleaned = cleanTutorChoice(choice);
+    if (!cleaned) return;
+
+    if (!passesTutorChoiceFormat(cleaned, expectedFormat)) return;
+
+    const key = normalizeTutorChoiceForEquivalence(cleaned);
+    const existing = choices.map(normalizeTutorChoiceForEquivalence);
+
+    if (!existing.includes(key)) {
+      choices.push(cleaned);
     }
   }
 
-  while (result.length < 4) {
-    result.push(`x = ${result.length + 20}`);
+  add(correct);
+
+  (rawCandidates || []).forEach(add);
+
+  let safety = 0;
+  while (choices.length < 4 && safety < 200) {
+    safety++;
+
+    const fallback = buildTutorChoiceFallback(correct, expectedFormat, safety);
+    add(fallback);
   }
 
-  return result.slice(0, 4);
+  if (!choices.map(normalizeTutorChoiceForEquivalence).includes(normalizeTutorChoiceForEquivalence(correct))) {
+    choices.unshift(correct);
+  }
+
+  const finalChoices = choices.slice(0, 4);
+
+  if (finalChoices.length !== 4) {
+    console.warn("Recovery Tutor Choice Quality Gate could not create 4 valid choices.", {
+      correctAnswer,
+      rawCandidates,
+      finalChoices,
+      expectedFormat
+    });
+  }
+
+  return shuffle(finalChoices);
+}
+
+function cleanTutorChoice(choice) {
+  return String(choice ?? "")
+    .replace(/\+\s*-/g, "- ")
+    .replace(/-\s*-/g, "+ ")
+    .replace(/−\s*−/g, "+ ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeTutorChoiceForEquivalence(choice) {
+  return String(choice || "")
+    .toLowerCase()
+    .replace(/−/g, "-")
+    .replace(/\s+/g, "")
+    .replace(/\*/g, "×")
+    .replace(/\//g, "÷");
+}
+
+function passesTutorChoiceFormat(choice, expectedFormat) {
+  const text = String(choice || "").trim();
+
+  if (!text) return false;
+
+  if (expectedFormat === "equation_solution") {
+    return /^[a-z]\s*=\s*-?\d+(?:\.\d+)?$/i.test(text) ||
+      /^No solution$/i.test(text) ||
+      /^All Real Numbers$/i.test(text);
+  }
+
+  if (expectedFormat === "linear_equation") {
+    if (!text.includes("=")) return false;
+
+    // A simplified equation choice should not be a final answer like x = 3.
+    if (/^[a-z]\s*=\s*-?\d+(?:\.\d+)?$/i.test(text)) return false;
+
+    return /[a-z]/i.test(text) && /-?\d/.test(text);
+  }
+
+  if (expectedFormat === "operation") {
+    return /addition|subtraction|multiplication|division|combine|distributive|move/i.test(text);
+  }
+
+  return true;
+}
+
+function buildTutorChoiceFallback(correct, expectedFormat, index) {
+  const text = String(correct || "").trim();
+
+  if (expectedFormat === "equation_solution") {
+    const match = text.replace(/−/g, "-").match(/^([a-z])\s*=\s*(-?\d+(?:\.\d+)?)$/i);
+    if (match) {
+      const variable = match[1];
+      const value = Number(match[2]);
+      const offsets = [3, -3, 4, -4, 5, -5, 6, -6];
+      const offset = offsets[index % offsets.length];
+      return `${variable} = ${formatNumber(value + offset)}`;
+    }
+
+    return `x = ${index}`;
+  }
+
+  if (expectedFormat === "linear_equation") {
+    const parsed = parseLinearEquationForChoiceGeneration(text);
+    if (parsed) {
+      const { variable, coefficient, constant, rightSide } = parsed;
+      const offset = index % 2 === 0 ? index : -index;
+      return normalizeEquationSpacing(
+        `${formatCoefficient(coefficient)}${variable} ${signedNumber(constant + offset)} = ${formatNumber(rightSide)}`
+      );
+    }
+
+    return `${index + 2}x + ${index} = ${index + 10}`;
+  }
+
+  return `Choice ${index}`;
+}
+
+function uniqueChoices(list) {
+  /*
+    Legacy wrapper.
+    Kept for compatibility, but now uses the tutor quality gate.
+  */
+  return certifyTutorChoices(list?.[0] || "", list || [], {
+    expectedFormat: "any"
+  });
 }
 
 /* =========================================================
@@ -1782,6 +1991,34 @@ function certifyRecoveryTutor() {
       failures.push(`${test.name}: recovery practice contains duplicate checks.`);
     }
   }
+
+  
+  // v1902 Tutor Choice Quality Gate tests
+  const simplifiedChoices = buildMultiStepSimplifiedChoices("5x + 5 = 20");
+  if (simplifiedChoices.length !== 4) {
+    failures.push("choice gate: simplified choices did not return 4 choices.");
+  }
+  if (!simplifiedChoices.includes("5x + 5 = 20")) {
+    failures.push("choice gate: simplified choices missing correct answer.");
+  }
+  if (simplifiedChoices.some(choice => /^x\s*=\s*-?\d+(?:\.\d+)?$/i.test(choice))) {
+    failures.push("choice gate: simplified choices contain final-solution choice.");
+  }
+  if (new Set(simplifiedChoices.map(normalizeTutorChoiceForEquivalence)).size !== simplifiedChoices.length) {
+    failures.push("choice gate: simplified choices contain duplicates.");
+  }
+
+  const solutionChoices = buildEquationChoices("x = -5");
+  if (solutionChoices.length !== 4) {
+    failures.push("choice gate: solution choices did not return 4 choices.");
+  }
+  if (!solutionChoices.includes("x = -5")) {
+    failures.push("choice gate: solution choices missing correct answer.");
+  }
+  if (new Set(solutionChoices.map(normalizeTutorChoiceForEquivalence)).size !== solutionChoices.length) {
+    failures.push("choice gate: solution choices contain duplicates.");
+  }
+
 
   const result = {
     passed: failures.length === 0,
