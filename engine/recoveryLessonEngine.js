@@ -1,30 +1,15 @@
 /* =========================================================
    ALGEBRA OS — recoveryLessonEngine.js
    COMPATIBLE FIX FOR CURRENT lesson.html
-   Version: 1400
+   Version: 1500
 
-   IMPORTANT:
-   This file is designed to work with your CURRENT lesson.html.
-
-   It restores the object that lesson.html expects:
-
-   window.AlgebraRecoveryLessonEngine
-
-   Required methods included:
-   - generateRecoveryLesson()
-   - markRecoveryOpened()
-   - loadRecoveryState()
-   - loadTutorState()
-   - recordTutorAnswer()
-   - recordRecoveryPractice()
-
-   Main fixes:
-   - Open Recovery Tutor button works again.
-   - Tutor answer validation supports "Addition" correctly.
-   - Incorrect answer stays on the SAME tutor step.
-   - Correct answer waits for "Next Tutor Step".
-   - Restart Tutor resets the tutor state.
-   - Equation transformation is shown inside the correct explanation.
+   FIXES IN THIS VERSION:
+   1. Keeps Open Recovery Tutor working with your current lesson.html.
+   2. Keeps window.AlgebraRecoveryLessonEngine available.
+   3. Fixes tutor answer validation.
+   4. Adds live equation transformation.
+   5. Fixes Recovery Practice so Check 1 and Check 2 are NOT the same
+      as the original question and NOT the same as each other.
 ========================================================= */
 
 const RECOVERY_PREFIX = "algebra_recovery_";
@@ -133,9 +118,9 @@ function generateRecoveryLesson(problemType = "one_step_addition_equation", meta
 
 function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
   const parsed = parseOneStepEquation(currentQuestion);
-
   const operation = parsed.operation;
   const inverse = inverseOperation(operation);
+  const recoveryPractice = buildRecoveryPracticeItems(parsed, operation);
 
   return {
     title: "Recovery Tutor: One-Step Equations",
@@ -208,16 +193,7 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
 
     video: null,
 
-    recoveryPractice: [
-      {
-        prompt: `Solve: ${parsed.equationBefore}`,
-        answer: parsed.equationAfter
-      },
-      {
-        prompt: `Write the simplified equation after solving: ${parsed.equationBefore}`,
-        answer: parsed.equationAfter
-      }
-    ]
+    recoveryPractice
   };
 }
 
@@ -273,6 +249,121 @@ function buildGenericLesson(problemType, metadata, currentQuestion) {
       }
     ]
   };
+}
+
+/* =========================================================
+   RECOVERY PRACTICE GENERATOR
+   Important:
+   - Practice questions must be different from the original.
+   - Check 1 and Check 2 must be different from each other.
+   - Same operation type is preserved for targeted recovery.
+========================================================= */
+
+function buildRecoveryPracticeItems(originalParsed, operation) {
+  const originalEquation = normalizeEquationKey(originalParsed.equationBefore);
+  const items = [];
+  const used = new Set([originalEquation]);
+
+  let candidates = [];
+
+  if (operation === "Addition") {
+    candidates = [
+      makeAdditionEquation(5, 17),   // x + 5 = 17 => x = 12
+      makeAdditionEquation(9, 21),   // x + 9 = 21 => x = 12
+      makeAdditionEquation(4, 13),   // x + 4 = 13 => x = 9
+      makeAdditionEquation(7, 20)    // x + 7 = 20 => x = 13
+    ];
+  } else if (operation === "Subtraction") {
+    candidates = [
+      makeSubtractionEquation(6, 11), // x - 6 = 11 => x = 17
+      makeSubtractionEquation(8, 14), // x - 8 = 14 => x = 22
+      makeSubtractionEquation(5, 9),
+      makeSubtractionEquation(7, 12)
+    ];
+  } else if (operation === "Multiplication") {
+    candidates = [
+      makeMultiplicationEquation(3, 24), // 3x = 24 => x = 8
+      makeMultiplicationEquation(4, 28),
+      makeMultiplicationEquation(5, 35),
+      makeMultiplicationEquation(6, 42)
+    ];
+  } else if (operation === "Division") {
+    candidates = [
+      makeDivisionEquation(3, 7), // x ÷ 3 = 7 => x = 21
+      makeDivisionEquation(4, 6),
+      makeDivisionEquation(5, 8),
+      makeDivisionEquation(6, 9)
+    ];
+  } else {
+    candidates = [
+      makeAdditionEquation(5, 17),
+      makeAdditionEquation(4, 13)
+    ];
+  }
+
+  for (const item of candidates) {
+    const key = normalizeEquationKey(item.equation);
+    if (!used.has(key)) {
+      used.add(key);
+      items.push({
+        prompt: `Solve: ${item.equation}`,
+        answer: item.answer
+      });
+    }
+
+    if (items.length >= 2) break;
+  }
+
+  while (items.length < 2) {
+    const n = items.length + 10;
+    const item = makeAdditionEquation(n, n + 8);
+    const key = normalizeEquationKey(item.equation);
+    if (!used.has(key)) {
+      used.add(key);
+      items.push({
+        prompt: `Solve: ${item.equation}`,
+        answer: item.answer
+      });
+    }
+  }
+
+  return items;
+}
+
+function makeAdditionEquation(a, b) {
+  return {
+    equation: `x + ${a} = ${b}`,
+    answer: `x = ${formatNumber(b - a)}`
+  };
+}
+
+function makeSubtractionEquation(a, b) {
+  return {
+    equation: `x - ${a} = ${b}`,
+    answer: `x = ${formatNumber(b + a)}`
+  };
+}
+
+function makeMultiplicationEquation(a, b) {
+  return {
+    equation: `${a}x = ${b}`,
+    answer: `x = ${formatNumber(b / a)}`
+  };
+}
+
+function makeDivisionEquation(a, b) {
+  return {
+    equation: `x ÷ ${a} = ${b}`,
+    answer: `x = ${formatNumber(a * b)}`
+  };
+}
+
+function normalizeEquationKey(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/\*/g, "×")
+    .replace(/\//g, "÷");
 }
 
 /* =========================================================
