@@ -282,6 +282,39 @@ const GENERATORS = {
   quadratic_factoring_word_problem: generateQuadraticFactoringWordProblem,
   identify_quadratic_solutions: generateIdentifyQuadraticSolutions,
 
+  // ============================================================
+  // UNIT 9 — QUADRATIC FUNCTIONS
+  // ============================================================
+  identify_quadratic_function: generateIdentifyQuadraticFunction,
+  quadratic_table_pattern: generateQuadraticTablePattern,
+  quadratic_graph_shape: generateQuadraticGraphShape,
+  linear_vs_quadratic_vs_exponential: generateLinearVsQuadraticVsExponential,
+
+  quadratic_vertex: generateQuadraticVertex,
+  quadratic_axis_of_symmetry: generateQuadraticAxisOfSymmetry,
+  quadratic_y_intercept: generateQuadraticYIntercept,
+  quadratic_graph_features: generateQuadraticGraphFeatures,
+
+  vertex_form_identify_vertex: generateVertexFormIdentifyVertex,
+  vertex_form_transformations: generateVertexFormTransformations,
+  vertex_form_graph_features: generateVertexFormGraphFeatures,
+  write_vertex_form_from_graph: generateWriteVertexFormFromGraph,
+
+  solve_quadratic_by_graphing: generateSolveQuadraticByGraphing,
+  identify_x_intercepts: generateIdentifyXIntercepts,
+  quadratic_number_of_solutions: generateQuadraticNumberOfSolutions,
+  interpret_quadratic_roots: generateInterpretQuadraticRoots,
+
+  quadratic_formula_real_solutions: generateQuadraticFormulaRealSolutions,
+  discriminant_number_of_solutions: generateDiscriminantNumberOfSolutions,
+  quadratic_formula_simplify: generateQuadraticFormulaSimplify,
+  choose_correct_quadratic_solution: generateChooseCorrectQuadraticSolution,
+
+  projectile_motion_quadratic: generateProjectileMotionQuadratic,
+  maximum_minimum_quadratic: generateMaximumMinimumQuadratic,
+  area_quadratic_word_problem: generateAreaQuadraticWordProblem,
+  interpret_quadratic_context: generateInterpretQuadraticContext,
+
   // LEGACY GENERATORS
   exponent_rules: generateExponentRules,
   factoring: generateFactoring,
@@ -3339,6 +3372,459 @@ function generateIdentifyQuadraticSolutions(difficulty = 1) {
   });
 }
 
+
+/* ============================================================
+   GENERATORS — UNIT 9: QUADRATIC FUNCTIONS
+   QuestionFactory 4.0 Phase D
+   ============================================================ */
+
+function generateIdentifyQuadraticFunction(difficulty = 1) {
+  const a = pickRandom([-3, -2, -1, 1, 2, 3]);
+  const b = randInt(-6, 6);
+  const c = randInt(-8, 8);
+  const answer = `y = ${formatQuadraticPolynomial(a, b, c)}`;
+
+  return buildQuestion({
+    prompt: `Which equation represents a quadratic function?`,
+    answer,
+    problemType: "identify_quadratic_function",
+    difficulty,
+    solutionSteps: [
+      "A quadratic function contains an x² term as the highest power.",
+      `${answer} has degree 2.`,
+      "Therefore, it is a quadratic function."
+    ]
+  });
+}
+
+function generateQuadraticTablePattern(difficulty = 1) {
+  const a = pickRandom([-2, -1, 1, 2]);
+  const b = randInt(-3, 3);
+  const c = randInt(-5, 5);
+  const xs = [-2, -1, 0, 1];
+  const ys = xs.map(x => a * x * x + b * x + c);
+
+  return buildQuestion({
+    prompt: `The table has x-values -2, -1, 0, 1 and y-values ${ys.join(", ")}. What type of function is shown?`,
+    answer: "Quadratic function",
+    problemType: "quadratic_table_pattern",
+    difficulty,
+    solutionSteps: [
+      "A quadratic table has a constant second difference.",
+      "The y-values do not change by a constant first difference.",
+      "The pattern is quadratic."
+    ]
+  });
+}
+
+function generateQuadraticGraphShape(difficulty = 1) {
+  return buildQuestion({
+    prompt: "What is the shape of the graph of a quadratic function?",
+    answer: "Parabola",
+    problemType: "quadratic_graph_shape",
+    difficulty,
+    solutionSteps: [
+      "Quadratic functions graph as U-shaped curves.",
+      "That shape is called a parabola."
+    ]
+  });
+}
+
+function generateLinearVsQuadraticVsExponential(difficulty = 1) {
+  const mode = pickRandom(["Linear function", "Quadratic function", "Exponential function"]);
+
+  let values;
+  if (mode === "Linear function") {
+    const start = randInt(-5, 5);
+    const rate = randInt(2, 6);
+    values = [start, start + rate, start + 2 * rate, start + 3 * rate];
+  } else if (mode === "Quadratic function") {
+    const a = pickRandom([1, 2]);
+    values = [0, 1, 2, 3].map(x => a * x * x + 1);
+  } else {
+    const start = randInt(1, 4);
+    const factor = pickRandom([2, 3]);
+    values = [start, start * factor, start * factor ** 2, start * factor ** 3];
+  }
+
+  return buildQuestion({
+    prompt: `Classify the function from the output pattern: ${values.join(", ")}.`,
+    answer: mode,
+    problemType: "linear_vs_quadratic_vs_exponential",
+    difficulty,
+    solutionSteps: [
+      "Linear patterns have constant first differences.",
+      "Quadratic patterns have constant second differences.",
+      "Exponential patterns have a constant multiplier.",
+      `This pattern is a ${mode.toLowerCase()}.`
+    ]
+  });
+}
+
+function generateQuadraticVertex(difficulty = 1) {
+  const h = randInt(-6, 6);
+  const k = randInt(-8, 8);
+  const a = pickRandom([-2, -1, 1, 2]);
+
+  return buildQuestion({
+    prompt: `For y = ${formatNumber(a)}(x ${formatSigned(-h)})² ${formatSigned(k)}, identify the vertex.`,
+    answer: `(${formatNumber(h)}, ${formatNumber(k)})`,
+    problemType: "quadratic_vertex",
+    difficulty,
+    solutionSteps: [
+      "Vertex form is y = a(x - h)² + k.",
+      `Here, h = ${formatNumber(h)} and k = ${formatNumber(k)}.`,
+      `The vertex is (${formatNumber(h)}, ${formatNumber(k)}).`
+    ]
+  });
+}
+
+function generateQuadraticAxisOfSymmetry(difficulty = 1) {
+  const h = randInt(-8, 8);
+  const k = randInt(-6, 6);
+  const a = pickRandom([-3, -2, -1, 1, 2, 3]);
+
+  return buildQuestion({
+    prompt: `For y = ${formatNumber(a)}(x ${formatSigned(-h)})² ${formatSigned(k)}, what is the axis of symmetry?`,
+    answer: `x = ${formatNumber(h)}`,
+    problemType: "quadratic_axis_of_symmetry",
+    difficulty,
+    solutionSteps: [
+      "The axis of symmetry is the vertical line through the vertex.",
+      `The vertex has x-coordinate ${formatNumber(h)}.`,
+      `So the axis of symmetry is x = ${formatNumber(h)}.`
+    ]
+  });
+}
+
+function generateQuadraticYIntercept(difficulty = 1) {
+  const a = pickRandom([-3, -2, -1, 1, 2, 3]);
+  const b = randInt(-6, 6);
+  const c = randInt(-9, 9);
+
+  return buildQuestion({
+    prompt: `For y = ${formatQuadraticPolynomial(a, b, c)}, what is the y-intercept?`,
+    answer: `(0, ${formatNumber(c)})`,
+    problemType: "quadratic_y_intercept",
+    difficulty,
+    solutionSteps: [
+      "The y-intercept occurs when x = 0.",
+      `Substitute x = 0 into ${formatQuadraticPolynomial(a, b, c)}.`,
+      `The y-intercept is (0, ${formatNumber(c)}).`
+    ]
+  });
+}
+
+function generateQuadraticGraphFeatures(difficulty = 1, overrideType = "quadratic_graph_features") {
+  const h = randInt(-5, 5);
+  const k = randInt(-6, 6);
+  const a = pickRandom([-2, -1, 1, 2]);
+  const direction = a > 0 ? "opens up" : "opens down";
+  const extremum = a > 0 ? "minimum" : "maximum";
+  const answer = `${direction}; vertex (${formatNumber(h)}, ${formatNumber(k)}); ${extremum} value ${formatNumber(k)}`;
+
+  return buildQuestion({
+    prompt: `Identify the key features of y = ${formatNumber(a)}(x ${formatSigned(-h)})² ${formatSigned(k)}.`,
+    answer,
+    problemType: overrideType,
+    difficulty,
+    solutionSteps: [
+      "Use vertex form y = a(x - h)² + k.",
+      `The vertex is (${formatNumber(h)}, ${formatNumber(k)}).`,
+      a > 0 ? "Because a is positive, the parabola opens up." : "Because a is negative, the parabola opens down.",
+      `The ${extremum} value is ${formatNumber(k)}.`
+    ]
+  });
+}
+
+function generateVertexFormIdentifyVertex(difficulty = 1) {
+  const h = randInt(-7, 7);
+  const k = randInt(-7, 7);
+  const a = pickRandom([-3, -2, -1, 1, 2, 3]);
+
+  return buildQuestion({
+    prompt: `Identify the vertex of y = ${formatNumber(a)}(x ${formatSigned(-h)})² ${formatSigned(k)}.`,
+    answer: `(${formatNumber(h)}, ${formatNumber(k)})`,
+    problemType: "vertex_form_identify_vertex",
+    difficulty,
+    solutionSteps: [
+      "Compare the equation to y = a(x - h)² + k.",
+      `h = ${formatNumber(h)} and k = ${formatNumber(k)}.`,
+      `The vertex is (${formatNumber(h)}, ${formatNumber(k)}).`
+    ]
+  });
+}
+
+function generateVertexFormTransformations(difficulty = 1) {
+  const h = randInt(-6, 6);
+  const k = randInt(-6, 6);
+  const a = pickRandom([-2, -1, 1, 2]);
+  const horizontal = h > 0 ? `${Math.abs(h)} units right` : h < 0 ? `${Math.abs(h)} units left` : "no horizontal shift";
+  const vertical = k > 0 ? `${Math.abs(k)} units up` : k < 0 ? `${Math.abs(k)} units down` : "no vertical shift";
+  const reflection = a < 0 ? "reflected over the x-axis" : "not reflected";
+  const answer = `${horizontal}, ${vertical}, ${reflection}`;
+
+  return buildQuestion({
+    prompt: `Describe the transformation from y = x² to y = ${formatNumber(a)}(x ${formatSigned(-h)})² ${formatSigned(k)}.`,
+    answer,
+    problemType: "vertex_form_transformations",
+    difficulty,
+    solutionSteps: [
+      "Use y = a(x - h)² + k.",
+      `h controls the horizontal shift: ${horizontal}.`,
+      `k controls the vertical shift: ${vertical}.`,
+      `The sign of a gives: ${reflection}.`
+    ]
+  });
+}
+
+function generateVertexFormGraphFeatures(difficulty = 1) {
+  return generateQuadraticGraphFeatures(difficulty, "vertex_form_graph_features");
+}
+
+function generateWriteVertexFormFromGraph(difficulty = 1) {
+  const h = randInt(-5, 5);
+  const k = randInt(-6, 6);
+  const a = pickRandom([-2, -1, 1, 2]);
+  const answer = `y = ${formatNumber(a)}(x ${formatSigned(-h)})² ${formatSigned(k)}`;
+
+  return buildQuestion({
+    prompt: `A parabola has vertex (${formatNumber(h)}, ${formatNumber(k)}) and a-value ${formatNumber(a)}. Write the function in vertex form.`,
+    answer,
+    problemType: "write_vertex_form_from_graph",
+    difficulty,
+    solutionSteps: [
+      "Vertex form is y = a(x - h)² + k.",
+      `Substitute a = ${formatNumber(a)}, h = ${formatNumber(h)}, and k = ${formatNumber(k)}.`,
+      `The function is ${answer}.`
+    ]
+  });
+}
+
+function generateSolveQuadraticByGraphing(difficulty = 1) {
+  const r = randInt(-8, 2);
+  const s = randInt(3, 10, [r]);
+  const b = -(r + s);
+  const c = r * s;
+  const answer = normalizeMultipleSolutions(r, s);
+
+  return buildQuestion({
+    prompt: `The graph of y = ${formatQuadraticPolynomial(1, b, c)} crosses the x-axis at its roots. Solve ${formatQuadraticPolynomial(1, b, c)} = 0 by graphing.`,
+    answer,
+    problemType: "solve_quadratic_by_graphing",
+    difficulty,
+    solutionSteps: [
+      "Solutions by graphing are the x-values where the parabola crosses the x-axis.",
+      `The x-intercepts are x = ${formatNumber(r)} and x = ${formatNumber(s)}.`,
+      `So the solutions are ${answer}.`
+    ]
+  });
+}
+
+function generateIdentifyXIntercepts(difficulty = 1) {
+  const r = randInt(-7, -1);
+  const s = randInt(1, 8);
+  const b = -(r + s);
+  const c = r * s;
+  const answer = `(${formatNumber(r)}, 0) and (${formatNumber(s)}, 0)`;
+
+  return buildQuestion({
+    prompt: `Identify the x-intercepts of y = ${formatQuadraticPolynomial(1, b, c)}.`,
+    answer,
+    problemType: "identify_x_intercepts",
+    difficulty,
+    solutionSteps: [
+      "The x-intercepts occur where y = 0.",
+      `Solve ${formatQuadraticPolynomial(1, b, c)} = 0.`,
+      `The x-intercepts are ${answer}.`
+    ]
+  });
+}
+
+function generateQuadraticNumberOfSolutions(difficulty = 1) {
+  const mode = pickRandom(["Two real solutions", "One real solution", "No real solutions"]);
+  let prompt;
+
+  if (mode === "Two real solutions") {
+    const r = randInt(-6, -1);
+    const s = randInt(1, 6);
+    prompt = `How many real solutions does ${formatQuadraticPolynomial(1, -(r + s), r * s)} = 0 have?`;
+  } else if (mode === "One real solution") {
+    const r = randInt(-6, 6);
+    prompt = `How many real solutions does x² ${formatSignedTerm(-2 * r, "x")} ${formatSigned(r * r)} = 0 have?`;
+  } else {
+    const k = randInt(1, 9);
+    prompt = `How many real solutions does x² + ${k} = 0 have?`;
+  }
+
+  return buildQuestion({
+    prompt,
+    answer: mode,
+    problemType: "quadratic_number_of_solutions",
+    difficulty,
+    solutionSteps: [
+      "The number of real solutions equals the number of x-intercepts.",
+      "A parabola can cross twice, touch once, or not cross the x-axis.",
+      `This equation has ${mode.toLowerCase()}.`
+    ]
+  });
+}
+
+function generateInterpretQuadraticRoots(difficulty = 1) {
+  const t = randInt(2, 10);
+  const other = -randInt(1, 6);
+  const b = -(t + other);
+  const c = t * other;
+
+  return buildQuestion({
+    prompt: `The height of a ball is modeled by h(t) = ${formatQuadraticPolynomial(1, b, c)}. The roots are t = ${formatNumber(other)} and t = ${formatNumber(t)}. Which root makes sense in context?`,
+    answer: `t = ${formatNumber(t)}`,
+    problemType: "interpret_quadratic_roots",
+    difficulty,
+    solutionSteps: [
+      "Roots represent times when the height is zero.",
+      "Negative time does not make sense in this context.",
+      `The meaningful root is t = ${formatNumber(t)}.`
+    ]
+  });
+}
+
+function generateQuadraticFormulaRealSolutions(difficulty = 1, overrideType = "quadratic_formula_real_solutions") {
+  const r = randInt(-8, -1);
+  const s = randInt(1, 8);
+  const b = -(r + s);
+  const c = r * s;
+  const answer = normalizeMultipleSolutions(r, s);
+
+  return buildQuestion({
+    prompt: `Use the quadratic formula to solve: ${formatQuadraticPolynomial(1, b, c)} = 0`,
+    answer,
+    problemType: overrideType,
+    difficulty,
+    solutionSteps: [
+      "Use x = (-b ± √(b² - 4ac)) ÷ 2a.",
+      `For ${formatQuadraticPolynomial(1, b, c)}, a = 1, b = ${formatNumber(b)}, c = ${formatNumber(c)}.`,
+      `The solutions are ${answer}.`
+    ]
+  });
+}
+
+function generateDiscriminantNumberOfSolutions(difficulty = 1) {
+  const mode = pickRandom(["Two real solutions", "One real solution", "No real solutions"]);
+  let a = 1, b, c, d;
+
+  if (mode === "Two real solutions") {
+    const r = randInt(-5, -1);
+    const s = randInt(1, 5);
+    b = -(r + s);
+    c = r * s;
+  } else if (mode === "One real solution") {
+    const r = randInt(-5, 5);
+    b = -2 * r;
+    c = r * r;
+  } else {
+    b = 0;
+    c = randInt(1, 9);
+  }
+
+  d = b * b - 4 * a * c;
+
+  return buildQuestion({
+    prompt: `Use the discriminant to determine the number of real solutions for ${formatQuadraticPolynomial(a, b, c)} = 0.`,
+    answer: mode,
+    problemType: "discriminant_number_of_solutions",
+    difficulty,
+    solutionSteps: [
+      "The discriminant is b² - 4ac.",
+      `Here, b² - 4ac = ${formatNumber(d)}.`,
+      d > 0 ? "A positive discriminant means two real solutions." : d === 0 ? "A zero discriminant means one real solution." : "A negative discriminant means no real solutions.",
+      `Answer: ${mode}.`
+    ]
+  });
+}
+
+function generateQuadraticFormulaSimplify(difficulty = 1) {
+  return generateQuadraticFormulaRealSolutions(difficulty, "quadratic_formula_simplify");
+}
+
+function generateChooseCorrectQuadraticSolution(difficulty = 1) {
+  return generateQuadraticFormulaRealSolutions(difficulty, "choose_correct_quadratic_solution");
+}
+
+function generateProjectileMotionQuadratic(difficulty = 1) {
+  const hitTime = randInt(2, 10);
+  const otherRoot = -randInt(1, 5);
+  const a = -1;
+  const b = hitTime + otherRoot;
+  const c = -hitTime * otherRoot;
+
+  return buildQuestion({
+    prompt: `The height of a projectile is h(t) = ${formatQuadraticPolynomial(a, b, c)}. When does it hit the ground?`,
+    answer: `t = ${formatNumber(hitTime)}`,
+    problemType: "projectile_motion_quadratic",
+    difficulty,
+    solutionSteps: [
+      "The object hits the ground when h(t) = 0.",
+      "Solve the quadratic equation and choose the positive time.",
+      `The positive solution is t = ${formatNumber(hitTime)}.`
+    ]
+  });
+}
+
+function generateMaximumMinimumQuadratic(difficulty = 1) {
+  const h = randInt(-5, 5);
+  const k = randInt(-10, 10);
+  const a = pickRandom([-3, -2, -1, 1, 2, 3]);
+  const type = a > 0 ? "minimum" : "maximum";
+
+  return buildQuestion({
+    prompt: `For y = ${formatNumber(a)}(x ${formatSigned(-h)})² ${formatSigned(k)}, identify the ${type} value.`,
+    answer: `The ${type} value is ${formatNumber(k)}`,
+    problemType: "maximum_minimum_quadratic",
+    difficulty,
+    solutionSteps: [
+      "The vertex gives the maximum or minimum value.",
+      a > 0 ? "Because a is positive, the parabola has a minimum." : "Because a is negative, the parabola has a maximum.",
+      `The ${type} value is the y-coordinate of the vertex: ${formatNumber(k)}.`
+    ]
+  });
+}
+
+function generateAreaQuadraticWordProblem(difficulty = 1) {
+  const r = randInt(2, 9);
+  const s = randInt(2, 9);
+  const answer = formatQuadraticPolynomial(1, r + s, r * s);
+
+  return buildQuestion({
+    prompt: `A rectangle has side lengths x + ${r} and x + ${s}. Which quadratic expression represents the area?`,
+    answer,
+    problemType: "area_quadratic_word_problem",
+    difficulty,
+    solutionSteps: [
+      "Area of a rectangle is length times width.",
+      `(x + ${r})(x + ${s})`,
+      `Multiply to get ${answer}.`
+    ]
+  });
+}
+
+function generateInterpretQuadraticContext(difficulty = 1) {
+  const h = randInt(1, 8);
+  const k = randInt(10, 80);
+
+  return buildQuestion({
+    prompt: `The path of a ball is modeled by h(t) = -2(t - ${h})² + ${k}. What does the vertex represent?`,
+    answer: `The ball reaches a maximum height of ${k} at t = ${h}`,
+    problemType: "interpret_quadratic_context",
+    difficulty,
+    solutionSteps: [
+      "The vertex of a quadratic model gives the maximum or minimum value.",
+      "Because the coefficient is negative, the parabola opens down.",
+      `The maximum height is ${k} at t = ${h}.`
+    ]
+  });
+}
+
 function generateExponentRules(difficulty = 1) {
   const base = pickRandom(["x", "a", "m"]);
   const p = randInt(2, 6);
@@ -3698,6 +4184,17 @@ function generateChoices(answer, problemType) {
   }
 
   if (
+    type.includes("quadratic") ||
+    type.includes("vertex_form") ||
+    type.includes("discriminant") ||
+    type.includes("projectile") ||
+    type.includes("maximum_minimum") ||
+    type.includes("x_intercepts")
+  ) {
+    return generateQuadraticAnswerChoices(answer, problemType, finalizeChoices);
+  }
+
+  if (
     type.includes("polynomial") ||
     type.includes("binomial") ||
     type.includes("factor") ||
@@ -3839,6 +4336,125 @@ function generateChoices(answer, problemType) {
   return finalizeChoices(answer, shuffle(Array.from(distractors)));
 }
 
+
+
+function generateQuadraticAnswerChoices(answer, problemType, finalizeChoices) {
+  const text = String(answer || "").trim();
+  const type = String(problemType || "").toLowerCase();
+
+  if (["Quadratic function", "Linear function", "Exponential function"].includes(text)) {
+    return finalizeChoices(text, [
+      "Quadratic function",
+      "Linear function",
+      "Exponential function",
+      "Not a function"
+    ]);
+  }
+
+  if (["Parabola", "Line", "Exponential curve"].includes(text)) {
+    return finalizeChoices(text, [
+      "Parabola",
+      "Line",
+      "Exponential curve",
+      "Circle"
+    ]);
+  }
+
+  if (["Two real solutions", "One real solution", "No real solutions"].includes(text)) {
+    return finalizeChoices(text, [
+      "Two real solutions",
+      "One real solution",
+      "No real solutions",
+      "Infinitely many solutions"
+    ]);
+  }
+
+  if (text === "opens up" || text === "opens down") {
+    return finalizeChoices(text, [
+      text === "opens up" ? "opens down" : "opens up",
+      "opens left",
+      "opens right",
+      "cannot be determined"
+    ]);
+  }
+
+  if (text.startsWith("x = ") && !text.includes(",")) {
+    const value = Number(text.replace("x = ", ""));
+    if (!Number.isNaN(value)) {
+      return finalizeChoices(text, [
+        `x = ${formatNumber(value + 1)}`,
+        `x = ${formatNumber(value - 1)}`,
+        `x = ${formatNumber(-value)}`,
+        "No real solutions"
+      ]);
+    }
+  }
+
+  if (text.startsWith("x = ") && text.includes(",")) {
+    const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+    if (nums.length >= 2) {
+      const [a, b] = nums;
+      return finalizeChoices(normalizeMultipleSolutions(a, b), [
+        `x = ${formatNumber(a)}`,
+        `x = ${formatNumber(b)}`,
+        normalizeMultipleSolutions(-a, b),
+        normalizeMultipleSolutions(a, -b),
+        "No real solutions"
+      ]);
+    }
+  }
+
+  if (text.startsWith("(") && text.includes(",")) {
+    const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+    if (nums.length >= 2) {
+      const [x, y] = nums;
+      return finalizeChoices(text, [
+        `(${formatNumber(-x)}, ${formatNumber(y)})`,
+        `(${formatNumber(x)}, ${formatNumber(-y)})`,
+        `(${formatNumber(y)}, ${formatNumber(x)})`,
+        `(0, ${formatNumber(y)})`
+      ]);
+    }
+  }
+
+  if (text.includes("and") && text.includes(", 0")) {
+    return finalizeChoices(text, [
+      "(0, 0) and (1, 0)",
+      "No x-intercepts",
+      "One x-intercept",
+      "Cannot be determined"
+    ]);
+  }
+
+  if (text.includes("maximum") || text.includes("minimum")) {
+    return finalizeChoices(text, [
+      text.replace("maximum", "minimum"),
+      text.replace("minimum", "maximum"),
+      "The y-intercept is the maximum.",
+      "Cannot be determined"
+    ]);
+  }
+
+  if (text.startsWith("y = ")) {
+    return finalizeChoices(text, [
+      text.replace("+", "-"),
+      text.replace("-", "+"),
+      "y = x²",
+      "y = x + 1",
+      "Cannot be determined"
+    ]);
+  }
+
+  return finalizeChoices(text, [
+    "Quadratic function",
+    "Linear function",
+    "Exponential function",
+    "Two real solutions",
+    "One real solution",
+    "No real solutions",
+    "Cannot be determined"
+  ]);
+}
 
 function generatePolynomialAnswerChoices(answer, problemType, finalizeChoices) {
   const text = String(answer || "").trim();
