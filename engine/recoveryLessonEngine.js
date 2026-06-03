@@ -1,6 +1,6 @@
 /* =========================================================
    ALGEBRA OS — recoveryLessonEngine.js
-   Version: 2001 — AUTO-ALIGNED RECOVERY QUESTION GENERATION
+   Version: 2002 — BUTTON/EXPORT HOTFIX + AUTO-ALIGNED RECOVERY
 
    PURPOSE:
    - Compatible with current lesson.html.
@@ -25,9 +25,26 @@
    - v1902: Adds Tutor Choice Quality Gate for all tutor-generated choices.
    - v2000: Adds Recovery Tutor Certification Engine for mathematical integrity.
    - v2001: Automatically replaces mismatched tutor questions with skill-aligned recovery questions.
+   - v2002: Restores legacy openRecoveryTutor export and local shuffle utility.
 ========================================================= */
 
 const RECOVERY_PREFIX = "algebra_recovery_";
+
+
+/* =========================================================
+   LOCAL ARRAY UTILITIES
+========================================================= */
+
+function shuffle(list) {
+  const array = Array.isArray(list) ? [...list] : [];
+
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+
+  return array;
+}
 
 /* =========================================================
    NORMALIZATION
@@ -2622,12 +2639,26 @@ function certifyRecoveryTutor() {
   return result;
 }
 
+
+/* =========================================================
+   v2002 — LEGACY COMPATIBILITY EXPORT
+========================================================= */
+
+function openRecoveryTutor(problemType = "one_step_addition_equation", metadata = {}, currentQuestion = null) {
+  /*
+    lesson.html may import/open this legacy function.
+    Keep it as a thin wrapper around the certified recovery lesson generator.
+  */
+  return generateRecoveryLesson(problemType, metadata, currentQuestion);
+}
+
 /* =========================================================
    EXPORTS + GLOBAL OBJECT
 ========================================================= */
 
 const AlgebraRecoveryLessonEngine = {
   generateRecoveryLesson,
+  openRecoveryTutor,
   markRecoveryOpened,
   loadRecoveryState,
   loadTutorState,
@@ -2664,6 +2695,7 @@ installRecoveryTutorKeyboardSupport();
 
 export {
   generateRecoveryLesson,
+  openRecoveryTutor,
   markRecoveryOpened,
   loadRecoveryState,
   loadTutorState,
