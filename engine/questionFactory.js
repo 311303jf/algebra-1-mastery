@@ -200,6 +200,42 @@ const GENERATORS = {
   systems_inequalities_word_problem: generateSystemsInequalitiesWordProblem,
 
   scatter_plots: generateScatterPlot,
+
+  // ============================================================
+  // UNIT 6 — EXPONENTS & EXPONENTIAL FUNCTIONS
+  // ============================================================
+
+  product_rule_exponents: generateProductRuleExponents,
+  quotient_rule_exponents: generateQuotientRuleExponents,
+  power_rule_exponents: generatePowerRuleExponents,
+  power_of_product: generatePowerOfProduct,
+  power_of_quotient: generatePowerOfQuotient,
+
+  zero_exponent: generateZeroExponent,
+  negative_exponent: generateNegativeExponent,
+  mixed_exponent_simplify: generateMixedExponentSimplify,
+  rewrite_with_positive_exponents: generateRewritePositiveExponent,
+
+  convert_to_scientific_notation: generateScientificNotation,
+  convert_from_scientific_notation: generateFromScientificNotation,
+  multiply_scientific_notation: generateMultiplyScientificNotation,
+  divide_scientific_notation: generateDivideScientificNotation,
+  compare_scientific_notation: generateCompareScientificNotation,
+
+  exponential_growth_evaluate: generateExponentialGrowth,
+  exponential_decay_evaluate: generateExponentialDecay,
+  identify_growth_decay: generateIdentifyGrowthDecay,
+  write_exponential_model: generateExponentialModel,
+
+  exponential_table: generateExponentialTable,
+  exponential_graph_features: generateExponentialGraphFeatures,
+  identify_exponential_function: generateIdentifyExponentialFunction,
+  compare_exponential_growth: generateCompareExponentialGrowth,
+
+  // ============================================================
+  // LEGACY GENERATORS (KEEP)
+  // ============================================================
+
   exponent_rules: generateExponentRules,
   factoring: generateFactoring,
   quadratics: generateQuadraticRoots
