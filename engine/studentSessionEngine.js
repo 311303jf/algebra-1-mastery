@@ -1,6 +1,6 @@
 /*
   Algebra OS — Student Session Engine
-  Version: 2.2 Mastery v2 + Skill Intervention System
+  Version: 2.3 Mastery v2 + Recovery Lesson Trigger
 
   Mastery v2 unlock rule:
   - Minimum Attempts >= 12
@@ -137,8 +137,7 @@ const AlgebraStudentSessionEngine = (() => {
   function getInterventionLevel(consecutiveErrors) {
     const errors = Number(consecutiveErrors || 0);
 
-    if (errors >= 8) return "recovery";
-    if (errors >= 5) return "learning";
+    if (errors >= 5) return "recovery";
     if (errors >= 3) return "recommendation";
 
     return "none";
@@ -147,10 +146,6 @@ const AlgebraStudentSessionEngine = (() => {
   function getInterventionMessage(problemType, level) {
     if (level === "recovery") {
       return `Skill Recovery Required: review the lesson and complete guided practice for ${problemType} before continuing independent mastery.`;
-    }
-
-    if (level === "learning") {
-      return `Learning Mode Activated: study the worked example for ${problemType}, then try a guided practice question.`;
     }
 
     if (level === "recommendation") {
@@ -196,7 +191,7 @@ const AlgebraStudentSessionEngine = (() => {
       .map(problemType => getSkillIntervention(lessonId, problemType))
       .filter(item => item.level !== "none")
       .sort((a, b) => {
-        const order = { recovery: 3, learning: 2, recommendation: 1, none: 0 };
+        const order = { recovery: 3, recommendation: 1, none: 0 };
         return order[b.level] - order[a.level] ||
           Number(b.consecutiveErrors || 0) - Number(a.consecutiveErrors || 0);
       });
