@@ -1,6 +1,6 @@
 /* =========================================================
    ALGEBRA OS — recoveryLessonEngine.js
-   Version: 2002 — BUTTON/EXPORT HOTFIX + AUTO-ALIGNED RECOVERY
+   Version: 2003 — TWO-STEP BRIDGE INSIDE MULTI-STEP TUTOR
 
    PURPOSE:
    - Compatible with current lesson.html.
@@ -26,6 +26,7 @@
    - v2000: Adds Recovery Tutor Certification Engine for mathematical integrity.
    - v2001: Automatically replaces mismatched tutor questions with skill-aligned recovery questions.
    - v2002: Restores legacy openRecoveryTutor export and local shuffle utility.
+   - v2003: Adds a two-step bridge after simplification before the final solution.
 ========================================================= */
 
 const RECOVERY_PREFIX = "algebra_recovery_";
@@ -431,6 +432,7 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
 
 function buildMultiStepEquationLesson(problemType, metadata, currentQuestion) {
   const parsed = parseMultiStepEquation(currentQuestion);
+
   if (parsed.tutorType === "certified_mismatch") {
     const alignedQuestion = generateAlignedRecoveryQuestionForSkill(problemType, currentQuestion);
 
@@ -461,6 +463,7 @@ function buildMultiStepEquationLesson(problemType, metadata, currentQuestion) {
     diagnostic: {
       equationBefore: parsed.equationBefore,
       simplifiedEquation: parsed.simplifiedEquation,
+      twoStepEquation: parsed.twoStepEquation,
       equationAfter: parsed.equationAfter,
       firstAction: parsed.firstAction,
       tutorType: "multi_step_equation"
@@ -469,12 +472,13 @@ function buildMultiStepEquationLesson(problemType, metadata, currentQuestion) {
     conceptSummary: [
       "A multi-step equation must be simplified before solving.",
       "First combine like terms or use the distributive property when needed.",
-      "After the equation is simplified, solve it using inverse operations."
+      "After the equation is simplified, it becomes linked to a two-step equation.",
+      "Then move the constant and use inverse operations to isolate the variable."
     ],
 
     misconception:
       metadata?.misconception ||
-      "A common mistake is trying to move numbers before simplifying the expression. In multi-step equations, simplify first.",
+      "A common mistake is jumping from the simplified equation directly to the answer. Show the two-step bridge first: move the constant, then divide by the coefficient.",
 
     tutorDialogue: [
       {
@@ -513,10 +517,25 @@ function buildMultiStepEquationLesson(problemType, metadata, currentQuestion) {
           "Combine variable terms with variable terms and constants with constants."
       },
       {
-        id: "solve_simplified",
+        id: "two_step_bridge",
         tutor: `
           <div><strong>Simplified equation:</strong> ${escapeHtml(parsed.simplifiedEquation)}</div>
-          <div style="margin-top:8px;">What is the solution?</div>
+          <div style="margin-top:8px;">Before solving completely, what equation do we get after moving the constant?</div>
+        `,
+        choices: buildTwoStepBridgeChoices(parsed.twoStepEquation),
+        expected: [parsed.twoStepEquation],
+        explanation: `
+          Correct. Now the equation is <strong>${escapeHtml(parsed.twoStepEquation)}</strong>.
+          ${renderMultiStepTransformation(parsed, "twoStep")}
+        `,
+        theory:
+          "This is the two-step bridge. After simplifying, move the constant away from the variable term before dividing."
+      },
+      {
+        id: "solve_simplified",
+        tutor: `
+          <div><strong>Two-step bridge:</strong> ${escapeHtml(parsed.twoStepEquation)}</div>
+          <div style="margin-top:8px;">Now what is the solution?</div>
         `,
         choices: buildEquationChoices(parsed.equationAfter),
         expected: [parsed.equationAfter],
@@ -525,7 +544,7 @@ function buildMultiStepEquationLesson(problemType, metadata, currentQuestion) {
           ${renderMultiStepTransformation(parsed, "solution")}
         `,
         theory:
-          "Once the equation is simplified, solve it like a one-step or two-step equation."
+          "After moving the constant, divide both sides by the coefficient to isolate x."
       }
     ],
 
@@ -533,7 +552,8 @@ function buildMultiStepEquationLesson(problemType, metadata, currentQuestion) {
       `Start with ${parsed.equationBefore}.`,
       `First: ${parsed.firstAction}.`,
       `Simplified equation: ${parsed.simplifiedEquation}.`,
-      `Then solve using inverse operations.`,
+      `Two-step bridge: ${parsed.twoStepEquation}.`,
+      `Then divide by the coefficient to isolate x.`,
       `The result is ${parsed.equationAfter}.`
     ],
 
@@ -1079,6 +1099,7 @@ function parseMultiStepEquation(currentQuestion) {
       equationBefore: prettyEquation(equation),
       firstAction: "Combine like terms",
       simplifiedEquation: normalizeEquationSpacing(simplifiedEquation),
+      twoStepEquation: normalizeEquationSpacing(`${formatCoefficient(combined)}x = ${formatNumber(d - b)}`),
       equationAfter: `x = ${formatNumber(solution)}`,
       certifiedSolution: `x = ${formatNumber(solution)}`,
       combineA: a,
@@ -1107,6 +1128,7 @@ function parseMultiStepEquation(currentQuestion) {
       equationBefore: prettyEquation(equation),
       firstAction: "Use the distributive property",
       simplifiedEquation: normalizeEquationSpacing(simplifiedEquation),
+      twoStepEquation: normalizeEquationSpacing(`${formatCoefficient(a)}${variable} = ${formatNumber(d - combinedConstant)}`),
       equationAfter: `${variable} = ${formatNumber(solution)}`,
       certifiedSolution: `${variable} = ${formatNumber(solution)}`,
       coefficient: a,
@@ -1134,6 +1156,7 @@ function parseMultiStepEquation(currentQuestion) {
       equationBefore: prettyEquation(equation),
       firstAction: "Use the distributive property",
       simplifiedEquation: normalizeEquationSpacing(simplifiedEquation),
+      twoStepEquation: normalizeEquationSpacing(`${formatCoefficient(a)}${variable} = ${formatNumber(d - distributedConstant)}`),
       equationAfter: `${variable} = ${formatNumber(solution)}`,
       certifiedSolution: `${variable} = ${formatNumber(solution)}`,
       coefficient: a,
@@ -1592,18 +1615,27 @@ function renderMultiplicationDivisionTransformation(parsed) {
 
 function renderMultiStepTransformation(parsed, stage = "solution") {
   /*
-    v1901 Step Visibility Fix:
-    The tutor must teach step-by-step.
-    It must NOT reveal the final solution during the first or simplified step.
+    v2003 Step Visibility:
+    The tutor shows the multi-step process gradually:
+    1. Original + first action
+    2. Simplified equation
+    3. Two-step bridge after moving the constant
+    4. Final solution
   */
 
   const showFirst =
     stage === "first" ||
     stage === "simplified" ||
+    stage === "twoStep" ||
     stage === "solution";
 
   const showSimplified =
     stage === "simplified" ||
+    stage === "twoStep" ||
+    stage === "solution";
+
+  const showTwoStep =
+    stage === "twoStep" ||
     stage === "solution";
 
   const showSolution =
@@ -1630,6 +1662,12 @@ function renderMultiStepTransformation(parsed, stage = "solution") {
         }
 
         ${
+          showTwoStep
+            ? `<div><strong>Two-step bridge:</strong> ${escapeHtml(parsed.twoStepEquation)}</div>`
+            : ""
+        }
+
+        ${
           showSolution
             ? `<div><strong>Solution:</strong> <span class="aos-green">${escapeHtml(parsed.equationAfter)}</span></div>`
             : ""
@@ -1638,7 +1676,6 @@ function renderMultiStepTransformation(parsed, stage = "solution") {
     </div>
   `;
 }
-
 function renderVariablesBothSidesTransformation(parsed, stage = "solution") {
   return `
     <div class="aos-math-workspace">
@@ -1797,6 +1834,43 @@ function mathRendererStyle() {
 /* =========================================================
    CHOICES
 ========================================================= */
+
+function buildTwoStepBridgeChoices(correct) {
+  /*
+    v2003:
+    Choices for the two-step bridge must be equations like 5x = 15,
+    not final answers like x = 3.
+  */
+
+  const correctText = String(correct || "").trim();
+  const parsed = parseLinearEquationForChoiceGeneration(correctText);
+
+  if (parsed) {
+    const { variable, coefficient, rightSide } = parsed;
+
+    const candidates = [
+      correctText,
+      `${formatCoefficient(coefficient)}${variable} = ${formatNumber(rightSide + 1)}`,
+      `${formatCoefficient(coefficient)}${variable} = ${formatNumber(rightSide - 1)}`,
+      `${formatCoefficient(coefficient + 1)}${variable} = ${formatNumber(rightSide)}`,
+      `${formatCoefficient(Math.max(1, coefficient - 1))}${variable} = ${formatNumber(rightSide)}`
+    ].map(normalizeEquationSpacing);
+
+    return certifyTutorChoices(correctText, candidates, {
+      expectedFormat: "linear_equation_after_constant"
+    });
+  }
+
+  return certifyTutorChoices(correctText, [
+    correctText,
+    "5x = 15",
+    "5x = 20",
+    "4x = 15",
+    "6x = 15"
+  ], {
+    expectedFormat: "linear_equation_after_constant"
+  });
+}
 
 function buildEquationChoices(correct) {
   /*
@@ -2003,6 +2077,15 @@ function passesTutorChoiceFormat(choice, expectedFormat) {
     return /[a-z]/i.test(text) && /-?\d/.test(text);
   }
 
+  if (expectedFormat === "linear_equation_after_constant") {
+    if (!text.includes("=")) return false;
+
+    // The bridge should be like 5x = 15, not x = 3.
+    if (/^[a-z]\s*=\s*-?\d+(?:\.\d+)?$/i.test(text)) return false;
+
+    return /^-?\d*\s*[a-z]\s*=\s*-?\d+(?:\.\d+)?$/i.test(text.replace(/−/g, "-"));
+  }
+
   if (expectedFormat === "operation") {
     return /addition|subtraction|multiplication|division|combine|distributive|move/i.test(text);
   }
@@ -2037,6 +2120,19 @@ function buildTutorChoiceFallback(correct, expectedFormat, index) {
     }
 
     return `${index + 2}x + ${index} = ${index + 10}`;
+  }
+
+  if (expectedFormat === "linear_equation_after_constant") {
+    const parsed = parseLinearEquationForChoiceGeneration(text);
+    if (parsed) {
+      const { variable, coefficient, rightSide } = parsed;
+      const offset = index % 2 === 0 ? index : -index;
+      return normalizeEquationSpacing(
+        `${formatCoefficient(coefficient)}${variable} = ${formatNumber(rightSide + offset)}`
+      );
+    }
+
+    return `${index + 2}x = ${index + 10}`;
   }
 
   return `Choice ${index}`;
@@ -2221,6 +2317,20 @@ function certifyTutorMathematics(lesson, problemType, currentQuestion) {
 
   if (!verifySolutionBySubstitution(simplifiedEquation || equationBefore, solverSolution)) {
     failures.push(`Solver solution does not verify by substitution: ${solverSolution}.`);
+  }
+
+  if (diagnostic.twoStepEquation) {
+    const bridgeSolver = solveSupportedLinearEquation(diagnostic.twoStepEquation);
+
+    if (!bridgeSolver) {
+      failures.push(`Two-step bridge could not be solved: ${diagnostic.twoStepEquation}.`);
+    } else if (normalizeTutorChoiceForEquivalence(bridgeSolver) !== normalizeTutorChoiceForEquivalence(solverSolution)) {
+      failures.push(`Two-step bridge solution mismatch. Bridge=${bridgeSolver}; Solver=${solverSolution}.`);
+    }
+
+    if (!verifySolutionBySubstitution(diagnostic.twoStepEquation, solverSolution)) {
+      failures.push(`Two-step bridge does not verify with solver solution: ${diagnostic.twoStepEquation}; ${solverSolution}.`);
+    }
   }
 
   if (tutorSolution && !verifySolutionBySubstitution(simplifiedEquation || equationBefore, tutorSolution)) {
@@ -2621,6 +2731,20 @@ function certifyRecoveryTutor() {
   }
 
 
+  
+  // v2003 Two-step bridge certification test
+  const bridgeLesson = generateRecoveryLesson("combine_like_terms", {}, {
+    prompt: "Solve for x: 3x + 5 + 2x = 20",
+    answer: "x = 3"
+  });
+  if (bridgeLesson.diagnostic?.twoStepEquation !== "5x = 15") {
+    failures.push(`v2003: expected two-step bridge 5x = 15, got ${bridgeLesson.diagnostic?.twoStepEquation}`);
+  }
+  if (!bridgeLesson.tutorDialogue?.some(step => step.id === "two_step_bridge")) {
+    failures.push("v2003: tutorDialogue missing two_step_bridge step.");
+  }
+
+
   const result = {
     passed: failures.length === 0,
     failures,
@@ -2686,7 +2810,8 @@ const AlgebraRecoveryLessonEngine = {
     certifyTutorMathematics,
     solveSupportedLinearEquation,
     verifySolutionBySubstitution,
-    generateAlignedRecoveryQuestionForSkill
+    generateAlignedRecoveryQuestionForSkill,
+    buildTwoStepBridgeChoices
   }
 };
 
