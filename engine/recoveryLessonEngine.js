@@ -1,6 +1,6 @@
 /* =========================================================
    ALGEBRA OS — recoveryLessonEngine.js
-   Version: 1600 — CERTIFIED RECOVERY TUTOR CORE
+   Version: 1700 — CERTIFIED RECOVERY TUTOR + MATH RENDERER
 
    PURPOSE:
    - Compatible with current lesson.html.
@@ -10,6 +10,10 @@
        inverse operation = Multiplication
    - Adds deterministic tutor validation support.
    - Keeps Recovery Practice different from original and from itself.
+   - Adds teacher-style aligned math renderer.
+   - Shows cancellation with cross-out.
+   - Does NOT show + 0.
+   - Adds Enter key support for tutor workflow.
 ========================================================= */
 
 const RECOVERY_PREFIX = "algebra_recovery_";
@@ -25,7 +29,8 @@ function normalizeText(value) {
 function normalizeAnswer(value) {
   return normalizeText(value)
     .replace(/×/g, "*")
-    .replace(/÷/g, "/");
+    .replace(/÷/g, "/")
+    .replace(/−/g, "-");
 }
 
 function storageKey(lessonId, problemType) {
@@ -67,6 +72,7 @@ function markRecoveryOpened(lessonId, problemType) {
   const state = loadRecoveryState(lessonId, problemType);
   state.opened = true;
   saveRecoveryState(lessonId, problemType, state);
+  installRecoveryTutorKeyboardSupport();
   return state;
 }
 
@@ -113,6 +119,8 @@ function tutorAnswerMatches(input, expectedList) {
 }
 
 function generateRecoveryLesson(problemType = "one_step_addition_equation", metadata = {}, currentQuestion = null) {
+  installRecoveryTutorKeyboardSupport();
+
   const skill = normalizeText(problemType);
 
   if (
@@ -196,16 +204,16 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
         id: "simplified_equation",
         tutor: `
           <div><strong>Equation:</strong> ${escapeHtml(parsed.equationBefore)}</div>
-          <div style="margin-top:8px;">After applying the inverse operation to both sides, what is the simplified equation?</div>
+          <div style="margin-top:8px;">After applying the inverse operation, what is the solution?</div>
         `,
         choices: buildEquationChoices(parsed.equationAfter),
         expected: [parsed.equationAfter],
         explanation: `
-          Correct. The simplified equation is <strong>${escapeHtml(parsed.equationAfter)}</strong>.
+          Correct. The solution is <strong>${escapeHtml(parsed.equationAfter)}</strong>.
           ${renderEquationTransformation(parsed)}
         `,
         theory:
-          "Apply the inverse operation to both sides, then simplify carefully."
+          "Cancel the opposite terms on the left side, bring down the equal sign, and simplify the right side."
       }
     ],
 
@@ -213,7 +221,9 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
       `Start with ${parsed.equationBefore}.`,
       `The operation attached to x is ${operation}.`,
       `Use the inverse operation: ${inverse}.`,
-      `Apply it to both sides: ${parsed.equationAction}.`,
+      `Apply it to both sides.`,
+      `Cancel the opposite terms on the left side.`,
+      `Bring down the equal sign and simplify the right side.`,
       `The result is ${parsed.equationAfter}.`
     ],
 
@@ -387,7 +397,8 @@ function normalizeEquationKey(value) {
     .toLowerCase()
     .replace(/\s+/g, "")
     .replace(/\*/g, "×")
-    .replace(/\//g, "÷");
+    .replace(/\//g, "÷")
+    .replace(/−/g, "-");
 }
 
 /* =========================================================
@@ -397,8 +408,11 @@ function normalizeEquationKey(value) {
 function parseOneStepEquation(currentQuestion) {
   const fallback = {
     equationBefore: "x + 8 = 18",
+    variable: "x",
     operation: "Addition",
     inverseOperation: "Subtraction",
+    constant: 8,
+    rightValue: 18,
     equationAction: "- 8     - 8",
     equationAfter: "x = 10"
   };
@@ -425,7 +439,7 @@ function parseOneStepEquation(currentQuestion) {
     return fallback;
   }
 
-  const compact = equation.replace(/\s+/g, "");
+  const compact = equation.replace(/\s+/g, "").replace(/−/g, "-");
   let match;
 
   // x + a = b
@@ -436,8 +450,11 @@ function parseOneStepEquation(currentQuestion) {
     const b = Number(match[3]);
     return {
       equationBefore: prettyEquation(equation),
+      variable,
       operation: "Addition",
       inverseOperation: "Subtraction",
+      constant: a,
+      rightValue: b,
       equationAction: `- ${a}     - ${a}`,
       equationAfter: `${variable} = ${formatNumber(b - a)}`
     };
@@ -451,8 +468,11 @@ function parseOneStepEquation(currentQuestion) {
     const b = Number(match[3]);
     return {
       equationBefore: prettyEquation(equation),
+      variable,
       operation: "Subtraction",
       inverseOperation: "Addition",
+      constant: a,
+      rightValue: b,
       equationAction: `+ ${a}     + ${a}`,
       equationAfter: `${variable} = ${formatNumber(b + a)}`
     };
@@ -466,8 +486,11 @@ function parseOneStepEquation(currentQuestion) {
     const b = Number(match[3]);
     return {
       equationBefore: prettyEquation(equation),
+      variable,
       operation: "Multiplication",
       inverseOperation: "Division",
+      constant: a,
+      rightValue: b,
       equationAction: `÷ ${a}     ÷ ${a}`,
       equationAfter: `${variable} = ${formatNumber(b / a)}`
     };
@@ -481,8 +504,11 @@ function parseOneStepEquation(currentQuestion) {
     const b = Number(match[3]);
     return {
       equationBefore: prettyEquation(equation),
+      variable,
       operation: "Division",
       inverseOperation: "Multiplication",
+      constant: a,
+      rightValue: b,
       equationAction: `× ${a}     × ${a}`,
       equationAfter: `${variable} = ${formatNumber(b * a)}`
     };
@@ -510,7 +536,7 @@ function extractEquation(text) {
 
   const patterns = [
     /[a-z]\s*[+]\s*-?\d+\s*=\s*-?\d+/i,
-    /[a-z]\s*[-]\s*-?\d+\s*=\s*-?\d+/i,
+    /[a-z]\s*[-−]\s*-?\d+\s*=\s*-?\d+/i,
     /-?\d+\s*[×*]\s*[a-z]\s*=\s*-?\d+/i,
     /-?\d+\s*[a-z]\s*=\s*-?\d+/i,
     /[a-z]\s*[÷/]\s*-?\d+\s*=\s*-?\d+/i
@@ -528,6 +554,7 @@ function prettyEquation(equation) {
   return String(equation)
     .replace(/\*/g, "×")
     .replace(/\//g, "÷")
+    .replace(/-/g, "−")
     .replace(/\s+/g, " ")
     .trim();
 }
@@ -551,7 +578,7 @@ function expectedOperationAnswers(operation) {
   }
 
   if (op === "subtraction") {
-    return ["Subtraction", "subtract", "minus", "-", "subtracting"];
+    return ["Subtraction", "subtract", "minus", "-", "−", "subtracting"];
   }
 
   if (op === "multiplication") {
@@ -602,26 +629,385 @@ function uniqueChoices(list) {
   return result.slice(0, 4);
 }
 
+/* =========================================================
+   PROFESSIONAL TEACHER-STYLE MATH RENDERER
+========================================================= */
+
 function renderEquationTransformation(parsed) {
-  if (!parsed?.equationAction || !parsed?.equationAfter) return "";
+  if (!parsed?.equationAfter) return "";
+
+  if (parsed.operation === "Addition" || parsed.operation === "Subtraction") {
+    return renderAdditionSubtractionTransformation(parsed);
+  }
+
+  if (parsed.operation === "Multiplication" || parsed.operation === "Division") {
+    return renderMultiplicationDivisionTransformation(parsed);
+  }
+
+  return "";
+}
+
+function renderAdditionSubtractionTransformation(parsed) {
+  const variable = parsed.variable || "x";
+  const constant = Number(parsed.constant);
+  const rightValue = Number(parsed.rightValue);
+  const solutionValue = parseSolutionValue(parsed.equationAfter);
+
+  const originalSign = parsed.operation === "Addition" ? "+" : "−";
+  const inverseSign = parsed.operation === "Addition" ? "−" : "+";
+
+  const rightExpression = parsed.operation === "Addition"
+    ? `${formatNumber(rightValue)} − ${formatNumber(constant)}`
+    : `${formatNumber(rightValue)} + ${formatNumber(constant)}`;
 
   return `
-    <div class="equation-transformation-box" style="
-      margin-top:12px;
-      background:#f8fafc;
-      border:1px solid #bfdbfe;
-      border-radius:12px;
-      padding:12px;
-      text-align:center;
-      color:#1e3a8a;">
-      <div style="font-weight:1000;margin-bottom:8px;">What happened to the equation?</div>
-      <div style="font-size:22px;font-weight:1000;">${escapeHtml(parsed.equationBefore)}</div>
-      <div style="font-size:22px;font-weight:1000;color:#991b1b;">${escapeHtml(parsed.equationAction)}</div>
-      <div style="color:#64748b;">────────────</div>
-      <div style="font-size:22px;font-weight:1000;color:#166534;">${escapeHtml(parsed.equationAfter)}</div>
+    <div class="aos-math-workspace">
+      ${mathRendererStyle()}
+      <div class="aos-work-title">What happened to the equation?</div>
+
+      <div class="aos-work-grid">
+        <div class="aos-work-math">
+          <div class="aos-eq-row aos-row-original">
+            <span>${escapeHtml(variable)}</span>
+            <span>${originalSign}</span>
+            <span>${formatNumber(constant)}</span>
+            <span>=</span>
+            <span>${formatNumber(rightValue)}</span>
+          </div>
+
+          <div class="aos-eq-row aos-row-operation">
+            <span></span>
+            <span></span>
+            <span class="aos-red">${inverseSign}${formatNumber(constant)}</span>
+            <span></span>
+            <span class="aos-red">${inverseSign}${formatNumber(constant)}</span>
+          </div>
+
+          <div class="aos-eq-line"></div>
+
+          <div class="aos-eq-row aos-row-cancel">
+            <span>${escapeHtml(variable)}</span>
+            <span>${originalSign}</span>
+            <span>
+              <span class="aos-cancel">${formatNumber(constant)}</span>
+              <span class="aos-red aos-cancel">${inverseSign}${formatNumber(constant)}</span>
+            </span>
+            <span>=</span>
+            <span>${rightExpression}</span>
+          </div>
+
+          <div class="aos-eq-line"></div>
+
+          <div class="aos-eq-row aos-row-final">
+            <span>${escapeHtml(variable)}</span>
+            <span></span>
+            <span></span>
+            <span>=</span>
+            <span class="aos-green">${formatNumber(solutionValue)}</span>
+          </div>
+        </div>
+
+        <div class="aos-work-notes">
+          <div><strong>1</strong> Apply the inverse operation to both sides.</div>
+          <div><strong>2</strong> The opposite terms cancel on the left.</div>
+          <div><strong>3</strong> Bring down the = sign and solve the right side.</div>
+        </div>
+      </div>
     </div>
   `;
 }
+
+function renderMultiplicationDivisionTransformation(parsed) {
+  const variable = parsed.variable || "x";
+  const constant = Number(parsed.constant);
+  const rightValue = Number(parsed.rightValue);
+  const solutionValue = parseSolutionValue(parsed.equationAfter);
+
+  if (parsed.operation === "Multiplication") {
+    return `
+      <div class="aos-math-workspace">
+        ${mathRendererStyle()}
+        <div class="aos-work-title">What happened to the equation?</div>
+
+        <div class="aos-work-grid">
+          <div class="aos-work-math simple">
+            <div class="aos-eq-row aos-row-original">
+              <span>${formatNumber(constant)}${escapeHtml(variable)}</span>
+              <span>=</span>
+              <span>${formatNumber(rightValue)}</span>
+            </div>
+
+            <div class="aos-eq-row aos-row-operation">
+              <span class="aos-red">÷ ${formatNumber(constant)}</span>
+              <span></span>
+              <span class="aos-red">÷ ${formatNumber(constant)}</span>
+            </div>
+
+            <div class="aos-eq-line"></div>
+
+            <div class="aos-eq-row aos-row-final">
+              <span>${escapeHtml(variable)}</span>
+              <span>=</span>
+              <span class="aos-green">${formatNumber(solutionValue)}</span>
+            </div>
+          </div>
+
+          <div class="aos-work-notes">
+            <div><strong>1</strong> Divide both sides by ${formatNumber(constant)}.</div>
+            <div><strong>2</strong> The coefficient is undone.</div>
+            <div><strong>3</strong> Bring down the = sign and simplify.</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="aos-math-workspace">
+      ${mathRendererStyle()}
+      <div class="aos-work-title">What happened to the equation?</div>
+
+      <div class="aos-work-grid">
+        <div class="aos-work-math simple">
+          <div class="aos-eq-row aos-row-original">
+            <span>${escapeHtml(variable)} ÷ ${formatNumber(constant)}</span>
+            <span>=</span>
+            <span>${formatNumber(rightValue)}</span>
+          </div>
+
+          <div class="aos-eq-row aos-row-operation">
+            <span class="aos-red">× ${formatNumber(constant)}</span>
+            <span></span>
+            <span class="aos-red">× ${formatNumber(constant)}</span>
+          </div>
+
+          <div class="aos-eq-line"></div>
+
+          <div class="aos-eq-row aos-row-final">
+            <span>${escapeHtml(variable)}</span>
+            <span>=</span>
+            <span class="aos-green">${formatNumber(solutionValue)}</span>
+          </div>
+        </div>
+
+        <div class="aos-work-notes">
+          <div><strong>1</strong> Multiply both sides by ${formatNumber(constant)}.</div>
+          <div><strong>2</strong> Division is undone.</div>
+          <div><strong>3</strong> Bring down the = sign and simplify.</div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function parseSolutionValue(equationAfter) {
+  const match = String(equationAfter || "").match(/=\s*(-?\d+(?:\.\d+)?)/);
+  return match ? Number(match[1]) : 0;
+}
+
+function mathRendererStyle() {
+  return `
+    <style>
+      .aos-math-workspace{
+        margin-top:12px;
+        background:#ffffff;
+        border:1px solid #bfdbfe;
+        border-radius:14px;
+        padding:14px;
+        color:#0f172a;
+      }
+
+      .aos-work-title{
+        text-align:center;
+        font-weight:1000;
+        color:#1e3a8a;
+        margin-bottom:12px;
+      }
+
+      .aos-work-grid{
+        display:grid;
+        grid-template-columns:minmax(260px,1fr) minmax(210px,.75fr);
+        gap:18px;
+        align-items:center;
+      }
+
+      .aos-work-math{
+        font-family:"Courier New", Consolas, monospace;
+        font-size:28px;
+        font-weight:1000;
+        text-align:center;
+        padding:8px 0;
+      }
+
+      .aos-work-math.simple{
+        max-width:430px;
+        margin:auto;
+      }
+
+      .aos-eq-row{
+        display:grid;
+        grid-template-columns:70px 42px 120px 42px 130px;
+        align-items:center;
+        justify-content:center;
+        column-gap:4px;
+        line-height:1.45;
+        min-height:42px;
+      }
+
+      .aos-work-math.simple .aos-eq-row{
+        grid-template-columns:150px 50px 150px;
+      }
+
+      .aos-eq-line{
+        height:2px;
+        background:#111827;
+        margin:4px auto;
+        max-width:520px;
+      }
+
+      .aos-red{color:#b91c1c;}
+      .aos-green{color:#047857;}
+
+      .aos-cancel{
+        position:relative;
+        display:inline-block;
+        margin:0 2px;
+      }
+
+      .aos-cancel::after{
+        content:"";
+        position:absolute;
+        left:-6%;
+        top:52%;
+        width:112%;
+        height:3px;
+        background:#111827;
+        transform:rotate(-28deg);
+        transform-origin:center;
+        border-radius:999px;
+      }
+
+      .aos-work-notes{
+        border-left:1px dashed #93c5fd;
+        padding-left:18px;
+        font-size:14px;
+        font-weight:800;
+        line-height:1.5;
+        color:#1e40af;
+      }
+
+      .aos-work-notes div{
+        margin:10px 0;
+      }
+
+      .aos-work-notes strong{
+        display:inline-flex;
+        width:24px;
+        height:24px;
+        border-radius:999px;
+        background:#2563eb;
+        color:#fff;
+        align-items:center;
+        justify-content:center;
+        margin-right:8px;
+      }
+
+      @media(max-width:780px){
+        .aos-work-grid{
+          grid-template-columns:1fr;
+        }
+
+        .aos-work-math{
+          font-size:22px;
+        }
+
+        .aos-eq-row{
+          grid-template-columns:52px 32px 96px 32px 100px;
+        }
+
+        .aos-work-notes{
+          border-left:none;
+          border-top:1px dashed #93c5fd;
+          padding-left:0;
+          padding-top:10px;
+        }
+      }
+    </style>
+  `;
+}
+
+/* =========================================================
+   ENTER KEY SUPPORT
+========================================================= */
+
+function installRecoveryTutorKeyboardSupport() {
+  if (window.__algebraRecoveryTutorKeyboardInstalled) return;
+
+  window.__algebraRecoveryTutorKeyboardInstalled = true;
+
+  document.addEventListener("keydown", function(event) {
+    if (event.key !== "Enter") return;
+
+    const active = document.activeElement;
+    const tag = active?.tagName?.toLowerCase();
+
+    if (tag === "textarea") return;
+
+    if (tag === "input") {
+      const id = active.id || "";
+      if (id === "recoveryAnswerInput") {
+        const checkAnswerBtn = findVisibleButtonByText(["check answer"]);
+        if (checkAnswerBtn) {
+          event.preventDefault();
+          checkAnswerBtn.click();
+        }
+        return;
+      }
+    }
+
+    const buttonOrder = [
+      ["next tutor step"],
+      ["try again"],
+      ["check with tutor"],
+      ["start / restart tutor", "start/restart tutor", "restart tutor"],
+      ["start recovery practice"],
+      ["check answer"]
+    ];
+
+    for (const textOptions of buttonOrder) {
+      const btn = findVisibleButtonByText(textOptions);
+      if (btn) {
+        event.preventDefault();
+        btn.click();
+        return;
+      }
+    }
+  });
+}
+
+function findVisibleButtonByText(textOptions) {
+  const buttons = Array.from(document.querySelectorAll("button"));
+
+  return buttons.find(btn => {
+    if (btn.disabled) return false;
+    if (!isElementVisible(btn)) return false;
+
+    const text = normalizeText(btn.textContent);
+    return textOptions.some(option => text.includes(normalizeText(option)));
+  });
+}
+
+function isElementVisible(el) {
+  if (!el) return false;
+  const style = window.getComputedStyle(el);
+  if (style.display === "none" || style.visibility === "hidden" || style.opacity === "0") return false;
+  const rect = el.getBoundingClientRect();
+  return rect.width > 0 && rect.height > 0;
+}
+
+/* =========================================================
+   BASIC UTILITIES
+========================================================= */
 
 function formatNumber(value) {
   if (Number.isInteger(value)) return String(value);
@@ -701,10 +1087,15 @@ function certifyRecoveryTutor() {
       failures.push(`${test.name}: simplified equation ${test.after} did not validate.`);
     }
 
+    const rendererText = String(inverseStep.explanation || "");
+    if (!rendererText.includes("aos-math-workspace")) {
+      failures.push(`${test.name}: math renderer is missing.`);
+    }
+
     const originalKey = normalizeEquationKey(lesson.diagnostic.equationBefore);
     const recoveryKeys = lesson.recoveryPractice.map(item => normalizeEquationKey(item.equation || item.prompt));
 
-    if (recoveryKeys.some(key => key.includes(originalKey) || key === originalKey)) {
+    if (recoveryKeys.some(key => key === originalKey)) {
       failures.push(`${test.name}: recovery practice repeats original equation.`);
     }
 
@@ -744,16 +1135,21 @@ const AlgebraRecoveryLessonEngine = {
   recordRecoveryPractice,
   tutorAnswerMatches,
   certifyRecoveryTutor,
+  installRecoveryTutorKeyboardSupport,
   __private: {
     parseOneStepEquation,
     inverseOperation,
     expectedOperationAnswers,
     normalizeText,
-    normalizeAnswer
+    normalizeAnswer,
+    renderEquationTransformation,
+    renderAdditionSubtractionTransformation,
+    renderMultiplicationDivisionTransformation
   }
 };
 
 window.AlgebraRecoveryLessonEngine = AlgebraRecoveryLessonEngine;
+installRecoveryTutorKeyboardSupport();
 
 export {
   generateRecoveryLesson,
@@ -763,7 +1159,8 @@ export {
   recordTutorAnswer,
   recordRecoveryPractice,
   tutorAnswerMatches,
-  certifyRecoveryTutor
+  certifyRecoveryTutor,
+  installRecoveryTutorKeyboardSupport
 };
 
 export default AlgebraRecoveryLessonEngine;
