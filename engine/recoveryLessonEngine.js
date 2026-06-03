@@ -1,6 +1,6 @@
 /* =========================================================
    ALGEBRA OS — recoveryLessonEngine.js
-   Version: 2000 — RECOVERY TUTOR CERTIFICATION ENGINE
+   Version: 2001 — AUTO-ALIGNED RECOVERY QUESTION GENERATION
 
    PURPOSE:
    - Compatible with current lesson.html.
@@ -24,6 +24,7 @@
    - v1901: Does not reveal the final solution before the final tutor step.
    - v1902: Adds Tutor Choice Quality Gate for all tutor-generated choices.
    - v2000: Adds Recovery Tutor Certification Engine for mathematical integrity.
+   - v2001: Automatically replaces mismatched tutor questions with skill-aligned recovery questions.
 ========================================================= */
 
 const RECOVERY_PREFIX = "algebra_recovery_";
@@ -414,6 +415,24 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
 function buildMultiStepEquationLesson(problemType, metadata, currentQuestion) {
   const parsed = parseMultiStepEquation(currentQuestion);
   if (parsed.tutorType === "certified_mismatch") {
+    const alignedQuestion = generateAlignedRecoveryQuestionForSkill(problemType, currentQuestion);
+
+    if (alignedQuestion) {
+      const alignedParsed = parseMultiStepEquation(alignedQuestion);
+
+      if (alignedParsed.tutorType !== "certified_mismatch") {
+        const alignedLesson = buildMultiStepEquationLesson(problemType, metadata, alignedQuestion);
+        alignedLesson.autoAlignedRecovery = {
+          activated: true,
+          reason: parsed.certificationReason || "Original question did not match the requested tutor skill.",
+          originalEquation: parsed.equationBefore,
+          replacementEquation: alignedParsed.equationBefore,
+          replacementProblemType: alignedQuestion.problemType
+        };
+        return alignedLesson;
+      }
+    }
+
     return buildSkillMismatchLesson(problemType, metadata, currentQuestion, parsed);
   }
 
@@ -513,6 +532,24 @@ function buildMultiStepEquationLesson(problemType, metadata, currentQuestion) {
 function buildVariablesBothSidesLesson(problemType, metadata, currentQuestion) {
   const parsed = parseVariablesBothSidesEquation(currentQuestion);
   if (parsed.tutorType === "certified_mismatch") {
+    const alignedQuestion = generateAlignedRecoveryQuestionForSkill(problemType, currentQuestion);
+
+    if (alignedQuestion) {
+      const alignedParsed = parseVariablesBothSidesEquation(alignedQuestion);
+
+      if (alignedParsed.tutorType !== "certified_mismatch") {
+        const alignedLesson = buildVariablesBothSidesLesson(problemType, metadata, alignedQuestion);
+        alignedLesson.autoAlignedRecovery = {
+          activated: true,
+          reason: parsed.certificationReason || "Original question did not match the requested tutor skill.",
+          originalEquation: parsed.equationBefore,
+          replacementEquation: alignedParsed.equationBefore,
+          replacementProblemType: alignedQuestion.problemType
+        };
+        return alignedLesson;
+      }
+    }
+
     return buildSkillMismatchLesson(problemType, metadata, currentQuestion, parsed);
   }
 
@@ -608,6 +645,127 @@ function buildVariablesBothSidesLesson(problemType, metadata, currentQuestion) {
     recoveryPractice
   };
 }
+
+/* =========================================================
+   v2001 — AUTO-ALIGNED RECOVERY QUESTION GENERATOR
+========================================================= */
+
+function generateAlignedRecoveryQuestionForSkill(problemType, currentQuestion = null) {
+  /*
+    Purpose:
+    If the original/current question does not match the requested tutor skill,
+    generate a clean replacement recovery question that DOES match the skill.
+
+    This protects students from seeing:
+    - wrong tutor
+    - skill mismatch screens
+    - one-step equations inside a multi-step tutor
+  */
+
+  const skill = normalizeSkill(problemType);
+  const originalEquation = normalizeEquationKey(extractEquation(getQuestionText(currentQuestion)) || "");
+
+  let candidates = [];
+
+  if (isMultiStepEquationSkill(skill)) {
+    candidates = [
+      {
+        prompt: "Solve for x: 3x + 5 + 2x = 20",
+        answer: "x = 3",
+        problemType: "combine_like_terms"
+      },
+      {
+        prompt: "Solve for x: 4x + 6 + x = 21",
+        answer: "x = 3",
+        problemType: "combine_like_terms"
+      },
+      {
+        prompt: "Solve for x: 6x - 4 - 2x = 12",
+        answer: "x = 4",
+        problemType: "combine_like_terms"
+      },
+      {
+        prompt: "Solve for x: 2(x + 3) = 14",
+        answer: "x = 4",
+        problemType: "distributive_property"
+      },
+      {
+        prompt: "Solve for x: 3(x + 2) = 21",
+        answer: "x = 5",
+        problemType: "distributive_property"
+      },
+      {
+        prompt: "Solve for x: 4(x - 1) = 20",
+        answer: "x = 6",
+        problemType: "distributive_property"
+      }
+    ];
+  } else if (isVariablesBothSidesSkill(skill)) {
+    candidates = [
+      {
+        prompt: "Solve for x: 2x + 5 = x + 12",
+        answer: "x = 7",
+        problemType: "variables_both_sides"
+      },
+      {
+        prompt: "Solve for x: 3x - 4 = x + 10",
+        answer: "x = 7",
+        problemType: "variables_both_sides"
+      },
+      {
+        prompt: "Solve for x: 5x + 2 = 3x + 12",
+        answer: "x = 5",
+        problemType: "variables_both_sides"
+      },
+      {
+        prompt: "Solve for x: 4x - 6 = 2x + 8",
+        answer: "x = 7",
+        problemType: "variables_both_sides"
+      }
+    ];
+  } else if (isOneStepEquationSkill(skill)) {
+    candidates = [
+      {
+        prompt: "Solve for x: x + 8 = 18",
+        answer: "x = 10",
+        problemType: "one_step_addition_equation"
+      },
+      {
+        prompt: "Solve for x: x - 6 = 12",
+        answer: "x = 18",
+        problemType: "one_step_subtraction_equation"
+      },
+      {
+        prompt: "Solve for x: 4x = 28",
+        answer: "x = 7",
+        problemType: "one_step_multiplication_equation"
+      },
+      {
+        prompt: "Solve for x: x ÷ 5 = 6",
+        answer: "x = 30",
+        problemType: "one_step_division_equation"
+      }
+    ];
+  }
+
+  const filtered = candidates.filter(item => {
+    const key = normalizeEquationKey(extractEquation(item.prompt) || item.prompt);
+    return key !== originalEquation;
+  });
+
+  const selected = filtered[0] || candidates[0] || null;
+
+  if (!selected) return null;
+
+  return {
+    ...selected,
+    id: `auto_recovery_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+    source: "recovery_auto_aligned",
+    originalPrompt: getQuestionText(currentQuestion),
+    originalProblemType: currentQuestion?.problemType || problemType
+  };
+}
+
 
 /* =========================================================
    v2000 — SKILL MISMATCH SAFE TUTOR
@@ -2427,6 +2585,25 @@ function certifyRecoveryTutor() {
   }
 
 
+  
+  // v2001 Auto-aligned recovery generation test
+  const mismatchQuestion = {
+    prompt: "Solve for x: x - 6 = 90",
+    answer: "x = 96",
+    problemType: "one_step_subtraction_equation"
+  };
+  const autoAlignedLesson = generateRecoveryLesson("multi_step_equation", {}, mismatchQuestion);
+  if (!autoAlignedLesson.autoAlignedRecovery?.activated) {
+    failures.push("v2001: failed to auto-align mismatched one-step question for multi-step tutor.");
+  }
+  if (autoAlignedLesson.diagnostic?.tutorType === "certified_mismatch") {
+    failures.push("v2001: still returned mismatch screen instead of aligned recovery tutor.");
+  }
+  if (autoAlignedLesson.diagnostic?.equationAfter !== "x = 3" && autoAlignedLesson.diagnostic?.equationAfter !== "x = 4" && autoAlignedLesson.diagnostic?.equationAfter !== "x = 5" && autoAlignedLesson.diagnostic?.equationAfter !== "x = 6") {
+    failures.push("v2001: auto-aligned tutor did not produce a certified solution.");
+  }
+
+
   const result = {
     passed: failures.length === 0,
     failures,
@@ -2477,7 +2654,8 @@ const AlgebraRecoveryLessonEngine = {
     renderVariablesBothSidesTransformation,
     certifyTutorMathematics,
     solveSupportedLinearEquation,
-    verifySolutionBySubstitution
+    verifySolutionBySubstitution,
+    generateAlignedRecoveryQuestionForSkill
   }
 };
 
