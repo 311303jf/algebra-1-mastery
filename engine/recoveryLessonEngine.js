@@ -1,6 +1,6 @@
 /* =========================================================
    ALGEBRA OS — recoveryLessonEngine.js
-   Version: 1800 — SKILL-AWARE RECOVERY TUTOR ROUTING
+   Version: 1900 — SEMANTIC SKILL VERIFIED RECOVERY TUTOR ROUTING
 
    PURPOSE:
    - Compatible with current lesson.html.
@@ -11,6 +11,10 @@
        Lesson 1.2 → Multi-Step / Combine Like Terms / Distributive Tutor
        Lesson 1.3 → Variables on Both Sides Tutor
        Others → Generic Skill Tutor for now
+   - v1900 adds Semantic Skill Verification:
+       The tutor no longer trusts problemType alone.
+       It checks the actual equation structure before choosing the tutor.
+       This prevents one-step equations from being taught as Lesson 1.2.
    - Keeps Recovery Practice different from original and from itself.
    - Adds teacher-style aligned math renderer.
    - Shows cancellation with cross-out.
@@ -164,17 +168,29 @@ function tutorAnswerMatches(input, expectedList) {
 function generateRecoveryLesson(problemType = "one_step_addition_equation", metadata = {}, currentQuestion = null) {
   installRecoveryTutorKeyboardSupport();
 
-  const skill = normalizeSkill(problemType);
+  const requestedSkill = normalizeSkill(problemType);
+  const semanticSkill = detectRecoverySkillFromQuestion(currentQuestion);
+  const effectiveSkill = chooseEffectiveRecoverySkill(requestedSkill, semanticSkill);
 
-  if (isOneStepEquationSkill(skill)) {
+  if (semanticSkill && semanticSkill !== effectiveSkill) {
+    console.warn("Recovery Tutor v1900 Semantic Skill Guard adjusted routing:", {
+      requestedProblemType: problemType,
+      requestedSkill,
+      semanticSkill,
+      effectiveSkill,
+      question: currentQuestion?.prompt || currentQuestion?.question || currentQuestion?.text || currentQuestion
+    });
+  }
+
+  if (isOneStepEquationSkill(effectiveSkill)) {
     return buildOneStepEquationLesson(problemType, metadata, currentQuestion);
   }
 
-  if (isMultiStepEquationSkill(skill)) {
+  if (isMultiStepEquationSkill(effectiveSkill)) {
     return buildMultiStepEquationLesson(problemType, metadata, currentQuestion);
   }
 
-  if (isVariablesBothSidesSkill(skill)) {
+  if (isVariablesBothSidesSkill(effectiveSkill)) {
     return buildVariablesBothSidesLesson(problemType, metadata, currentQuestion);
   }
 
@@ -197,8 +213,7 @@ function isMultiStepEquationSkill(skill) {
     skill.includes("combine_like") ||
     skill.includes("combine_like_terms") ||
     skill.includes("distributive") ||
-    skill.includes("distribution") ||
-    skill.includes("two_step")
+    skill.includes("distribution")
   );
 }
 
@@ -209,6 +224,90 @@ function isVariablesBothSidesSkill(skill) {
     skill.includes("both_sides") ||
     skill.includes("variables_both_sides")
   );
+}
+
+
+/* =========================================================
+   v1900 SEMANTIC SKILL VERIFICATION LAYER
+   The tutor must adapt to the actual equation, not only to the
+   problemType label passed by lesson.html.
+========================================================= */
+
+function chooseEffectiveRecoverySkill(requestedSkill, semanticSkill) {
+  if (!semanticSkill) return requestedSkill;
+
+  // If the actual equation is one-step, do not force it into Lesson 1.2.
+  if (semanticSkill === "one_step_equation") return semanticSkill;
+
+  // If the actual equation has variables on both sides, route there.
+  if (semanticSkill === "variables_both_sides") return semanticSkill;
+
+  // If the actual equation is a true multi-step structure, route to multi-step.
+  if (semanticSkill === "multi_step_equation") return semanticSkill;
+
+  return requestedSkill;
+}
+
+function detectRecoverySkillFromQuestion(currentQuestion) {
+  const equation = extractEquation(getQuestionText(currentQuestion));
+  if (!equation) return "";
+
+  const compact = equation
+    .replace(/\s+/g, "")
+    .replace(/−/g, "-")
+    .replace(/÷/g, "/")
+    .replace(/×/g, "*");
+
+  if (isVariablesBothSidesEquationStructure(compact)) {
+    return "variables_both_sides";
+  }
+
+  if (isTrueMultiStepEquationStructure(compact)) {
+    return "multi_step_equation";
+  }
+
+  if (isOneStepEquationStructure(compact)) {
+    return "one_step_equation";
+  }
+
+  return "";
+}
+
+function isOneStepEquationStructure(compactEquation) {
+  const text = String(compactEquation || "");
+
+  return (
+    /^[a-z]\+-?\d+=-?\d+$/i.test(text) ||
+    /^[a-z]-\d+=-?\d+$/i.test(text) ||
+    /^-?\d+\*?[a-z]=-?\d+$/i.test(text) ||
+    /^[a-z]\/-?\d+=-?\d+$/i.test(text)
+  );
+}
+
+function isTrueMultiStepEquationStructure(compactEquation) {
+  const text = String(compactEquation || "");
+
+  // Distributive property: 2(x + 3) = 14 or -3(x - 4) + 5 = 20
+  if (/^-?\d+\([a-z][+\-]-?\d+\)([+\-]-?\d+)?=-?\d+$/i.test(text)) {
+    return true;
+  }
+
+  // Combine like terms on the same side: 3x + 5 + 2x = 20
+  if (/^-?\d*[a-z][+\-]-?\d+[+\-]-?\d*[a-z]=-?\d+$/i.test(text)) {
+    return true;
+  }
+
+  // Combine like terms first: 3x + 2x + 5 = 20
+  if (/^-?\d*[a-z][+\-]-?\d*[a-z][+\-]-?\d+=-?\d+$/i.test(text)) {
+    return true;
+  }
+
+  return false;
+}
+
+function isVariablesBothSidesEquationStructure(compactEquation) {
+  const text = String(compactEquation || "");
+  return /^-?\d*[a-z][+\-]-?\d+=-?\d*[a-z][+\-]-?\d+$/i.test(text);
 }
 
 /* =========================================================
@@ -715,25 +814,8 @@ function parseMultiStepEquation(currentQuestion) {
     };
   }
 
-  // ax + b = d
-  match = compact.match(/^(-?\d*)x([+\-]-?\d+)=(-?\d+)$/i);
-  if (match) {
-    const a = coefficientValue(match[1]);
-    const b = Number(match[2]);
-    const d = Number(match[3]);
-    const solution = (d - b) / a;
-
-    return {
-      equationBefore: prettyEquation(equation),
-      firstAction: "Move constants",
-      simplifiedEquation: prettyEquation(equation),
-      equationAfter: answer || `x = ${formatNumber(solution)}`,
-      coefficient: a,
-      constant: b,
-      rightValue: d,
-      tutorType: "two_step_equation"
-    };
-  }
+  // Two-step equations such as 3x + 4 = 16 are intentionally NOT accepted here.
+  // They belong to a different skill and should not be forced into Lesson 1.2.
 
   // a(x + b) = d
   match = compact.match(/^(-?\d+)\(([a-z])([+\-]-?\d+)\)=(-?\d+)$/i);
@@ -1607,6 +1689,27 @@ function certifyRecoveryTutor() {
       problemType: "variables_on_both_sides",
       question: { prompt: "Solve for x. 2x + 5 = x + 12", answer: "x = 7" },
       tutorType: "variables_on_both_sides"
+    },
+    {
+      name: "semantic guard prevents one-step equation inside 1.2 tutor",
+      problemType: "multi_step_equation",
+      question: { prompt: "Solve for x: x - 6 = -2", answer: "x = 4" },
+      tutorType: "one_step_equation",
+      attached: "Subtraction",
+      inverse: "Addition",
+      after: "x = 4"
+    },
+    {
+      name: "semantic guard accepts true Lesson 1.2 combine-like-terms",
+      problemType: "multi_step_equation",
+      question: { prompt: "Solve for x: 3x + 4 + 2x = 19", answer: "x = 3" },
+      tutorType: "multi_step_equation"
+    },
+    {
+      name: "semantic guard accepts true Lesson 1.2 distributive property",
+      problemType: "multi_step_equation",
+      question: { prompt: "Solve for x: 2(x + 3) = 14", answer: "x = 4" },
+      tutorType: "multi_step_equation"
     }
   ];
 
@@ -1681,6 +1784,11 @@ const AlgebraRecoveryLessonEngine = {
     parseOneStepEquation,
     parseMultiStepEquation,
     parseVariablesBothSidesEquation,
+    detectRecoverySkillFromQuestion,
+    chooseEffectiveRecoverySkill,
+    isOneStepEquationStructure,
+    isTrueMultiStepEquationStructure,
+    isVariablesBothSidesEquationStructure,
     inverseOperation,
     expectedOperationAnswers,
     normalizeText,
