@@ -1,5 +1,5 @@
 /* ============================================================
-   Algebra OS — Question Factory 3.5 Semantic QA
+   Algebra OS — Question Factory 4.1 Semantic QA Patch
    File: engine/questionFactory.js
 
    PURPOSE:
@@ -4162,6 +4162,21 @@ function generateChoices(answer, problemType) {
     ]);
   }
 
+  // Quadratic-family questions must be handled BEFORE the generic exponent branch,
+  // because linear_vs_quadratic_vs_exponential contains the word "exponential"
+  // but needs function-type choices, not numeric exponent distractors.
+  if (
+    type.includes("quadratic") ||
+    type.includes("vertex_form") ||
+    type.includes("discriminant") ||
+    type.includes("projectile") ||
+    type.includes("maximum_minimum") ||
+    type.includes("x_intercepts") ||
+    type.includes("linear_vs_quadratic_vs_exponential")
+  ) {
+    return generateQuadraticAnswerChoices(answer, problemType, finalizeChoices);
+  }
+
   if (
     type.includes("exponent") ||
     type.includes("scientific") ||
@@ -4181,17 +4196,6 @@ function generateChoices(answer, problemType) {
       String(answer).replace("^", "^2"),
       String(answer).replace("×", "÷")
     ]);
-  }
-
-  if (
-    type.includes("quadratic") ||
-    type.includes("vertex_form") ||
-    type.includes("discriminant") ||
-    type.includes("projectile") ||
-    type.includes("maximum_minimum") ||
-    type.includes("x_intercepts")
-  ) {
-    return generateQuadraticAnswerChoices(answer, problemType, finalizeChoices);
   }
 
   if (
@@ -4342,6 +4346,19 @@ function generateQuadraticAnswerChoices(answer, problemType, finalizeChoices) {
   const text = String(answer || "").trim();
   const type = String(problemType || "").toLowerCase();
 
+  // Critical semantic guard for 9.1:
+  // An identify_quadratic_function item must have exactly ONE quadratic equation.
+  // The distractors must be non-quadratic equations/functions.
+  if (type === "identify_quadratic_function" && text.startsWith("y = ")) {
+    return finalizeChoices(text, [
+      "y = 5x + 3",
+      "y = 2(3)^x",
+      "y = |x| + 4",
+      "y = 7"
+    ]);
+  }
+
+  // Function-classification questions should never receive numeric choices like 0 or 1.
   if (["Quadratic function", "Linear function", "Exponential function"].includes(text)) {
     return finalizeChoices(text, [
       "Quadratic function",
@@ -4439,8 +4456,8 @@ function generateQuadraticAnswerChoices(answer, problemType, finalizeChoices) {
     return finalizeChoices(text, [
       text.replace("+", "-"),
       text.replace("-", "+"),
-      "y = x²",
       "y = x + 1",
+      "y = 2(3)^x",
       "Cannot be determined"
     ]);
   }
