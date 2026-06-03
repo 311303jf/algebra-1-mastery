@@ -1,15 +1,15 @@
 /* =========================================================
    ALGEBRA OS — recoveryLessonEngine.js
-   COMPATIBLE FIX FOR CURRENT lesson.html
-   Version: 1500
+   Version: 1600 — CERTIFIED RECOVERY TUTOR CORE
 
-   FIXES IN THIS VERSION:
-   1. Keeps Open Recovery Tutor working with your current lesson.html.
-   2. Keeps window.AlgebraRecoveryLessonEngine available.
-   3. Fixes tutor answer validation.
-   4. Adds live equation transformation.
-   5. Fixes Recovery Practice so Check 1 and Check 2 are NOT the same
-      as the original question and NOT the same as each other.
+   PURPOSE:
+   - Compatible with current lesson.html.
+   - Restores window.AlgebraRecoveryLessonEngine.
+   - Fixes division inverse bug:
+       x ÷ 7 = 1
+       inverse operation = Multiplication
+   - Adds deterministic tutor validation support.
+   - Keeps Recovery Practice different from original and from itself.
 ========================================================= */
 
 const RECOVERY_PREFIX = "algebra_recovery_";
@@ -20,6 +20,12 @@ function normalizeText(value) {
     .toLowerCase()
     .replace(/\s+/g, " ")
     .replace(/[.。]/g, "");
+}
+
+function normalizeAnswer(value) {
+  return normalizeText(value)
+    .replace(/×/g, "*")
+    .replace(/÷/g, "/");
 }
 
 function storageKey(lessonId, problemType) {
@@ -99,6 +105,13 @@ function recordRecoveryPractice(lessonId, problemType, isCorrect) {
   return state;
 }
 
+function tutorAnswerMatches(input, expectedList) {
+  const value = normalizeAnswer(input);
+  const expected = Array.isArray(expectedList) ? expectedList : [expectedList];
+
+  return expected.some(item => normalizeAnswer(item) === value);
+}
+
 function generateRecoveryLesson(problemType = "one_step_addition_equation", metadata = {}, currentQuestion = null) {
   const skill = normalizeText(problemType);
 
@@ -125,6 +138,14 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
   return {
     title: "Recovery Tutor: One-Step Equations",
 
+    diagnostic: {
+      equationBefore: parsed.equationBefore,
+      operation,
+      inverseOperation: inverse,
+      equationAction: parsed.equationAction,
+      equationAfter: parsed.equationAfter
+    },
+
     conceptSummary: [
       "A one-step equation is solved by undoing the operation attached to the variable.",
       "Use the inverse operation on both sides of the equation.",
@@ -137,6 +158,8 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
 
     tutorDialogue: [
       {
+        id: "identify_attached_operation",
+        expectedOperation: operation,
         tutor: `
           <div><strong>Equation:</strong> ${escapeHtml(parsed.equationBefore)}</div>
           <div style="margin-top:8px;">What operation is attached to x?</div>
@@ -154,6 +177,8 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
           "Look directly beside the variable. Ask: what operation is being done to x right now?"
       },
       {
+        id: "choose_inverse_operation",
+        expectedOperation: inverse,
         tutor: `
           <div><strong>Equation:</strong> ${escapeHtml(parsed.equationBefore)}</div>
           <div style="margin-top:8px;">What inverse operation should we use to isolate x?</div>
@@ -168,6 +193,7 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
           "Use the opposite operation. Addition and subtraction undo each other. Multiplication and division undo each other."
       },
       {
+        id: "simplified_equation",
         tutor: `
           <div><strong>Equation:</strong> ${escapeHtml(parsed.equationBefore)}</div>
           <div style="margin-top:8px;">After applying the inverse operation to both sides, what is the simplified equation?</div>
@@ -192,7 +218,6 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
     ],
 
     video: null,
-
     recoveryPractice
   };
 }
@@ -214,6 +239,7 @@ function buildGenericLesson(problemType, metadata, currentQuestion) {
 
     tutorDialogue: [
       {
+        id: "identify_skill",
         tutor: "What should you do first when you are stuck on this skill?",
         choices: [
           "Identify the skill",
@@ -253,10 +279,6 @@ function buildGenericLesson(problemType, metadata, currentQuestion) {
 
 /* =========================================================
    RECOVERY PRACTICE GENERATOR
-   Important:
-   - Practice questions must be different from the original.
-   - Check 1 and Check 2 must be different from each other.
-   - Same operation type is preserved for targeted recovery.
 ========================================================= */
 
 function buildRecoveryPracticeItems(originalParsed, operation) {
@@ -268,28 +290,28 @@ function buildRecoveryPracticeItems(originalParsed, operation) {
 
   if (operation === "Addition") {
     candidates = [
-      makeAdditionEquation(5, 17),   // x + 5 = 17 => x = 12
-      makeAdditionEquation(9, 21),   // x + 9 = 21 => x = 12
-      makeAdditionEquation(4, 13),   // x + 4 = 13 => x = 9
-      makeAdditionEquation(7, 20)    // x + 7 = 20 => x = 13
+      makeAdditionEquation(5, 17),
+      makeAdditionEquation(9, 21),
+      makeAdditionEquation(4, 13),
+      makeAdditionEquation(7, 20)
     ];
   } else if (operation === "Subtraction") {
     candidates = [
-      makeSubtractionEquation(6, 11), // x - 6 = 11 => x = 17
-      makeSubtractionEquation(8, 14), // x - 8 = 14 => x = 22
+      makeSubtractionEquation(6, 11),
+      makeSubtractionEquation(8, 14),
       makeSubtractionEquation(5, 9),
       makeSubtractionEquation(7, 12)
     ];
   } else if (operation === "Multiplication") {
     candidates = [
-      makeMultiplicationEquation(3, 24), // 3x = 24 => x = 8
+      makeMultiplicationEquation(3, 24),
       makeMultiplicationEquation(4, 28),
       makeMultiplicationEquation(5, 35),
       makeMultiplicationEquation(6, 42)
     ];
   } else if (operation === "Division") {
     candidates = [
-      makeDivisionEquation(3, 7), // x ÷ 3 = 7 => x = 21
+      makeDivisionEquation(3, 7),
       makeDivisionEquation(4, 6),
       makeDivisionEquation(5, 8),
       makeDivisionEquation(6, 9)
@@ -307,7 +329,8 @@ function buildRecoveryPracticeItems(originalParsed, operation) {
       used.add(key);
       items.push({
         prompt: `Solve: ${item.equation}`,
-        answer: item.answer
+        answer: item.answer,
+        equation: item.equation
       });
     }
 
@@ -322,7 +345,8 @@ function buildRecoveryPracticeItems(originalParsed, operation) {
       used.add(key);
       items.push({
         prompt: `Solve: ${item.equation}`,
-        answer: item.answer
+        answer: item.answer,
+        equation: item.equation
       });
     }
   }
@@ -402,7 +426,6 @@ function parseOneStepEquation(currentQuestion) {
   }
 
   const compact = equation.replace(/\s+/g, "");
-
   let match;
 
   // x + a = b
@@ -435,7 +458,7 @@ function parseOneStepEquation(currentQuestion) {
     };
   }
 
-  // a x = b, ax = b, a×x = b
+  // a×x = b, a*x = b, ax = b
   match = compact.match(/^(-?\d+)[×*]?([a-z])=(-?\d+)$/i);
   if (match) {
     const a = Number(match[1]);
@@ -488,7 +511,8 @@ function extractEquation(text) {
   const patterns = [
     /[a-z]\s*[+]\s*-?\d+\s*=\s*-?\d+/i,
     /[a-z]\s*[-]\s*-?\d+\s*=\s*-?\d+/i,
-    /-?\d+\s*[×*]?\s*[a-z]\s*=\s*-?\d+/i,
+    /-?\d+\s*[×*]\s*[a-z]\s*=\s*-?\d+/i,
+    /-?\d+\s*[a-z]\s*=\s*-?\d+/i,
     /[a-z]\s*[÷/]\s*-?\d+\s*=\s*-?\d+/i
   ];
 
@@ -510,11 +534,13 @@ function prettyEquation(equation) {
 
 function inverseOperation(operation) {
   const op = normalizeText(operation);
+
   if (op === "addition") return "Subtraction";
   if (op === "subtraction") return "Addition";
   if (op === "multiplication") return "Division";
   if (op === "division") return "Multiplication";
-  return "Subtraction";
+
+  throw new Error(`Unknown operation for inverse: ${operation}`);
 }
 
 function expectedOperationAnswers(operation) {
@@ -616,6 +642,96 @@ function escapeHtml(value) {
 }
 
 /* =========================================================
+   RECOVERY TUTOR CERTIFICATION
+========================================================= */
+
+function certifyRecoveryTutor() {
+  const testCases = [
+    {
+      name: "addition equation",
+      problemType: "one_step_addition_equation",
+      question: { prompt: "Solve for x. x + 8 = 18", answer: "x = 10" },
+      attached: "Addition",
+      inverse: "Subtraction",
+      after: "x = 10"
+    },
+    {
+      name: "subtraction equation",
+      problemType: "one_step_subtraction_equation",
+      question: { prompt: "Solve for x. x - 8 = 10", answer: "x = 18" },
+      attached: "Subtraction",
+      inverse: "Addition",
+      after: "x = 18"
+    },
+    {
+      name: "multiplication equation",
+      problemType: "one_step_multiplication_equation",
+      question: { prompt: "Solve for x. 3x = 21", answer: "x = 7" },
+      attached: "Multiplication",
+      inverse: "Division",
+      after: "x = 7"
+    },
+    {
+      name: "division equation",
+      problemType: "one_step_division_equation",
+      question: { prompt: "Solve for x. x ÷ 7 = 1", answer: "x = 7" },
+      attached: "Division",
+      inverse: "Multiplication",
+      after: "x = 7"
+    }
+  ];
+
+  const failures = [];
+
+  for (const test of testCases) {
+    const lesson = generateRecoveryLesson(test.problemType, {}, test.question);
+    const attachedStep = lesson.tutorDialogue[0];
+    const inverseStep = lesson.tutorDialogue[1];
+    const simplifiedStep = lesson.tutorDialogue[2];
+
+    if (!tutorAnswerMatches(test.attached, attachedStep.expected)) {
+      failures.push(`${test.name}: attached operation ${test.attached} did not validate.`);
+    }
+
+    if (!tutorAnswerMatches(test.inverse, inverseStep.expected)) {
+      failures.push(`${test.name}: inverse operation ${test.inverse} did not validate.`);
+    }
+
+    if (!tutorAnswerMatches(test.after, simplifiedStep.expected)) {
+      failures.push(`${test.name}: simplified equation ${test.after} did not validate.`);
+    }
+
+    const originalKey = normalizeEquationKey(lesson.diagnostic.equationBefore);
+    const recoveryKeys = lesson.recoveryPractice.map(item => normalizeEquationKey(item.equation || item.prompt));
+
+    if (recoveryKeys.some(key => key.includes(originalKey) || key === originalKey)) {
+      failures.push(`${test.name}: recovery practice repeats original equation.`);
+    }
+
+    if (new Set(recoveryKeys).size !== recoveryKeys.length) {
+      failures.push(`${test.name}: recovery practice contains duplicate checks.`);
+    }
+  }
+
+  const result = {
+    passed: failures.length === 0,
+    failures,
+    tested: testCases.length,
+    message: failures.length === 0
+      ? "Recovery Tutor Certification PASS"
+      : "Recovery Tutor Certification FAIL"
+  };
+
+  if (result.passed) {
+    console.log("✅", result.message, result);
+  } else {
+    console.error("❌", result.message, result);
+  }
+
+  return result;
+}
+
+/* =========================================================
    EXPORTS + GLOBAL OBJECT
 ========================================================= */
 
@@ -625,7 +741,16 @@ const AlgebraRecoveryLessonEngine = {
   loadRecoveryState,
   loadTutorState,
   recordTutorAnswer,
-  recordRecoveryPractice
+  recordRecoveryPractice,
+  tutorAnswerMatches,
+  certifyRecoveryTutor,
+  __private: {
+    parseOneStepEquation,
+    inverseOperation,
+    expectedOperationAnswers,
+    normalizeText,
+    normalizeAnswer
+  }
 };
 
 window.AlgebraRecoveryLessonEngine = AlgebraRecoveryLessonEngine;
@@ -636,7 +761,9 @@ export {
   loadRecoveryState,
   loadTutorState,
   recordTutorAnswer,
-  recordRecoveryPractice
+  recordRecoveryPractice,
+  tutorAnswerMatches,
+  certifyRecoveryTutor
 };
 
 export default AlgebraRecoveryLessonEngine;
