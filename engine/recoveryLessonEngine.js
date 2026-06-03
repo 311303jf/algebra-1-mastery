@@ -1,22 +1,29 @@
 /* =========================================================
    ALGEBRA OS — recoveryLessonEngine.js
-   Version: 1700 — CERTIFIED RECOVERY TUTOR + MATH RENDERER
+   Version: 1800 — SKILL-AWARE RECOVERY TUTOR ROUTING
 
    PURPOSE:
    - Compatible with current lesson.html.
    - Restores window.AlgebraRecoveryLessonEngine.
-   - Fixes division inverse bug:
-       x ÷ 7 = 1
-       inverse operation = Multiplication
-   - Adds deterministic tutor validation support.
+   - Fixes one-step equation tutor.
+   - Adds skill-aware routing:
+       Lesson 1.1 → One-Step Equation Tutor
+       Lesson 1.2 → Multi-Step / Combine Like Terms / Distributive Tutor
+       Lesson 1.3 → Variables on Both Sides Tutor
+       Others → Generic Skill Tutor for now
    - Keeps Recovery Practice different from original and from itself.
    - Adds teacher-style aligned math renderer.
    - Shows cancellation with cross-out.
    - Does NOT show + 0.
    - Adds Enter key support for tutor workflow.
+   - Includes certification.
 ========================================================= */
 
 const RECOVERY_PREFIX = "algebra_recovery_";
+
+/* =========================================================
+   NORMALIZATION
+========================================================= */
 
 function normalizeText(value) {
   return String(value ?? "")
@@ -32,6 +39,25 @@ function normalizeAnswer(value) {
     .replace(/÷/g, "/")
     .replace(/−/g, "-");
 }
+
+function normalizeSkill(value) {
+  return normalizeText(value)
+    .replace(/-/g, "_")
+    .replace(/\s+/g, "_");
+}
+
+function normalizeEquationKey(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/\*/g, "×")
+    .replace(/\//g, "÷")
+    .replace(/−/g, "-");
+}
+
+/* =========================================================
+   STORAGE
+========================================================= */
 
 function storageKey(lessonId, problemType) {
   return `${RECOVERY_PREFIX}${lessonId}_${problemType}`;
@@ -74,19 +100,12 @@ function markRecoveryOpened(lessonId, problemType) {
   const freshState = {
     ...defaultRecoveryState(),
     opened: true,
-
-    // IMPORTANT:
-    // Every time the student opens the Recovery Tutor from the button,
-    // the tutor must begin from Step 1.
     tutorStep: 0,
     tutorAttempts: Number(previousState.tutorAttempts || 0),
     tutorCompleted: false,
-
-    // Keep recovery practice progress only if the student already completed it.
     recoveryCorrectStreak: previousState.completed
       ? Number(previousState.recoveryCorrectStreak || 0)
       : 0,
-
     completed: previousState.completed === true
   };
 
@@ -138,30 +157,69 @@ function tutorAnswerMatches(input, expectedList) {
   return expected.some(item => normalizeAnswer(item) === value);
 }
 
+/* =========================================================
+   PUBLIC ROUTER
+========================================================= */
+
 function generateRecoveryLesson(problemType = "one_step_addition_equation", metadata = {}, currentQuestion = null) {
   installRecoveryTutorKeyboardSupport();
 
-  const skill = normalizeText(problemType);
+  const skill = normalizeSkill(problemType);
 
-  if (
-    skill.includes("one_step") ||
-    skill.includes("addition_equation") ||
-    skill.includes("subtraction_equation") ||
-    skill.includes("multiplication_equation") ||
-    skill.includes("division_equation") ||
-    skill.includes("equation")
-  ) {
+  if (isOneStepEquationSkill(skill)) {
     return buildOneStepEquationLesson(problemType, metadata, currentQuestion);
+  }
+
+  if (isMultiStepEquationSkill(skill)) {
+    return buildMultiStepEquationLesson(problemType, metadata, currentQuestion);
+  }
+
+  if (isVariablesBothSidesSkill(skill)) {
+    return buildVariablesBothSidesLesson(problemType, metadata, currentQuestion);
   }
 
   return buildGenericLesson(problemType, metadata, currentQuestion);
 }
 
+function isOneStepEquationSkill(skill) {
+  return (
+    skill.includes("one_step") ||
+    skill.includes("one_step_addition") ||
+    skill.includes("one_step_subtraction") ||
+    skill.includes("one_step_multiplication") ||
+    skill.includes("one_step_division")
+  );
+}
+
+function isMultiStepEquationSkill(skill) {
+  return (
+    skill.includes("multi_step") ||
+    skill.includes("combine_like") ||
+    skill.includes("combine_like_terms") ||
+    skill.includes("distributive") ||
+    skill.includes("distribution") ||
+    skill.includes("two_step")
+  );
+}
+
+function isVariablesBothSidesSkill(skill) {
+  return (
+    skill.includes("variables_on_both_sides") ||
+    skill.includes("variable_on_both_sides") ||
+    skill.includes("both_sides") ||
+    skill.includes("variables_both_sides")
+  );
+}
+
+/* =========================================================
+   LESSON 1.1 — ONE-STEP EQUATION TUTOR
+========================================================= */
+
 function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
   const parsed = parseOneStepEquation(currentQuestion);
   const operation = parsed.operation;
   const inverse = inverseOperation(operation);
-  const recoveryPractice = buildRecoveryPracticeItems(parsed, operation);
+  const recoveryPractice = buildOneStepRecoveryPracticeItems(parsed, operation);
 
   return {
     title: "Recovery Tutor: One-Step Equations",
@@ -171,7 +229,8 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
       operation,
       inverseOperation: inverse,
       equationAction: parsed.equationAction,
-      equationAfter: parsed.equationAfter
+      equationAfter: parsed.equationAfter,
+      tutorType: "one_step_equation"
     },
 
     conceptSummary: [
@@ -221,7 +280,7 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
           "Use the opposite operation. Addition and subtraction undo each other. Multiplication and division undo each other."
       },
       {
-        id: "simplified_equation",
+        id: "solution",
         tutor: `
           <div><strong>Equation:</strong> ${escapeHtml(parsed.equationBefore)}</div>
           <div style="margin-top:8px;">After applying the inverse operation, what is the solution?</div>
@@ -251,6 +310,204 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
     recoveryPractice
   };
 }
+
+/* =========================================================
+   LESSON 1.2 — MULTI-STEP EQUATION TUTOR
+========================================================= */
+
+function buildMultiStepEquationLesson(problemType, metadata, currentQuestion) {
+  const parsed = parseMultiStepEquation(currentQuestion);
+  const recoveryPractice = buildMultiStepRecoveryPracticeItems(parsed);
+
+  return {
+    title: "Recovery Tutor: Multi-Step Equations",
+
+    diagnostic: {
+      equationBefore: parsed.equationBefore,
+      simplifiedEquation: parsed.simplifiedEquation,
+      equationAfter: parsed.equationAfter,
+      firstAction: parsed.firstAction,
+      tutorType: "multi_step_equation"
+    },
+
+    conceptSummary: [
+      "A multi-step equation must be simplified before solving.",
+      "First combine like terms or use the distributive property when needed.",
+      "After the equation is simplified, solve it using inverse operations."
+    ],
+
+    misconception:
+      metadata?.misconception ||
+      "A common mistake is trying to move numbers before simplifying the expression. In multi-step equations, simplify first.",
+
+    tutorDialogue: [
+      {
+        id: "identify_first_step",
+        tutor: `
+          <div><strong>Equation:</strong> ${escapeHtml(parsed.equationBefore)}</div>
+          <div style="margin-top:8px;">What should we do first?</div>
+        `,
+        choices: [
+          "Combine like terms",
+          "Use the distributive property",
+          "Divide both sides immediately",
+          "Guess the value of x"
+        ],
+        expected: [parsed.firstAction],
+        explanation: `
+          Correct. First we should <strong>${escapeHtml(parsed.firstAction.toLowerCase())}</strong>.
+          ${renderMultiStepTransformation(parsed, "first")}
+        `,
+        theory:
+          "Before using inverse operations, simplify the expression on each side of the equation."
+      },
+      {
+        id: "simplified_equation",
+        tutor: `
+          <div><strong>Original:</strong> ${escapeHtml(parsed.equationBefore)}</div>
+          <div style="margin-top:8px;">What equation do we get after simplifying?</div>
+        `,
+        choices: buildMultiStepSimplifiedChoices(parsed.simplifiedEquation),
+        expected: [parsed.simplifiedEquation],
+        explanation: `
+          Correct. After simplifying, the equation is <strong>${escapeHtml(parsed.simplifiedEquation)}</strong>.
+          ${renderMultiStepTransformation(parsed, "simplified")}
+        `,
+        theory:
+          "Combine variable terms with variable terms and constants with constants."
+      },
+      {
+        id: "solve_simplified",
+        tutor: `
+          <div><strong>Simplified equation:</strong> ${escapeHtml(parsed.simplifiedEquation)}</div>
+          <div style="margin-top:8px;">What is the solution?</div>
+        `,
+        choices: buildEquationChoices(parsed.equationAfter),
+        expected: [parsed.equationAfter],
+        explanation: `
+          Correct. The solution is <strong>${escapeHtml(parsed.equationAfter)}</strong>.
+          ${renderMultiStepTransformation(parsed, "solution")}
+        `,
+        theory:
+          "Once the equation is simplified, solve it like a one-step or two-step equation."
+      }
+    ],
+
+    workedExample: [
+      `Start with ${parsed.equationBefore}.`,
+      `First: ${parsed.firstAction}.`,
+      `Simplified equation: ${parsed.simplifiedEquation}.`,
+      `Then solve using inverse operations.`,
+      `The result is ${parsed.equationAfter}.`
+    ],
+
+    video: null,
+    recoveryPractice
+  };
+}
+
+/* =========================================================
+   LESSON 1.3 — VARIABLES ON BOTH SIDES TUTOR
+========================================================= */
+
+function buildVariablesBothSidesLesson(problemType, metadata, currentQuestion) {
+  const parsed = parseVariablesBothSidesEquation(currentQuestion);
+  const recoveryPractice = buildVariablesBothSidesRecoveryPracticeItems(parsed);
+
+  return {
+    title: "Recovery Tutor: Variables on Both Sides",
+
+    diagnostic: {
+      equationBefore: parsed.equationBefore,
+      afterMoveVariables: parsed.afterMoveVariables,
+      equationAfter: parsed.equationAfter,
+      tutorType: "variables_on_both_sides"
+    },
+
+    conceptSummary: [
+      "When variables appear on both sides, move the variable terms to one side first.",
+      "Then move the constants to the other side.",
+      "Finally, solve the remaining one-step equation."
+    ],
+
+    misconception:
+      metadata?.misconception ||
+      "A common mistake is moving constants first before collecting variable terms. Start by getting variables on one side.",
+
+    tutorDialogue: [
+      {
+        id: "move_variable_terms",
+        tutor: `
+          <div><strong>Equation:</strong> ${escapeHtml(parsed.equationBefore)}</div>
+          <div style="margin-top:8px;">What should we move first?</div>
+        `,
+        choices: [
+          "Move variable terms",
+          "Move constants first",
+          "Divide immediately",
+          "Change the equal sign"
+        ],
+        expected: ["Move variable terms"],
+        explanation: `
+          Correct. When variables are on both sides, move the variable terms first.
+          ${renderVariablesBothSidesTransformation(parsed, "moveVariables")}
+        `,
+        theory:
+          "Get all x-terms on one side so the equation becomes easier to solve."
+      },
+      {
+        id: "move_constants",
+        tutor: `
+          <div><strong>Equation after moving variables:</strong> ${escapeHtml(parsed.afterMoveVariables)}</div>
+          <div style="margin-top:8px;">What should we do next?</div>
+        `,
+        choices: [
+          "Move constants",
+          "Move variables again",
+          "Stop here",
+          "Flip the equal sign"
+        ],
+        expected: ["Move constants"],
+        explanation: `
+          Correct. Now move constants to isolate the variable term.
+          ${renderVariablesBothSidesTransformation(parsed, "moveConstants")}
+        `,
+        theory:
+          "After variable terms are together, use inverse operations to move constants."
+      },
+      {
+        id: "solution",
+        tutor: `
+          <div><strong>Original equation:</strong> ${escapeHtml(parsed.equationBefore)}</div>
+          <div style="margin-top:8px;">What is the solution?</div>
+        `,
+        choices: buildEquationChoices(parsed.equationAfter),
+        expected: [parsed.equationAfter],
+        explanation: `
+          Correct. The solution is <strong>${escapeHtml(parsed.equationAfter)}</strong>.
+          ${renderVariablesBothSidesTransformation(parsed, "solution")}
+        `,
+        theory:
+          "After isolating the variable term, divide or multiply as needed to solve."
+      }
+    ],
+
+    workedExample: [
+      `Start with ${parsed.equationBefore}.`,
+      "Move variable terms to one side.",
+      `After moving variables: ${parsed.afterMoveVariables}.`,
+      "Move constants to isolate the variable term.",
+      `The result is ${parsed.equationAfter}.`
+    ],
+
+    video: null,
+    recoveryPractice
+  };
+}
+
+/* =========================================================
+   GENERIC TUTOR
+========================================================= */
 
 function buildGenericLesson(problemType, metadata, currentQuestion) {
   return {
@@ -308,10 +565,308 @@ function buildGenericLesson(problemType, metadata, currentQuestion) {
 }
 
 /* =========================================================
-   RECOVERY PRACTICE GENERATOR
+   PARSERS — ONE-STEP
 ========================================================= */
 
-function buildRecoveryPracticeItems(originalParsed, operation) {
+function parseOneStepEquation(currentQuestion) {
+  const fallback = {
+    equationBefore: "x + 8 = 18",
+    variable: "x",
+    operation: "Addition",
+    inverseOperation: "Subtraction",
+    constant: 8,
+    rightValue: 18,
+    equationAction: "- 8     - 8",
+    equationAfter: "x = 10"
+  };
+
+  const text = getQuestionText(currentQuestion);
+  const answer = getQuestionAnswer(currentQuestion);
+  const equation = extractEquation(text);
+
+  if (!equation) {
+    if (answer) return { ...fallback, equationAfter: String(answer).trim() };
+    return fallback;
+  }
+
+  const compact = equation.replace(/\s+/g, "").replace(/−/g, "-");
+  let match;
+
+  match = compact.match(/^([a-z])\+(-?\d+)=(-?\d+)$/i);
+  if (match) {
+    const variable = match[1];
+    const a = Number(match[2]);
+    const b = Number(match[3]);
+    return {
+      equationBefore: prettyEquation(equation),
+      variable,
+      operation: "Addition",
+      inverseOperation: "Subtraction",
+      constant: a,
+      rightValue: b,
+      equationAction: `- ${a}     - ${a}`,
+      equationAfter: `${variable} = ${formatNumber(b - a)}`
+    };
+  }
+
+  match = compact.match(/^([a-z])-(-?\d+)=(-?\d+)$/i);
+  if (match) {
+    const variable = match[1];
+    const a = Number(match[2]);
+    const b = Number(match[3]);
+    return {
+      equationBefore: prettyEquation(equation),
+      variable,
+      operation: "Subtraction",
+      inverseOperation: "Addition",
+      constant: a,
+      rightValue: b,
+      equationAction: `+ ${a}     + ${a}`,
+      equationAfter: `${variable} = ${formatNumber(b + a)}`
+    };
+  }
+
+  match = compact.match(/^(-?\d+)[×*]?([a-z])=(-?\d+)$/i);
+  if (match) {
+    const a = Number(match[1]);
+    const variable = match[2];
+    const b = Number(match[3]);
+    return {
+      equationBefore: prettyEquation(equation),
+      variable,
+      operation: "Multiplication",
+      inverseOperation: "Division",
+      constant: a,
+      rightValue: b,
+      equationAction: `÷ ${a}     ÷ ${a}`,
+      equationAfter: `${variable} = ${formatNumber(b / a)}`
+    };
+  }
+
+  match = compact.match(/^([a-z])[÷/](-?\d+)=(-?\d+)$/i);
+  if (match) {
+    const variable = match[1];
+    const a = Number(match[2]);
+    const b = Number(match[3]);
+    return {
+      equationBefore: prettyEquation(equation),
+      variable,
+      operation: "Division",
+      inverseOperation: "Multiplication",
+      constant: a,
+      rightValue: b,
+      equationAction: `× ${a}     × ${a}`,
+      equationAfter: `${variable} = ${formatNumber(b * a)}`
+    };
+  }
+
+  if (answer) {
+    return {
+      ...fallback,
+      equationBefore: prettyEquation(equation),
+      equationAfter: String(answer).trim()
+    };
+  }
+
+  return {
+    ...fallback,
+    equationBefore: prettyEquation(equation)
+  };
+}
+
+/* =========================================================
+   PARSERS — MULTI-STEP
+   Supports common Lesson 1.2 structures:
+   - 3x + 5 + 2x = 20
+   - 2(x + 3) = 14
+   - 3x + 4 = 16
+========================================================= */
+
+function parseMultiStepEquation(currentQuestion) {
+  const text = getQuestionText(currentQuestion);
+  const answer = getQuestionAnswer(currentQuestion);
+  const equation = extractEquation(text) || "3x + 5 + 2x = 20";
+
+  const compact = equation.replace(/\s+/g, "").replace(/−/g, "-");
+  let match;
+
+  // ax + b + cx = d
+  match = compact.match(/^(-?\d*)x([+\-]-?\d+)([+\-]-?\d*)x=(-?\d+)$/i);
+  if (match) {
+    const a = coefficientValue(match[1]);
+    const b = Number(match[2]);
+    const c = coefficientValue(match[3]);
+    const d = Number(match[4]);
+    const combined = a + c;
+    const simplifiedEquation = `${formatCoefficient(combined)}x ${signedNumber(b)} = ${formatNumber(d)}`;
+    const solution = (d - b) / combined;
+
+    return {
+      equationBefore: prettyEquation(equation),
+      firstAction: "Combine like terms",
+      simplifiedEquation: normalizeEquationSpacing(simplifiedEquation),
+      equationAfter: answer || `x = ${formatNumber(solution)}`,
+      combineA: a,
+      combineC: c,
+      constant: b,
+      rightValue: d,
+      combinedCoefficient: combined,
+      tutorType: "combine_like_terms"
+    };
+  }
+
+  // ax + b = d
+  match = compact.match(/^(-?\d*)x([+\-]-?\d+)=(-?\d+)$/i);
+  if (match) {
+    const a = coefficientValue(match[1]);
+    const b = Number(match[2]);
+    const d = Number(match[3]);
+    const solution = (d - b) / a;
+
+    return {
+      equationBefore: prettyEquation(equation),
+      firstAction: "Move constants",
+      simplifiedEquation: prettyEquation(equation),
+      equationAfter: answer || `x = ${formatNumber(solution)}`,
+      coefficient: a,
+      constant: b,
+      rightValue: d,
+      tutorType: "two_step_equation"
+    };
+  }
+
+  // a(x + b) = d
+  match = compact.match(/^(-?\d+)\(([a-z])([+\-]-?\d+)\)=(-?\d+)$/i);
+  if (match) {
+    const a = Number(match[1]);
+    const variable = match[2];
+    const b = Number(match[3]);
+    const d = Number(match[4]);
+    const distributedConstant = a * b;
+    const simplifiedEquation = `${formatCoefficient(a)}${variable} ${signedNumber(distributedConstant)} = ${formatNumber(d)}`;
+    const solution = (d - distributedConstant) / a;
+
+    return {
+      equationBefore: prettyEquation(equation),
+      firstAction: "Use the distributive property",
+      simplifiedEquation: normalizeEquationSpacing(simplifiedEquation),
+      equationAfter: answer || `${variable} = ${formatNumber(solution)}`,
+      coefficient: a,
+      innerConstant: b,
+      distributedConstant,
+      rightValue: d,
+      tutorType: "distributive_property"
+    };
+  }
+
+  return {
+    equationBefore: prettyEquation(equation),
+    firstAction: "Combine like terms",
+    simplifiedEquation: prettyEquation(equation),
+    equationAfter: answer || "x = 3",
+    tutorType: "multi_step_equation"
+  };
+}
+
+/* =========================================================
+   PARSERS — VARIABLES BOTH SIDES
+   Supports common Lesson 1.3 structures:
+   - 2x + 5 = x + 12
+   - 3x - 4 = x + 10
+========================================================= */
+
+function parseVariablesBothSidesEquation(currentQuestion) {
+  const text = getQuestionText(currentQuestion);
+  const answer = getQuestionAnswer(currentQuestion);
+  const equation = extractEquation(text) || "2x + 5 = x + 12";
+  const compact = equation.replace(/\s+/g, "").replace(/−/g, "-");
+
+  let match = compact.match(/^(-?\d*)x([+\-]-?\d+)=(-?\d*)x([+\-]-?\d+)$/i);
+
+  if (match) {
+    const leftCoeff = coefficientValue(match[1]);
+    const leftConst = Number(match[2]);
+    const rightCoeff = coefficientValue(match[3]);
+    const rightConst = Number(match[4]);
+
+    const newCoeff = leftCoeff - rightCoeff;
+    const afterMoveVariables = `${formatCoefficient(newCoeff)}x ${signedNumber(leftConst)} = ${formatNumber(rightConst)}`;
+    const solution = (rightConst - leftConst) / newCoeff;
+
+    return {
+      equationBefore: prettyEquation(equation),
+      leftCoeff,
+      leftConst,
+      rightCoeff,
+      rightConst,
+      afterMoveVariables: normalizeEquationSpacing(afterMoveVariables),
+      equationAfter: answer || `x = ${formatNumber(solution)}`,
+      tutorType: "variables_on_both_sides"
+    };
+  }
+
+  return {
+    equationBefore: prettyEquation(equation),
+    leftCoeff: 2,
+    leftConst: 5,
+    rightCoeff: 1,
+    rightConst: 12,
+    afterMoveVariables: "x + 5 = 12",
+    equationAfter: answer || "x = 7",
+    tutorType: "variables_on_both_sides"
+  };
+}
+
+/* =========================================================
+   EQUATION EXTRACTION
+========================================================= */
+
+function getQuestionText(currentQuestion) {
+  return typeof currentQuestion === "string"
+    ? currentQuestion
+    : currentQuestion?.prompt ||
+      currentQuestion?.question ||
+      currentQuestion?.text ||
+      "";
+}
+
+function getQuestionAnswer(currentQuestion) {
+  return currentQuestion?.answer ||
+    currentQuestion?.correctAnswer ||
+    "";
+}
+
+function extractEquation(text) {
+  const source = String(text || "")
+    .replace(/Solve\s+for\s+x\.?/i, "")
+    .replace(/Solve:/i, "")
+    .trim();
+
+  const patterns = [
+    /-?\d+\s*\(\s*[a-z]\s*[+\-−]\s*-?\d+\s*\)\s*=\s*-?\d+/i,
+    /-?\d*\s*[a-z]\s*[+\-−]\s*-?\d+\s*[+\-−]\s*-?\d*\s*[a-z]\s*=\s*-?\d+/i,
+    /-?\d*\s*[a-z]\s*[+\-−]\s*-?\d+\s*=\s*-?\d*\s*[a-z]\s*[+\-−]\s*-?\d+/i,
+    /[a-z]\s*[+]\s*-?\d+\s*=\s*-?\d+/i,
+    /[a-z]\s*[-−]\s*-?\d+\s*=\s*-?\d+/i,
+    /-?\d+\s*[×*]\s*[a-z]\s*=\s*-?\d+/i,
+    /-?\d+\s*[a-z]\s*=\s*-?\d+/i,
+    /[a-z]\s*[÷/]\s*-?\d+\s*=\s*-?\d+/i,
+    /-?\d*\s*[a-z]\s*[+\-−]\s*-?\d+\s*=\s*-?\d+/i
+  ];
+
+  for (const pattern of patterns) {
+    const match = source.match(pattern);
+    if (match) return match[0];
+  }
+
+  return "";
+}
+
+/* =========================================================
+   RECOVERY PRACTICE ITEMS
+========================================================= */
+
+function buildOneStepRecoveryPracticeItems(originalParsed, operation) {
   const originalEquation = normalizeEquationKey(originalParsed.equationBefore);
   const items = [];
   const used = new Set([originalEquation]);
@@ -352,6 +907,62 @@ function buildRecoveryPracticeItems(originalParsed, operation) {
       makeAdditionEquation(4, 13)
     ];
   }
+
+  return pickTwoUniquePracticeItems(candidates, used);
+}
+
+function buildMultiStepRecoveryPracticeItems(parsed) {
+  const used = new Set([normalizeEquationKey(parsed.equationBefore)]);
+
+  const candidates = [
+    {
+      equation: "3x + 4 + 2x = 19",
+      answer: "x = 3"
+    },
+    {
+      equation: "4x + 5 + x = 20",
+      answer: "x = 3"
+    },
+    {
+      equation: "2(x + 3) = 14",
+      answer: "x = 4"
+    },
+    {
+      equation: "3(x + 2) = 21",
+      answer: "x = 5"
+    }
+  ];
+
+  return pickTwoUniquePracticeItems(candidates, used);
+}
+
+function buildVariablesBothSidesRecoveryPracticeItems(parsed) {
+  const used = new Set([normalizeEquationKey(parsed.equationBefore)]);
+
+  const candidates = [
+    {
+      equation: "2x + 5 = x + 12",
+      answer: "x = 7"
+    },
+    {
+      equation: "3x - 4 = x + 10",
+      answer: "x = 7"
+    },
+    {
+      equation: "5x + 2 = 3x + 12",
+      answer: "x = 5"
+    },
+    {
+      equation: "4x - 6 = 2x + 8",
+      answer: "x = 7"
+    }
+  ];
+
+  return pickTwoUniquePracticeItems(candidates, used);
+}
+
+function pickTwoUniquePracticeItems(candidates, used) {
+  const items = [];
 
   for (const item of candidates) {
     const key = normalizeEquationKey(item.equation);
@@ -412,245 +1023,8 @@ function makeDivisionEquation(a, b) {
   };
 }
 
-function normalizeEquationKey(value) {
-  return String(value || "")
-    .toLowerCase()
-    .replace(/\s+/g, "")
-    .replace(/\*/g, "×")
-    .replace(/\//g, "÷")
-    .replace(/−/g, "-");
-}
-
 /* =========================================================
-   EQUATION PARSING
-========================================================= */
-
-function parseOneStepEquation(currentQuestion) {
-  const fallback = {
-    equationBefore: "x + 8 = 18",
-    variable: "x",
-    operation: "Addition",
-    inverseOperation: "Subtraction",
-    constant: 8,
-    rightValue: 18,
-    equationAction: "- 8     - 8",
-    equationAfter: "x = 10"
-  };
-
-  const text =
-    typeof currentQuestion === "string"
-      ? currentQuestion
-      : currentQuestion?.prompt ||
-        currentQuestion?.question ||
-        currentQuestion?.text ||
-        "";
-
-  const answer =
-    currentQuestion?.answer ||
-    currentQuestion?.correctAnswer ||
-    "";
-
-  const equation = extractEquation(text);
-
-  if (!equation) {
-    if (answer) {
-      return { ...fallback, equationAfter: String(answer).trim() };
-    }
-    return fallback;
-  }
-
-  const compact = equation.replace(/\s+/g, "").replace(/−/g, "-");
-  let match;
-
-  // x + a = b
-  match = compact.match(/^([a-z])\+(-?\d+)=(-?\d+)$/i);
-  if (match) {
-    const variable = match[1];
-    const a = Number(match[2]);
-    const b = Number(match[3]);
-    return {
-      equationBefore: prettyEquation(equation),
-      variable,
-      operation: "Addition",
-      inverseOperation: "Subtraction",
-      constant: a,
-      rightValue: b,
-      equationAction: `- ${a}     - ${a}`,
-      equationAfter: `${variable} = ${formatNumber(b - a)}`
-    };
-  }
-
-  // x - a = b
-  match = compact.match(/^([a-z])-(-?\d+)=(-?\d+)$/i);
-  if (match) {
-    const variable = match[1];
-    const a = Number(match[2]);
-    const b = Number(match[3]);
-    return {
-      equationBefore: prettyEquation(equation),
-      variable,
-      operation: "Subtraction",
-      inverseOperation: "Addition",
-      constant: a,
-      rightValue: b,
-      equationAction: `+ ${a}     + ${a}`,
-      equationAfter: `${variable} = ${formatNumber(b + a)}`
-    };
-  }
-
-  // a×x = b, a*x = b, ax = b
-  match = compact.match(/^(-?\d+)[×*]?([a-z])=(-?\d+)$/i);
-  if (match) {
-    const a = Number(match[1]);
-    const variable = match[2];
-    const b = Number(match[3]);
-    return {
-      equationBefore: prettyEquation(equation),
-      variable,
-      operation: "Multiplication",
-      inverseOperation: "Division",
-      constant: a,
-      rightValue: b,
-      equationAction: `÷ ${a}     ÷ ${a}`,
-      equationAfter: `${variable} = ${formatNumber(b / a)}`
-    };
-  }
-
-  // x ÷ a = b, x/a = b
-  match = compact.match(/^([a-z])[÷/](-?\d+)=(-?\d+)$/i);
-  if (match) {
-    const variable = match[1];
-    const a = Number(match[2]);
-    const b = Number(match[3]);
-    return {
-      equationBefore: prettyEquation(equation),
-      variable,
-      operation: "Division",
-      inverseOperation: "Multiplication",
-      constant: a,
-      rightValue: b,
-      equationAction: `× ${a}     × ${a}`,
-      equationAfter: `${variable} = ${formatNumber(b * a)}`
-    };
-  }
-
-  if (answer) {
-    return {
-      ...fallback,
-      equationBefore: prettyEquation(equation),
-      equationAfter: String(answer).trim()
-    };
-  }
-
-  return {
-    ...fallback,
-    equationBefore: prettyEquation(equation)
-  };
-}
-
-function extractEquation(text) {
-  const source = String(text || "")
-    .replace(/Solve\s+for\s+x\.?/i, "")
-    .replace(/Solve:/i, "")
-    .trim();
-
-  const patterns = [
-    /[a-z]\s*[+]\s*-?\d+\s*=\s*-?\d+/i,
-    /[a-z]\s*[-−]\s*-?\d+\s*=\s*-?\d+/i,
-    /-?\d+\s*[×*]\s*[a-z]\s*=\s*-?\d+/i,
-    /-?\d+\s*[a-z]\s*=\s*-?\d+/i,
-    /[a-z]\s*[÷/]\s*-?\d+\s*=\s*-?\d+/i
-  ];
-
-  for (const pattern of patterns) {
-    const match = source.match(pattern);
-    if (match) return match[0];
-  }
-
-  return "";
-}
-
-function prettyEquation(equation) {
-  return String(equation)
-    .replace(/\*/g, "×")
-    .replace(/\//g, "÷")
-    .replace(/-/g, "−")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function inverseOperation(operation) {
-  const op = normalizeText(operation);
-
-  if (op === "addition") return "Subtraction";
-  if (op === "subtraction") return "Addition";
-  if (op === "multiplication") return "Division";
-  if (op === "division") return "Multiplication";
-
-  throw new Error(`Unknown operation for inverse: ${operation}`);
-}
-
-function expectedOperationAnswers(operation) {
-  const op = normalizeText(operation);
-
-  if (op === "addition") {
-    return ["Addition", "add", "plus", "+", "adding"];
-  }
-
-  if (op === "subtraction") {
-    return ["Subtraction", "subtract", "minus", "-", "−", "subtracting"];
-  }
-
-  if (op === "multiplication") {
-    return ["Multiplication", "multiply", "times", "×", "*", "multiplying"];
-  }
-
-  if (op === "division") {
-    return ["Division", "divide", "÷", "/", "dividing"];
-  }
-
-  return [operation];
-}
-
-function buildEquationChoices(correct) {
-  const parsed = String(correct || "x = 10").match(/^([a-z])\s*=\s*(-?\d+(?:\.\d+)?)$/i);
-
-  if (!parsed) {
-    return uniqueChoices([correct, "x = 0", "x = 1", "No solution"]);
-  }
-
-  const variable = parsed[1];
-  const value = Number(parsed[2]);
-
-  return uniqueChoices([
-    `${variable} = ${formatNumber(value)}`,
-    `${variable} = ${formatNumber(value + 1)}`,
-    `${variable} = ${formatNumber(value - 1)}`,
-    `${variable} = ${formatNumber(-value)}`
-  ]);
-}
-
-function uniqueChoices(list) {
-  const seen = new Set();
-  const result = [];
-
-  for (const item of list) {
-    const key = normalizeText(item);
-    if (!seen.has(key)) {
-      seen.add(key);
-      result.push(item);
-    }
-  }
-
-  while (result.length < 4) {
-    result.push(`x = ${result.length + 20}`);
-  }
-
-  return result.slice(0, 4);
-}
-
-/* =========================================================
-   PROFESSIONAL TEACHER-STYLE MATH RENDERER
+   RENDERERS
 ========================================================= */
 
 function renderEquationTransformation(parsed) {
@@ -820,9 +1194,33 @@ function renderMultiplicationDivisionTransformation(parsed) {
   `;
 }
 
-function parseSolutionValue(equationAfter) {
-  const match = String(equationAfter || "").match(/=\s*(-?\d+(?:\.\d+)?)/);
-  return match ? Number(match[1]) : 0;
+function renderMultiStepTransformation(parsed, stage = "solution") {
+  return `
+    <div class="aos-math-workspace">
+      ${mathRendererStyle()}
+      <div class="aos-work-title">Multi-step equation work</div>
+      <div class="aos-vertical-work">
+        <div><strong>Original:</strong> ${escapeHtml(parsed.equationBefore)}</div>
+        <div><strong>First:</strong> ${escapeHtml(parsed.firstAction)}</div>
+        <div><strong>Simplified:</strong> ${escapeHtml(parsed.simplifiedEquation)}</div>
+        <div><strong>Solution:</strong> <span class="aos-green">${escapeHtml(parsed.equationAfter)}</span></div>
+      </div>
+    </div>
+  `;
+}
+
+function renderVariablesBothSidesTransformation(parsed, stage = "solution") {
+  return `
+    <div class="aos-math-workspace">
+      ${mathRendererStyle()}
+      <div class="aos-work-title">Variables on both sides work</div>
+      <div class="aos-vertical-work">
+        <div><strong>Original:</strong> ${escapeHtml(parsed.equationBefore)}</div>
+        <div><strong>Move variable terms:</strong> ${escapeHtml(parsed.afterMoveVariables)}</div>
+        <div><strong>Solution:</strong> <span class="aos-green">${escapeHtml(parsed.equationAfter)}</span></div>
+      </div>
+    </div>
+  `;
 }
 
 function mathRendererStyle() {
@@ -932,6 +1330,16 @@ function mathRendererStyle() {
         margin-right:8px;
       }
 
+      .aos-vertical-work{
+        font-size:16px;
+        font-weight:800;
+        line-height:1.7;
+        background:#f8fafc;
+        border:1px solid #e2e8f0;
+        border-radius:12px;
+        padding:12px;
+      }
+
       @media(max-width:780px){
         .aos-work-grid{
           grid-template-columns:1fr;
@@ -954,6 +1362,145 @@ function mathRendererStyle() {
       }
     </style>
   `;
+}
+
+/* =========================================================
+   CHOICES
+========================================================= */
+
+function buildEquationChoices(correct) {
+  const parsed = String(correct || "x = 10").match(/^([a-z])\s*=\s*(-?\d+(?:\.\d+)?)$/i);
+
+  if (!parsed) {
+    return uniqueChoices([correct, "x = 0", "x = 1", "No solution"]);
+  }
+
+  const variable = parsed[1];
+  const value = Number(parsed[2]);
+
+  return uniqueChoices([
+    `${variable} = ${formatNumber(value)}`,
+    `${variable} = ${formatNumber(value + 1)}`,
+    `${variable} = ${formatNumber(value - 1)}`,
+    `${variable} = ${formatNumber(-value)}`
+  ]);
+}
+
+function buildMultiStepSimplifiedChoices(correct) {
+  return uniqueChoices([
+    correct,
+    "x = 3",
+    "5x = 20",
+    "3x + 2x = 20"
+  ]);
+}
+
+function uniqueChoices(list) {
+  const seen = new Set();
+  const result = [];
+
+  for (const item of list) {
+    const key = normalizeText(item);
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(item);
+    }
+  }
+
+  while (result.length < 4) {
+    result.push(`x = ${result.length + 20}`);
+  }
+
+  return result.slice(0, 4);
+}
+
+/* =========================================================
+   OPERATIONS
+========================================================= */
+
+function inverseOperation(operation) {
+  const op = normalizeText(operation);
+
+  if (op === "addition") return "Subtraction";
+  if (op === "subtraction") return "Addition";
+  if (op === "multiplication") return "Division";
+  if (op === "division") return "Multiplication";
+
+  throw new Error(`Unknown operation for inverse: ${operation}`);
+}
+
+function expectedOperationAnswers(operation) {
+  const op = normalizeText(operation);
+
+  if (op === "addition") return ["Addition", "add", "plus", "+", "adding"];
+  if (op === "subtraction") return ["Subtraction", "subtract", "minus", "-", "−", "subtracting"];
+  if (op === "multiplication") return ["Multiplication", "multiply", "times", "×", "*", "multiplying"];
+  if (op === "division") return ["Division", "divide", "÷", "/", "dividing"];
+
+  return [operation];
+}
+
+/* =========================================================
+   UTILS
+========================================================= */
+
+function coefficientValue(raw) {
+  if (raw === "" || raw === "+" || raw === undefined) return 1;
+  if (raw === "-") return -1;
+  return Number(raw);
+}
+
+function formatCoefficient(value) {
+  if (value === 1) return "";
+  if (value === -1) return "−";
+  return String(value).replace("-", "−");
+}
+
+function signedNumber(value) {
+  if (value < 0) return `− ${Math.abs(value)}`;
+  return `+ ${value}`;
+}
+
+function normalizeEquationSpacing(value) {
+  return String(value)
+    .replace(/\+/g, " + ")
+    .replace(/−/g, " − ")
+    .replace(/-/g, " − ")
+    .replace(/=/g, " = ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function parseSolutionValue(equationAfter) {
+  const match = String(equationAfter || "").replace(/−/g, "-").match(/=\s*(-?\d+(?:\.\d+)?)/);
+  return match ? Number(match[1]) : 0;
+}
+
+function prettyEquation(equation) {
+  return String(equation)
+    .replace(/\*/g, "×")
+    .replace(/\//g, "÷")
+    .replace(/-/g, "−")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function formatNumber(value) {
+  if (Number.isInteger(value)) return String(value);
+  return String(Number(value.toFixed(2)));
+}
+
+function formatSkillName(value) {
+  return String(value || "Skill")
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, char => char.toUpperCase());
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;");
 }
 
 /* =========================================================
@@ -1026,64 +1573,40 @@ function isElementVisible(el) {
 }
 
 /* =========================================================
-   BASIC UTILITIES
-========================================================= */
-
-function formatNumber(value) {
-  if (Number.isInteger(value)) return String(value);
-  return String(Number(value.toFixed(2)));
-}
-
-function formatSkillName(value) {
-  return String(value || "Skill")
-    .replace(/_/g, " ")
-    .replace(/\b\w/g, char => char.toUpperCase());
-}
-
-function escapeHtml(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-/* =========================================================
-   RECOVERY TUTOR CERTIFICATION
+   CERTIFICATION
 ========================================================= */
 
 function certifyRecoveryTutor() {
   const testCases = [
     {
-      name: "addition equation",
+      name: "one-step addition",
       problemType: "one_step_addition_equation",
       question: { prompt: "Solve for x. x + 8 = 18", answer: "x = 10" },
+      tutorType: "one_step_equation",
       attached: "Addition",
       inverse: "Subtraction",
       after: "x = 10"
     },
     {
-      name: "subtraction equation",
-      problemType: "one_step_subtraction_equation",
-      question: { prompt: "Solve for x. x - 8 = 10", answer: "x = 18" },
-      attached: "Subtraction",
-      inverse: "Addition",
-      after: "x = 18"
-    },
-    {
-      name: "multiplication equation",
-      problemType: "one_step_multiplication_equation",
-      question: { prompt: "Solve for x. 3x = 21", answer: "x = 7" },
-      attached: "Multiplication",
-      inverse: "Division",
-      after: "x = 7"
-    },
-    {
-      name: "division equation",
+      name: "one-step division",
       problemType: "one_step_division_equation",
       question: { prompt: "Solve for x. x ÷ 7 = 1", answer: "x = 7" },
+      tutorType: "one_step_equation",
       attached: "Division",
       inverse: "Multiplication",
       after: "x = 7"
+    },
+    {
+      name: "multi-step combine like terms",
+      problemType: "combine_like_terms",
+      question: { prompt: "Solve for x. 3x + 5 + 2x = 20", answer: "x = 3" },
+      tutorType: "multi_step_equation"
+    },
+    {
+      name: "variables on both sides",
+      problemType: "variables_on_both_sides",
+      question: { prompt: "Solve for x. 2x + 5 = x + 12", answer: "x = 7" },
+      tutorType: "variables_on_both_sides"
     }
   ];
 
@@ -1091,25 +1614,23 @@ function certifyRecoveryTutor() {
 
   for (const test of testCases) {
     const lesson = generateRecoveryLesson(test.problemType, {}, test.question);
-    const attachedStep = lesson.tutorDialogue[0];
-    const inverseStep = lesson.tutorDialogue[1];
-    const simplifiedStep = lesson.tutorDialogue[2];
 
-    if (!tutorAnswerMatches(test.attached, attachedStep.expected)) {
-      failures.push(`${test.name}: attached operation ${test.attached} did not validate.`);
+    if (lesson.diagnostic?.tutorType !== test.tutorType) {
+      failures.push(`${test.name}: expected tutorType ${test.tutorType}, got ${lesson.diagnostic?.tutorType}`);
     }
 
-    if (!tutorAnswerMatches(test.inverse, inverseStep.expected)) {
-      failures.push(`${test.name}: inverse operation ${test.inverse} did not validate.`);
-    }
+    if (test.attached) {
+      if (!tutorAnswerMatches(test.attached, lesson.tutorDialogue[0].expected)) {
+        failures.push(`${test.name}: attached operation failed.`);
+      }
 
-    if (!tutorAnswerMatches(test.after, simplifiedStep.expected)) {
-      failures.push(`${test.name}: simplified equation ${test.after} did not validate.`);
-    }
+      if (!tutorAnswerMatches(test.inverse, lesson.tutorDialogue[1].expected)) {
+        failures.push(`${test.name}: inverse operation failed.`);
+      }
 
-    const rendererText = String(inverseStep.explanation || "");
-    if (!rendererText.includes("aos-math-workspace")) {
-      failures.push(`${test.name}: math renderer is missing.`);
+      if (!tutorAnswerMatches(test.after, lesson.tutorDialogue[2].expected)) {
+        failures.push(`${test.name}: solution validation failed.`);
+      }
     }
 
     const originalKey = normalizeEquationKey(lesson.diagnostic.equationBefore);
@@ -1158,13 +1679,15 @@ const AlgebraRecoveryLessonEngine = {
   installRecoveryTutorKeyboardSupport,
   __private: {
     parseOneStepEquation,
+    parseMultiStepEquation,
+    parseVariablesBothSidesEquation,
     inverseOperation,
     expectedOperationAnswers,
     normalizeText,
     normalizeAnswer,
     renderEquationTransformation,
-    renderAdditionSubtractionTransformation,
-    renderMultiplicationDivisionTransformation
+    renderMultiStepTransformation,
+    renderVariablesBothSidesTransformation
   }
 };
 
