@@ -1,5 +1,5 @@
 /* ============================================================
-   Algebra OS — Question Factory 4.2 Two-Solution Distractor Guard
+   Algebra OS — Question Factory 4.5 Coverage-Balanced Certified
    File: engine/questionFactory.js
 
    PURPOSE:
@@ -21,6 +21,45 @@
 /* ============================================================
    PUBLIC API
    ============================================================ */
+
+// Internal round-robin state.
+// Purpose: prevent random generation from over-serving one skill while ignoring another.
+// This is critical for QA coverage audits and for real student practice.
+const LESSON_COVERAGE_STATE = new Map();
+
+function getLessonCoverageKey(lesson) {
+  return String(
+    lesson?.id ||
+    lesson?.lessonId ||
+    lesson?.title ||
+    "unknown_lesson"
+  );
+}
+
+function getNextCoverageType(lesson, availableTypes) {
+  if (!Array.isArray(availableTypes) || availableTypes.length === 0) {
+    return null;
+  }
+
+  const key = getLessonCoverageKey(lesson);
+  const currentIndex = LESSON_COVERAGE_STATE.get(key) || 0;
+  const selectedType = availableTypes[currentIndex % availableTypes.length];
+
+  LESSON_COVERAGE_STATE.set(key, currentIndex + 1);
+
+  return selectedType;
+}
+
+function buildAttemptTypeSequence(lesson, availableTypes, requestedProblemType) {
+  if (requestedProblemType) {
+    return availableTypes;
+  }
+
+  const firstType = getNextCoverageType(lesson, availableTypes);
+  const rest = availableTypes.filter(type => type !== firstType);
+
+  return [firstType, ...shuffle(rest)];
+}
 
 export function generateQuestionForLesson(lesson, options = {}) {
   const problemTypes =
@@ -79,14 +118,27 @@ export function generateQuestionForLesson(lesson, options = {}) {
   }
 
   let lastQuestion = null;
+  const attemptTypeSequence =
+    buildAttemptTypeSequence(lesson, availableTypes, requestedProblemType);
 
   for (let attempt = 0; attempt < 30; attempt++) {
-    const type = pickRandom(availableTypes);
+    const type =
+      attemptTypeSequence[attempt % attemptTypeSequence.length] ||
+      pickRandom(availableTypes);
+
     const question = normalizeQuestion(
       GENERATORS[type](difficulty),
       type,
       difficulty
     );
+
+    // Wrapper generators sometimes reuse another generator internally.
+    // Example: factor_trinomial_positive_c uses the same math as factor_trinomial_a1.
+    // If a specific problemType was requested by the lesson coverage engine or QA audit,
+    // the returned question must keep the requested skill label.
+    if (requestedProblemType) {
+      question.problemType = requestedProblemType;
+    }
 
     lastQuestion = question;
 
@@ -917,6 +969,33 @@ one_step_division_equation: {
       "Multiply the factors to check your answer."
     ],
     misconception: "Students often find numbers that multiply to c but do not add to b."
+  },
+
+  factor_trinomial_positive_c: {
+    hintSteps: [
+      "For x² + bx + c with positive c, the factor signs may be the same.",
+      "Find two numbers that multiply to c and add to b.",
+      "Use those numbers to write the binomial factors."
+    ],
+    misconception: "Students often ignore whether c is positive and choose signs that do not produce the middle term."
+  },
+
+  factor_trinomial_negative_c: {
+    hintSteps: [
+      "For x² + bx + c with negative c, the factor signs must be opposite.",
+      "Find two numbers that multiply to c and add to b.",
+      "Use those numbers to write the binomial factors."
+    ],
+    misconception: "Students often choose two positive factors even when c is negative."
+  },
+
+  mixed_special_factoring: {
+    hintSteps: [
+      "First decide whether the expression is a difference of squares or a perfect square trinomial.",
+      "Use the matching special factoring pattern.",
+      "Multiply the factors to check your result."
+    ],
+    misconception: "Students often apply the perfect square pattern to a difference of squares, or the reverse."
   },
 
   factor_trinomial_a_not_1: {
@@ -3145,7 +3224,7 @@ function generateFactorGCFApplication(difficulty = 1) {
   });
 }
 
-function generateFactorTrinomialA1(difficulty = 1) {
+function generateFactorTrinomialA1(difficulty = 1, overrideType = "factor_trinomial_a1") {
   const r = randInt(1, 9);
   const s = randInt(1, 9);
   const b = r + s;
@@ -3155,7 +3234,7 @@ function generateFactorTrinomialA1(difficulty = 1) {
   return buildQuestion({
     prompt: `Factor: x² + ${b}x + ${c}`,
     answer,
-    problemType: "factor_trinomial_a1",
+    problemType: overrideType,
     difficulty,
     solutionSteps: [
       `Find two numbers that multiply to ${c} and add to ${b}.`,
@@ -3309,9 +3388,12 @@ function generateIdentifySpecialFactoringPattern(difficulty = 1) {
 }
 
 function generateMixedSpecialFactoring(difficulty = 1) {
-  return Math.random() < 0.5
+  const question = Math.random() < 0.5
     ? generateFactorDifferenceOfSquares(difficulty)
     : generateFactorPerfectSquareTrinomial(difficulty);
+
+  question.problemType = "mixed_special_factoring";
+  return question;
 }
 
 function generateSolveQuadraticByFactoring(difficulty = 1) {
