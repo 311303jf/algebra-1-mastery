@@ -1,6 +1,6 @@
 /*
   Algebra OS — Recovery Lesson Engine
-  Version: 1.2 Interactive Tutor with Multiple Choice
+  Version: 1.3 Interactive Tutor + Restart Fix
   GitHub Pages compatible. No API required.
 */
 
@@ -343,6 +343,7 @@ const AlgebraRecoveryLessonEngine = (() => {
   return {
     generateRecoveryLesson,
     loadRecoveryState,
+    saveRecoveryState,
     loadTutorState,
     recordTutorAnswer,
     markRecoveryOpened,
