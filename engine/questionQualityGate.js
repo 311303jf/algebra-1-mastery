@@ -282,6 +282,124 @@ function validateSemanticCorrectness(question, errors){
   }
 }
 
+
+function isFunctionClassificationChoice(text){
+  const t = normalize(text);
+
+  return (
+    t === "linear function" ||
+    t === "quadratic function" ||
+    t === "exponential function" ||
+    t === "not a function" ||
+    t === "parabola" ||
+    t === "line" ||
+    t === "exponential curve" ||
+    t === "circle"
+  );
+}
+
+function isTimeChoice(text){
+  return /^t\s*=\s*-?\d+(?:\.\d+)?$/i.test(String(text || "").trim());
+}
+
+function isRootChoice(text){
+  return /^x\s*=/.test(String(text || "").trim());
+}
+
+function isTwoInterceptChoice(text){
+  const matches = String(text || "").match(/\((-?\d+(?:\.\d+)?),\s*0\)/g);
+  return !!matches && matches.length >= 2;
+}
+
+function isQuadraticExpressionChoice(text){
+  return String(text || "").includes("x²") || String(text || "").includes("x^2");
+}
+
+function validateAnswerTypeConsistency(question, errors){
+  if(!question || !Array.isArray(question.choices)) return;
+
+  const type = normalize(question.problemType);
+  const choices = question.choices.map(String);
+
+  const hasClassificationDistractor = choices.some(isFunctionClassificationChoice);
+
+  const contextTimeTypes = [
+    "projectile_motion_quadratic",
+    "quadratic_factoring_word_problem",
+    "interpret_quadratic_roots"
+  ];
+
+  if(contextTimeTypes.includes(type)){
+    if(hasClassificationDistractor){
+      errors.push(
+        "Answer type error: real-world/time quadratic questions cannot use function-classification distractors."
+      );
+    }
+
+    const timeChoiceCount = choices.filter(isTimeChoice).length;
+
+    if(type === "projectile_motion_quadratic" && timeChoiceCount < 3){
+      errors.push(
+        "Answer type error: projectile_motion_quadratic should have mostly time-form choices like t = 4."
+      );
+    }
+  }
+
+  const twoRootTypes = [
+    "identify_x_intercepts",
+    "solve_quadratic_by_graphing",
+    "identify_quadratic_solutions",
+    "solve_quadratic_by_factoring",
+    "quadratic_formula_real_solutions",
+    "quadratic_formula_simplify",
+    "choose_correct_quadratic_solution"
+  ];
+
+  if(twoRootTypes.includes(type)){
+    if(hasClassificationDistractor){
+      errors.push(
+        "Answer type error: root/intercept questions cannot use function-classification distractors."
+      );
+    }
+
+    if(type === "identify_x_intercepts"){
+      const twoInterceptCount = choices.filter(isTwoInterceptChoice).length;
+
+      if(twoInterceptCount < 3){
+        errors.push(
+          "Answer type error: two x-intercept questions should have at least 3 choices with two intercepts."
+        );
+      }
+    }
+
+    if(type !== "identify_x_intercepts"){
+      const rootChoiceCount = choices.filter(isRootChoice).length;
+
+      if(rootChoiceCount < 3){
+        errors.push(
+          "Answer type error: quadratic solution questions should have at least 3 root-form choices."
+        );
+      }
+    }
+  }
+
+  if(type === "area_quadratic_word_problem"){
+    if(hasClassificationDistractor){
+      errors.push(
+        "Answer type error: area quadratic word problems cannot use function-classification distractors."
+      );
+    }
+
+    const expressionChoiceCount = choices.filter(isQuadraticExpressionChoice).length;
+
+    if(expressionChoiceCount < 3){
+      errors.push(
+        "Answer type error: area quadratic word problems should have mostly quadratic-expression choices."
+      );
+    }
+  }
+}
+
 function validateQuestionAlignment(question, lesson){
   const errors = [];
 
@@ -365,6 +483,7 @@ function validateQuestion(question, lesson = null){
 
   validateChoiceFamily(question, errors);
   validateSemanticCorrectness(question, errors);
+  validateAnswerTypeConsistency(question, errors);
   errors.push(...validateQuestionAlignment(question, lesson));
 
   return {
