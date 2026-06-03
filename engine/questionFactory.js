@@ -29,6 +29,14 @@ export function generateQuestionForLesson(lesson, options = {}) {
     lesson.problem_types ||
     [];
 
+  const requestedProblemType =
+    options.problemType ||
+    options.problem_type ||
+    options.forceProblemType ||
+    options.forcedProblemType ||
+    options.type ||
+    null;
+
   if (!Array.isArray(problemTypes) || problemTypes.length === 0) {
     throw new Error(
       "QuestionFactory 3.5 Semantic QA: This lesson has no problemTypes/allowedProblemTypes in algebra1.json"
@@ -47,7 +55,21 @@ export function generateQuestionForLesson(lesson, options = {}) {
       : 1
   );
 
-  const availableTypes = problemTypes.filter(type => GENERATORS[type]);
+  let availableTypes = problemTypes.filter(type => GENERATORS[type]);
+
+  // Coverage Guard support: lesson.html may request one specific problemType
+  // so the student practices every lesson skill before repetition.
+  if (requestedProblemType) {
+    if (problemTypes.includes(requestedProblemType) && GENERATORS[requestedProblemType]) {
+      availableTypes = [requestedProblemType];
+    } else {
+      console.warn(
+        "QuestionFactory 4.4: Requested problemType is not available for this lesson:",
+        requestedProblemType,
+        lesson
+      );
+    }
+  }
 
   if (availableTypes.length === 0) {
     throw new Error(
@@ -4450,6 +4472,77 @@ function generateQuadraticAnswerChoices(answer, problemType, finalizeChoices) {
       "No real solutions",
       "Infinitely many solutions"
     ]);
+  }
+
+  // Real-world quadratic context answers must receive context-matched distractors.
+  // They must never receive function-classification choices like "Linear function"
+  // or "Exponential function".
+  if (/^t\s*=\s*-?\d+(?:\.\d+)?$/i.test(text)) {
+    const value = Number(text.match(/-?\d+(?:\.\d+)?/)?.[0]);
+
+    if (!Number.isNaN(value)) {
+      const candidates = [
+        `t = ${formatNumber(value + 1)}`,
+        `t = ${formatNumber(Math.max(0, value - 1))}`,
+        `t = ${formatNumber(value + 2)}`,
+        `t = ${formatNumber(-value)}`,
+        "No real solution"
+      ];
+
+      return finalizeChoices(text, candidates);
+    }
+  }
+
+  if (/^The (maximum|minimum) value is -?\d+(?:\.\d+)?$/i.test(text)) {
+    const kind = text.toLowerCase().includes("maximum") ? "maximum" : "minimum";
+    const value = Number(text.match(/-?\d+(?:\.\d+)?/)?.[0]);
+
+    if (!Number.isNaN(value)) {
+      const label = kind.charAt(0).toUpperCase() + kind.slice(1);
+
+      return finalizeChoices(text, [
+        `The ${kind} value is ${formatNumber(value + 1)}`,
+        `The ${kind} value is ${formatNumber(value - 1)}`,
+        `The ${kind === "maximum" ? "minimum" : "maximum"} value is ${formatNumber(value)}`,
+        `${label} occurs at x = ${formatNumber(value)}`
+      ]);
+    }
+  }
+
+  if (/^The ball reaches a maximum height of -?\d+(?:\.\d+)? at t = -?\d+(?:\.\d+)?$/i.test(text)) {
+    const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+
+    if (nums.length >= 2) {
+      const [height, time] = nums;
+
+      return finalizeChoices(text, [
+        `The ball reaches a maximum height of ${formatNumber(height + 5)} at t = ${formatNumber(time)}`,
+        `The ball reaches a maximum height of ${formatNumber(height)} at t = ${formatNumber(time + 1)}`,
+        `The ball reaches a minimum height of ${formatNumber(height)} at t = ${formatNumber(time)}`,
+        `The ball reaches a maximum height of ${formatNumber(Math.max(0, height - 5))} at t = ${formatNumber(Math.max(0, time - 1))}`
+      ]);
+    }
+  }
+
+  // Area/context answers that are polynomial expressions should receive polynomial distractors,
+  // not function-type distractors.
+  if (type.includes("area_quadratic") && text.includes("x²")) {
+    const coeffs = text.match(/-?\d+/g)?.map(Number) || [];
+    const candidates = [];
+
+    if (coeffs.length > 0) {
+      candidates.push(text.replace(String(coeffs[0]), String(coeffs[0] + 1)));
+    }
+
+    candidates.push(
+      text.replace(/\+\s*/g, "- "),
+      text.replace(/-\s*/g, "+ "),
+      "x² + 2x + 1",
+      "x² - 2x + 1",
+      "2x² + 3x + 1"
+    );
+
+    return finalizeChoices(text, candidates);
   }
 
   if (text === "opens up" || text === "opens down") {
