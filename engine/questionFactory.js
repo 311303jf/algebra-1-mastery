@@ -1,5 +1,5 @@
 /* ============================================================
-   Algebra OS — Question Factory 4.1 Semantic QA Patch
+   Algebra OS — Question Factory 4.2 Two-Solution Distractor Guard
    File: engine/questionFactory.js
 
    PURPOSE:
@@ -4022,6 +4022,60 @@ function normalizeMultipleSolutions(a, b) {
   return `x = ${formatNumber(values[0])}, x = ${formatNumber(values[1])}`;
 }
 
+function normalizeTwoXIntercepts(a, b) {
+  const values = [Number(a), Number(b)]
+    .map(cleanZero)
+    .sort((x, y) => x - y);
+
+  return `(${formatNumber(values[0])}, 0) and (${formatNumber(values[1])}, 0)`;
+}
+
+function looksLikeTwoInterceptAnswer(text) {
+  text = String(text || "").trim();
+
+  const matches =
+    text.match(/\((-?\d+(?:\.\d+)?),\s*0\)/g);
+
+  return Array.isArray(matches) && matches.length === 2;
+}
+
+function extractTwoInterceptXValues(text) {
+  if (!looksLikeTwoInterceptAnswer(text)) return null;
+
+  const nums =
+    String(text).match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+
+  // For "(a, 0) and (b, 0)", nums is [a, 0, b, 0].
+  if (nums.length < 4) return null;
+
+  return [nums[0], nums[2]];
+}
+
+function buildTwoSolutionDistractors(a, b, mode = "roots") {
+  const first = Number(a);
+  const second = Number(b);
+
+  if (mode === "intercepts") {
+    return [
+      normalizeTwoXIntercepts(first + 1, second),
+      normalizeTwoXIntercepts(first, second + 1),
+      normalizeTwoXIntercepts(-first, second),
+      normalizeTwoXIntercepts(first, -second),
+      normalizeTwoXIntercepts(first - 1, second + 1),
+      "No x-intercepts"
+    ];
+  }
+
+  return [
+    normalizeMultipleSolutions(first + 1, second),
+    normalizeMultipleSolutions(first, second + 1),
+    normalizeMultipleSolutions(-first, second),
+    normalizeMultipleSolutions(first, -second),
+    normalizeMultipleSolutions(first - 1, second + 1),
+    "No real solutions"
+  ];
+}
+
 function normalizeAnswerChoiceForEquivalence(choice) {
   const text = String(choice || "").trim();
 
@@ -4030,6 +4084,16 @@ function normalizeAnswerChoiceForEquivalence(choice) {
 
     if (nums.length === 2) {
       return normalizeMultipleSolutions(nums[0], nums[1])
+        .replace(/\s+/g, "")
+        .toLowerCase();
+    }
+  }
+
+  if (looksLikeTwoInterceptAnswer(text)) {
+    const xs = extractTwoInterceptXValues(text);
+
+    if (xs) {
+      return normalizeTwoXIntercepts(xs[0], xs[1])
         .replace(/\s+/g, "")
         .toLowerCase();
     }
@@ -4272,14 +4336,10 @@ function generateChoices(answer, problemType) {
       const b = Number(matches[2]);
       const canonicalAnswer = normalizeMultipleSolutions(a, b);
 
-      return finalizeChoices(canonicalAnswer, [
-        `x = ${formatNumber(a)}`,
-        `x = ${formatNumber(b)}`,
-        normalizeMultipleSolutions(-a, b),
-        normalizeMultipleSolutions(a, -b),
-        normalizeMultipleSolutions(-a, -b),
-        "No Solution"
-      ]);
+      return finalizeChoices(
+        canonicalAnswer,
+        buildTwoSolutionDistractors(a, b, "roots").concat(["No Solution"])
+      );
     }
   }
 
@@ -4297,12 +4357,18 @@ function generateChoices(answer, problemType) {
     const nums = answer.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
     if (nums.length >= 2) {
       const [a, b] = nums;
-      distractors.add(`x = ${formatNumber(a)}`);
-      distractors.add(`x = ${formatNumber(b)}`);
-      distractors.add(normalizeMultipleSolutions(-a, b));
-      distractors.add(normalizeMultipleSolutions(a, -b));
-      distractors.add(normalizeMultipleSolutions(-a, -b));
+      buildTwoSolutionDistractors(a, b, "roots").forEach(choice => {
+        if (choice !== answer) distractors.add(choice);
+      });
       distractors.add("No Solution");
+    }
+  } else if (looksLikeTwoInterceptAnswer(answer)) {
+    const xs = extractTwoInterceptXValues(answer);
+
+    if (xs) {
+      buildTwoSolutionDistractors(xs[0], xs[1], "intercepts").forEach(choice => {
+        if (choice !== answer) distractors.add(choice);
+      });
     }
   } else if (answer.startsWith("(")) {
     distractors.add("(0, 0)");
@@ -4411,13 +4477,10 @@ function generateQuadraticAnswerChoices(answer, problemType, finalizeChoices) {
     const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
     if (nums.length >= 2) {
       const [a, b] = nums;
-      return finalizeChoices(normalizeMultipleSolutions(a, b), [
-        `x = ${formatNumber(a)}`,
-        `x = ${formatNumber(b)}`,
-        normalizeMultipleSolutions(-a, b),
-        normalizeMultipleSolutions(a, -b),
-        "No real solutions"
-      ]);
+      return finalizeChoices(
+        normalizeMultipleSolutions(a, b),
+        buildTwoSolutionDistractors(a, b, "roots")
+      );
     }
   }
 
@@ -4434,13 +4497,15 @@ function generateQuadraticAnswerChoices(answer, problemType, finalizeChoices) {
     }
   }
 
-  if (text.includes("and") && text.includes(", 0")) {
-    return finalizeChoices(text, [
-      "(0, 0) and (1, 0)",
-      "No x-intercepts",
-      "One x-intercept",
-      "Cannot be determined"
-    ]);
+  if (looksLikeTwoInterceptAnswer(text)) {
+    const xs = extractTwoInterceptXValues(text);
+
+    if (xs) {
+      return finalizeChoices(
+        normalizeTwoXIntercepts(xs[0], xs[1]),
+        buildTwoSolutionDistractors(xs[0], xs[1], "intercepts")
+      );
+    }
   }
 
   if (text.includes("maximum") || text.includes("minimum")) {
