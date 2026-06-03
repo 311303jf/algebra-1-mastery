@@ -1,17 +1,27 @@
 /*
   Algebra OS — Student Session Engine
-  Version: 2.0 Skill Tracking Foundation
+  Version: 2.1 Mastery v2
 
-  Purpose:
-  - Keeps existing mastery gate stable.
-  - Adds skill/problemType tracking for Mastery v2.
-  - Does NOT change unlock rules yet.
+  Mastery v2 unlock rule:
+  - Minimum Attempts >= 12
+  - Lesson Mastery >= 80
+  - Overall Accuracy >= 80
+  - Skill Coverage = 100%
+  - Every lesson skill mastery >= 80
+
+  Notes:
+  - Assisted questions/hints do not count because lesson.html does not call recordAttempt()
+    after a hint is used.
+  - skillProgress is tracked by question.problemType.
 */
 
 const AlgebraStudentSessionEngine = (() => {
 
   const MIN_ATTEMPTS_FOR_UNLOCK = 12;
   const MASTERY_CAP_BEFORE_MIN_ATTEMPTS = 79;
+  const DEFAULT_UNLOCK_MASTERY = 80;
+  const DEFAULT_UNLOCK_ACCURACY = 80;
+  const DEFAULT_SKILL_MASTERY = 80;
 
   const DEFAULT_STATE = {
     attempted: 0,
@@ -29,7 +39,17 @@ const AlgebraStudentSessionEngine = (() => {
 
     minAttemptsForUnlock: MIN_ATTEMPTS_FOR_UNLOCK,
     attemptsRemainingForUnlock: MIN_ATTEMPTS_FOR_UNLOCK,
-    masteryGateActive: true
+    masteryGateActive: true,
+
+    masteryV2: {
+      enabled: true,
+      canUnlock: false,
+      coveragePercent: 0,
+      requiredSkillMastery: DEFAULT_SKILL_MASTERY,
+      requiredLessonMastery: DEFAULT_UNLOCK_MASTERY,
+      requiredAccuracy: DEFAULT_UNLOCK_ACCURACY,
+      blockers: []
+    }
   };
 
   function storageKey(lessonId) {
@@ -96,6 +116,13 @@ const AlgebraStudentSessionEngine = (() => {
 
     const accuracy = calculateSkillAccuracy(skill);
 
+    /*
+      Skill confidence:
+      - 1 attempt: max 33%
+      - 2 attempts: max 67%
+      - 3+ attempts: full confidence
+      This prevents a skill from reaching 100% after only one correct answer.
+    */
     const confidence =
       attempted >= 3
         ? 1
@@ -165,15 +192,42 @@ const AlgebraStudentSessionEngine = (() => {
     }));
   }
 
-  function getWeakestSkills(lessonId = "1.1", limit = 3) {
-    return getSkillSummary(lessonId)
+  function getSkillSummaryForRequiredTypes(lessonId = "1.1", requiredProblemTypes = []) {
+    const progress = getSkillProgress(lessonId);
+
+    return requiredProblemTypes.map(problemType => {
+      const data = progress[problemType] || {};
+
+      return {
+        problemType,
+        attempted: Number(data.attempted || 0),
+        correct: Number(data.correct || 0),
+        wrong: Number(data.wrong || 0),
+        accuracy: Number(data.accuracy || 0),
+        mastery: Number(data.mastery || 0)
+      };
+    });
+  }
+
+  function getWeakestSkills(lessonId = "1.1", limit = 3, requiredProblemTypes = []) {
+    const summary =
+      Array.isArray(requiredProblemTypes) && requiredProblemTypes.length
+        ? getSkillSummaryForRequiredTypes(lessonId, requiredProblemTypes)
+        : getSkillSummary(lessonId);
+
+    return summary
       .filter(skill => skill.attempted > 0)
       .sort((a, b) => a.mastery - b.mastery)
       .slice(0, limit);
   }
 
-  function getStrongestSkills(lessonId = "1.1", limit = 3) {
-    return getSkillSummary(lessonId)
+  function getStrongestSkills(lessonId = "1.1", limit = 3, requiredProblemTypes = []) {
+    const summary =
+      Array.isArray(requiredProblemTypes) && requiredProblemTypes.length
+        ? getSkillSummaryForRequiredTypes(lessonId, requiredProblemTypes)
+        : getSkillSummary(lessonId);
+
+    return summary
       .filter(skill => skill.attempted > 0)
       .sort((a, b) => b.mastery - a.mastery)
       .slice(0, limit);
@@ -191,6 +245,36 @@ const AlgebraStudentSessionEngine = (() => {
     }).length;
 
     return Math.round((covered / requiredProblemTypes.length) * 100);
+  }
+
+  function getSkillMasteryStatus(
+    lessonId = "1.1",
+    requiredProblemTypes = [],
+    requiredSkillMastery = DEFAULT_SKILL_MASTERY
+  ) {
+    const summary = getSkillSummaryForRequiredTypes(lessonId, requiredProblemTypes);
+
+    const belowTarget = summary.filter(skill => {
+      return Number(skill.mastery || 0) < requiredSkillMastery;
+    });
+
+    const mastered = summary.filter(skill => {
+      return Number(skill.mastery || 0) >= requiredSkillMastery;
+    });
+
+    const perfect = summary.filter(skill => {
+      return Number(skill.mastery || 0) >= 100;
+    });
+
+    return {
+      requiredSkillMastery,
+      totalSkills: summary.length,
+      masteredSkills: mastered.length,
+      perfectSkills: perfect.length,
+      belowTarget,
+      mastered,
+      summary
+    };
   }
 
   function applyMinimumAttemptGate(rawMastery, state) {
@@ -248,6 +332,105 @@ const AlgebraStudentSessionEngine = (() => {
     mastery = Math.round(mastery);
 
     return applyMinimumAttemptGate(mastery, state);
+  }
+
+  function evaluateMasteryV2(
+    lessonId = "1.1",
+    requiredProblemTypes = [],
+    options = {}
+  ) {
+    const state = loadSession(lessonId);
+
+    const requiredAttempts =
+      Number(options.minAttempts || MIN_ATTEMPTS_FOR_UNLOCK);
+
+    const requiredLessonMastery =
+      Number(options.lessonMastery || DEFAULT_UNLOCK_MASTERY);
+
+    const requiredAccuracy =
+      Number(options.accuracy || DEFAULT_UNLOCK_ACCURACY);
+
+    const requiredSkillMastery =
+      Number(options.skillMastery || DEFAULT_SKILL_MASTERY);
+
+    const coveragePercent =
+      calculateCoveragePercent(lessonId, requiredProblemTypes);
+
+    const skillStatus =
+      getSkillMasteryStatus(
+        lessonId,
+        requiredProblemTypes,
+        requiredSkillMastery
+      );
+
+    const blockers = [];
+
+    if (Number(state.attempted || 0) < requiredAttempts) {
+      blockers.push({
+        type: "attempts",
+        message: `Complete at least ${requiredAttempts} independent attempts.`,
+        current: Number(state.attempted || 0),
+        required: requiredAttempts
+      });
+    }
+
+    if (Number(state.accuracy || 0) < requiredAccuracy) {
+      blockers.push({
+        type: "accuracy",
+        message: `Raise overall accuracy to at least ${requiredAccuracy}%.`,
+        current: Number(state.accuracy || 0),
+        required: requiredAccuracy
+      });
+    }
+
+    if (Number(state.mastery || 0) < requiredLessonMastery) {
+      blockers.push({
+        type: "lesson_mastery",
+        message: `Raise lesson mastery to at least ${requiredLessonMastery}%.`,
+        current: Number(state.mastery || 0),
+        required: requiredLessonMastery
+      });
+    }
+
+    if (
+      Array.isArray(requiredProblemTypes) &&
+      requiredProblemTypes.length > 0 &&
+      coveragePercent < 100
+    ) {
+      blockers.push({
+        type: "coverage",
+        message: "Practice every lesson skill at least once.",
+        current: coveragePercent,
+        required: 100
+      });
+    }
+
+    if (skillStatus.belowTarget.length > 0) {
+      blockers.push({
+        type: "skill_mastery",
+        message: `Every skill must reach at least ${requiredSkillMastery}%.`,
+        current: skillStatus.masteredSkills,
+        required: skillStatus.totalSkills,
+        skills: skillStatus.belowTarget
+      });
+    }
+
+    const result = {
+      enabled: true,
+      canUnlock: blockers.length === 0,
+      blockers,
+      coveragePercent,
+      requiredAttempts,
+      requiredLessonMastery,
+      requiredAccuracy,
+      requiredSkillMastery,
+      skillStatus
+    };
+
+    state.masteryV2 = result;
+    saveSession(lessonId, state);
+
+    return result;
   }
 
   function recordAttempt(
@@ -310,7 +493,28 @@ const AlgebraStudentSessionEngine = (() => {
     return fresh;
   }
 
-  function canUnlockLesson(lessonId = "1.1", targetMastery = 80) {
+  /*
+    Backward compatible unlock.
+    If requiredProblemTypes are provided, uses Mastery v2.
+    If no requiredProblemTypes are provided, keeps the old rule.
+  */
+  function canUnlockLesson(
+    lessonId = "1.1",
+    targetMastery = DEFAULT_UNLOCK_MASTERY,
+    requiredProblemTypes = [],
+    options = {}
+  ) {
+    if (Array.isArray(requiredProblemTypes) && requiredProblemTypes.length > 0) {
+      return evaluateMasteryV2(
+        lessonId,
+        requiredProblemTypes,
+        {
+          lessonMastery: targetMastery,
+          ...options
+        }
+      ).canUnlock;
+    }
+
     const state = loadSession(lessonId);
 
     return (
@@ -319,8 +523,28 @@ const AlgebraStudentSessionEngine = (() => {
     );
   }
 
-  function getLessonStatus(lessonId = "1.1") {
+  function canUnlockLessonV2(
+    lessonId = "1.1",
+    requiredProblemTypes = [],
+    options = {}
+  ) {
+    return evaluateMasteryV2(
+      lessonId,
+      requiredProblemTypes,
+      options
+    ).canUnlock;
+  }
+
+  function getLessonStatus(lessonId = "1.1", requiredProblemTypes = []) {
     const state = loadSession(lessonId);
+
+    if (Array.isArray(requiredProblemTypes) && requiredProblemTypes.length > 0) {
+      const masteryV2 = evaluateMasteryV2(lessonId, requiredProblemTypes);
+
+      if (masteryV2.canUnlock) {
+        return "mastered";
+      }
+    }
 
     if (
       state.attempted >= MIN_ATTEMPTS_FOR_UNLOCK &&
@@ -343,8 +567,23 @@ const AlgebraStudentSessionEngine = (() => {
     return "not_started";
   }
 
-  function getCoachMessage(lessonId = "1.1") {
+  function getCoachMessage(lessonId = "1.1", requiredProblemTypes = []) {
     const state = loadSession(lessonId);
+
+    if (Array.isArray(requiredProblemTypes) && requiredProblemTypes.length > 0) {
+      const masteryV2 = evaluateMasteryV2(lessonId, requiredProblemTypes);
+
+      if (masteryV2.canUnlock) {
+        return "Excellent. You have mastered every required skill and are ready for the next lesson.";
+      }
+
+      const firstBlocker = masteryV2.blockers[0];
+
+      if (firstBlocker) {
+        return firstBlocker.message;
+      }
+    }
+
     const status = getLessonStatus(lessonId);
 
     if (state.attempted > 0 && state.attempted < MIN_ATTEMPTS_FOR_UNLOCK) {
@@ -376,16 +615,21 @@ const AlgebraStudentSessionEngine = (() => {
 
   function exportSessionSummary(lessonId = "1.1", requiredProblemTypes = []) {
     const state = loadSession(lessonId);
+    const masteryV2 =
+      Array.isArray(requiredProblemTypes) && requiredProblemTypes.length > 0
+        ? evaluateMasteryV2(lessonId, requiredProblemTypes)
+        : state.masteryV2;
 
     return {
       lessonId,
-      status: getLessonStatus(lessonId),
-      canUnlock: canUnlockLesson(lessonId),
-      coachMessage: getCoachMessage(lessonId),
+      status: getLessonStatus(lessonId, requiredProblemTypes),
+      canUnlock: canUnlockLesson(lessonId, DEFAULT_UNLOCK_MASTERY, requiredProblemTypes),
+      coachMessage: getCoachMessage(lessonId, requiredProblemTypes),
       coveragePercent: calculateCoveragePercent(lessonId, requiredProblemTypes),
-      skillSummary: getSkillSummary(lessonId),
-      weakestSkills: getWeakestSkills(lessonId),
-      strongestSkills: getStrongestSkills(lessonId),
+      skillSummary: getSkillSummaryForRequiredTypes(lessonId, requiredProblemTypes),
+      weakestSkills: getWeakestSkills(lessonId, 3, requiredProblemTypes),
+      strongestSkills: getStrongestSkills(lessonId, 3, requiredProblemTypes),
+      masteryV2,
       ...state
     };
   }
@@ -406,12 +650,20 @@ const AlgebraStudentSessionEngine = (() => {
 
     getSkillProgress,
     getSkillSummary,
+    getSkillSummaryForRequiredTypes,
     getWeakestSkills,
     getStrongestSkills,
     calculateCoveragePercent,
+    getSkillMasteryStatus,
 
+    evaluateMasteryV2,
     canUnlockLesson,
-    MIN_ATTEMPTS_FOR_UNLOCK
+    canUnlockLessonV2,
+
+    MIN_ATTEMPTS_FOR_UNLOCK,
+    DEFAULT_UNLOCK_MASTERY,
+    DEFAULT_UNLOCK_ACCURACY,
+    DEFAULT_SKILL_MASTERY
   };
 
 })();
