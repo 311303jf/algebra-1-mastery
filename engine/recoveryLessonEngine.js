@@ -1,6 +1,6 @@
 /* =========================================================
    ALGEBRA OS — recoveryLessonEngine.js
-   Version: 2003 — TWO-STEP BRIDGE INSIDE MULTI-STEP TUTOR
+   Version: 2004 — TUTOR ANSWER MATCHING HOTFIX
 
    PURPOSE:
    - Compatible with current lesson.html.
@@ -27,6 +27,7 @@
    - v2001: Automatically replaces mismatched tutor questions with skill-aligned recovery questions.
    - v2002: Restores legacy openRecoveryTutor export and local shuffle utility.
    - v2003: Adds a two-step bridge after simplification before the final solution.
+   - v2004: Restores robust matching for tutor button choices such as Combine like terms.
 ========================================================= */
 
 const RECOVERY_PREFIX = "algebra_recovery_";
@@ -177,11 +178,121 @@ function recordRecoveryPractice(lessonId, problemType, isCorrect) {
 }
 
 function tutorAnswerMatches(input, expectedList) {
-  const value = normalizeAnswer(input);
+  /*
+    v2004 Hotfix:
+    Button labels must be accepted reliably.
+
+    Example:
+    input: "Combine like terms"
+    expected: ["Combine like terms"]
+    must return true.
+
+    Also supports:
+    - expected as string
+    - expected as array
+    - operation/action synonyms
+    - case and spacing differences
+  */
+
+  const value = normalizeTutorMatchValue(input);
   const expected = Array.isArray(expectedList) ? expectedList : [expectedList];
 
-  return expected.some(item => normalizeAnswer(item) === value);
+  return expected.some(item => {
+    const target = normalizeTutorMatchValue(item);
+
+    if (value === target) return true;
+
+    const valueSet = tutorSynonymSet(value);
+    const targetSet = tutorSynonymSet(target);
+
+    return [...valueSet].some(v => targetSet.has(v));
+  });
 }
+
+function normalizeTutorMatchValue(value) {
+  return String(value ?? "")
+    .trim()
+    .toLowerCase()
+    .replace(/−/g, "-")
+    .replace(/\s+/g, " ")
+    .replace(/[.。]/g, "")
+    .replace(/\*/g, "×")
+    .replace(/\//g, "÷");
+}
+
+function tutorSynonymSet(value) {
+  const text = normalizeTutorMatchValue(value);
+  const set = new Set([text]);
+
+  if (
+    text.includes("combine like terms") ||
+    text.includes("combine variable terms") ||
+    text.includes("combine terms")
+  ) {
+    set.add("combine like terms");
+    set.add("combine variable terms");
+    set.add("combine terms");
+  }
+
+  if (
+    text.includes("distributive") ||
+    text.includes("distribution") ||
+    text.includes("distribute")
+  ) {
+    set.add("use the distributive property");
+    set.add("distributive property");
+    set.add("distribute");
+  }
+
+  if (
+    text.includes("move constants") ||
+    text.includes("move the constant") ||
+    text.includes("move constant")
+  ) {
+    set.add("move constants");
+    set.add("move the constant");
+    set.add("move constant");
+  }
+
+  if (
+    text.includes("move variable") ||
+    text.includes("move variables") ||
+    text.includes("move variable terms")
+  ) {
+    set.add("move variable terms");
+    set.add("move variables");
+    set.add("move variable");
+  }
+
+  if (text.includes("addition") || text === "add" || text === "+") {
+    set.add("addition");
+    set.add("add");
+    set.add("+");
+  }
+
+  if (text.includes("subtraction") || text === "subtract" || text === "minus" || text === "-") {
+    set.add("subtraction");
+    set.add("subtract");
+    set.add("minus");
+    set.add("-");
+  }
+
+  if (text.includes("multiplication") || text === "multiply" || text === "times" || text === "×") {
+    set.add("multiplication");
+    set.add("multiply");
+    set.add("times");
+    set.add("×");
+  }
+
+  if (text.includes("division") || text === "divide" || text === "÷") {
+    set.add("division");
+    set.add("divide");
+    set.add("÷");
+  }
+
+  return set;
+}
+
 
 /* =========================================================
    PUBLIC ROUTER
@@ -493,7 +604,7 @@ function buildMultiStepEquationLesson(problemType, metadata, currentQuestion) {
           "Divide both sides immediately",
           "Guess the value of x"
         ],
-        expected: [parsed.firstAction],
+        expected: buildFirstActionExpectedAnswers(parsed.firstAction),
         explanation: `
           Correct. First we should <strong>${escapeHtml(parsed.firstAction.toLowerCase())}</strong>.
           ${renderMultiStepTransformation(parsed, "first")}
@@ -682,6 +793,44 @@ function buildVariablesBothSidesLesson(problemType, metadata, currentQuestion) {
     recoveryPractice
   };
 }
+
+/* =========================================================
+   v2004 — TUTOR EXPECTED ANSWER HELPERS
+========================================================= */
+
+function buildFirstActionExpectedAnswers(firstAction) {
+  const action = normalizeTutorMatchValue(firstAction);
+
+  if (action.includes("combine")) {
+    return [
+      "Combine like terms",
+      "combine like terms",
+      "Combine terms",
+      "combine terms",
+      "Combine variable terms"
+    ];
+  }
+
+  if (action.includes("distributive") || action.includes("distribute")) {
+    return [
+      "Use the distributive property",
+      "Distributive property",
+      "distribute",
+      "Use distribution"
+    ];
+  }
+
+  if (action.includes("move constant")) {
+    return [
+      "Move constants",
+      "Move the constant",
+      "move constants"
+    ];
+  }
+
+  return [firstAction];
+}
+
 
 /* =========================================================
    v2001 — AUTO-ALIGNED RECOVERY QUESTION GENERATOR
@@ -2745,6 +2894,16 @@ function certifyRecoveryTutor() {
   }
 
 
+  
+  // v2004 Tutor matching hotfix test
+  if (!tutorAnswerMatches("Combine like terms", ["Combine like terms"])) {
+    failures.push("v2004: failed exact tutor match for Combine like terms.");
+  }
+  if (!tutorAnswerMatches("Combine like terms", buildFirstActionExpectedAnswers("Combine like terms"))) {
+    failures.push("v2004: failed first-action expected answers for Combine like terms.");
+  }
+
+
   const result = {
     passed: failures.length === 0,
     failures,
@@ -2811,7 +2970,9 @@ const AlgebraRecoveryLessonEngine = {
     solveSupportedLinearEquation,
     verifySolutionBySubstitution,
     generateAlignedRecoveryQuestionForSkill,
-    buildTwoStepBridgeChoices
+    buildTwoStepBridgeChoices,
+    buildFirstActionExpectedAnswers,
+    normalizeTutorMatchValue
   }
 };
 
