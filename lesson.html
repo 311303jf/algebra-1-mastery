@@ -158,5 +158,32 @@ window.checkTutorAnswer = checkTutorAnswer;
 window.retryTutorStep = retryTutorStep;
 
 </script>
+  <script type="module">
+  import { openRecoveryTutor, generateRecoveryLesson } from "./engine/recoveryLessonEngine.js";
+
+  window.openRecoveryTutor = openRecoveryTutor;
+  window.generateRecoveryLesson = generateRecoveryLesson;
+
+  document.addEventListener("click", function (event) {
+    const btn = event.target.closest("button");
+    if (!btn) return;
+
+    const text = btn.textContent.trim().toLowerCase();
+
+    if (text.includes("open recovery tutor")) {
+      event.preventDefault();
+
+      const skill =
+        window.currentSkill ||
+        window.currentQuestion?.skill ||
+        window.currentQuestion?.skillId ||
+        "one_step_addition_equation";
+
+      const recoveryLesson = generateRecoveryLesson(skill, window.currentQuestion || null);
+
+      openRecoveryTutor(recoveryLesson);
+    }
+  });
+</script>
 </body>
 </html>
