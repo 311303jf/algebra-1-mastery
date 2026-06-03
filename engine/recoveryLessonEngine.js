@@ -1,6 +1,6 @@
 /*
   Algebra OS — Recovery Lesson Engine
-  Version: 1.1 Interactive Tutor
+  Version: 1.2 Interactive Tutor with Multiple Choice
   GitHub Pages compatible. No API required.
 */
 
@@ -46,18 +46,21 @@ const AlgebraRecoveryLessonEngine = (() => {
         {
           tutor: "Let's solve x + 8 = 16. What operation is attached to x?",
           expected: ["addition", "add", "+"],
+          choices: ["Addition", "Subtraction", "Multiplication", "Division"],
           explanation: "In x + 8 = 16, the + 8 means addition is attached to x.",
           theory: "When a number is added to x, we undo it with subtraction."
         },
         {
           tutor: "What is the inverse operation of addition?",
           expected: ["subtraction", "subtract", "-"],
+          choices: ["Addition", "Subtraction", "Multiplication", "Division"],
           explanation: "The inverse of addition is subtraction.",
           theory: "Inverse operations undo each other. Addition and subtraction are inverse operations."
         },
         {
           tutor: "Subtract 8 from both sides. What is 16 - 8?",
           expected: ["8", "x=8", "x = 8"],
+          choices: ["6", "8", "10", "24"],
           explanation: "16 - 8 = 8, so x = 8.",
           theory: "Whatever you do to one side of an equation, you must do to the other side."
         }
@@ -83,18 +86,21 @@ const AlgebraRecoveryLessonEngine = (() => {
         {
           tutor: "Let's solve x - 6 = 10. What operation is attached to x?",
           expected: ["subtraction", "subtract", "-"],
+          choices: ["Addition", "Subtraction", "Multiplication", "Division"],
           explanation: "In x - 6 = 10, the - 6 means subtraction is attached to x.",
           theory: "When a number is subtracted from x, we undo it with addition."
         },
         {
           tutor: "What is the inverse operation of subtraction?",
           expected: ["addition", "add", "+"],
+          choices: ["Addition", "Subtraction", "Multiplication", "Division"],
           explanation: "The inverse of subtraction is addition.",
           theory: "Inverse operations undo each other. Subtraction and addition are inverse operations."
         },
         {
           tutor: "Add 6 to both sides. What is 10 + 6?",
           expected: ["16", "x=16", "x = 16"],
+          choices: ["4", "10", "16", "60"],
           explanation: "10 + 6 = 16, so x = 16.",
           theory: "Adding 6 cancels the - 6 on the left side."
         }
@@ -120,18 +126,21 @@ const AlgebraRecoveryLessonEngine = (() => {
         {
           tutor: "Let's solve 4x = 20. What operation connects 4 and x?",
           expected: ["multiplication", "multiply", "times", "×", "*"],
+          choices: ["Addition", "Subtraction", "Multiplication", "Division"],
           explanation: "4x means 4 is multiplying x.",
           theory: "When x is multiplied by a coefficient, divide by that coefficient to isolate x."
         },
         {
           tutor: "What is the inverse operation of multiplication?",
           expected: ["division", "divide", "÷", "/"],
+          choices: ["Addition", "Subtraction", "Multiplication", "Division"],
           explanation: "The inverse of multiplication is division.",
           theory: "Division undoes multiplication."
         },
         {
           tutor: "Divide both sides by 4. What is 20 ÷ 4?",
           expected: ["5", "x=5", "x = 5"],
+          choices: ["4", "5", "16", "80"],
           explanation: "20 ÷ 4 = 5, so x = 5.",
           theory: "Dividing both sides by 4 keeps the equation balanced."
         }
@@ -157,18 +166,21 @@ const AlgebraRecoveryLessonEngine = (() => {
         {
           tutor: "Let's solve x ÷ 4 = 6. What operation is attached to x?",
           expected: ["division", "divide", "÷", "/"],
+          choices: ["Addition", "Subtraction", "Multiplication", "Division"],
           explanation: "x ÷ 4 means x is divided by 4.",
           theory: "When x is divided by a number, multiply by that number to undo division."
         },
         {
           tutor: "What is the inverse operation of division?",
           expected: ["multiplication", "multiply", "times", "×", "*"],
+          choices: ["Addition", "Subtraction", "Multiplication", "Division"],
           explanation: "The inverse of division is multiplication.",
           theory: "Multiplication undoes division."
         },
         {
           tutor: "Multiply both sides by 4. What is 6 × 4?",
           expected: ["24", "x=24", "x = 24"],
+          choices: ["2", "10", "24", "64"],
           explanation: "6 × 4 = 24, so x = 24.",
           theory: "Multiplying both sides by 4 keeps the equation balanced."
         }
@@ -242,6 +254,7 @@ const AlgebraRecoveryLessonEngine = (() => {
       return {
         tutor: turn.tutor || "Let's work through this step.",
         expected: Array.isArray(turn.expected) ? turn.expected : [String(turn.expected || "").trim()].filter(Boolean),
+        choices: Array.isArray(turn.choices) && turn.choices.length ? turn.choices : ["Addition", "Subtraction", "Multiplication", "Division"],
         explanation: turn.explanation || "Good. Continue to the next step.",
         theory: turn.theory || "Use the concept summary and worked example to guide your reasoning."
       };
