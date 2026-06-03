@@ -1,5 +1,5 @@
 /* ============================================================
-   Algebra OS — Question Factory 4.6 Coverage-Balanced Certified + Hint Quality Expansion
+   Algebra OS — Question Factory 4.7 Coverage-Balanced Certified + Skill Integrity Fix
    File: engine/questionFactory.js
 
    PURPOSE:
@@ -1843,27 +1843,37 @@ function generateOneStepEquation(difficulty = 1) {
   });
 }
 function generateOneStepAdditionEquation(difficulty = 1) {
+  /*
+    Skill integrity rule:
+    one_step_addition_equation must visually show x + b = c.
+    Therefore b must be positive.
+  */
   const x = pickSolution(difficulty);
-  const b = pickConstant(difficulty);
+  const b = randInt(1, difficulty <= 1 ? 12 : 15);
   const result = x + b;
 
   return buildQuestion({
-    prompt: `Solve for x: x ${formatSigned(b)} = ${formatNumber(result)}`,
+    prompt: `Solve for x: x + ${formatNumber(b)} = ${formatNumber(result)}`,
     answer: `x = ${formatNumber(x)}`,
     problemType: "one_step_addition_equation",
     difficulty,
     solutionSteps: [
-      `Original equation: x ${formatSigned(b)} = ${formatNumber(result)}`,
-      b >= 0 ? `Subtract ${formatNumber(b)} from both sides.` : `Add ${formatNumber(Math.abs(b))} to both sides.`,
-      `x = ${formatNumber(result - b)}`,
+      `Original equation: x + ${formatNumber(b)} = ${formatNumber(result)}`,
+      `Subtract ${formatNumber(b)} from both sides.`,
+      `x = ${formatNumber(result)} - ${formatNumber(b)}`,
       `x = ${formatNumber(x)}`
     ]
   });
 }
 
 function generateOneStepSubtractionEquation(difficulty = 1) {
+  /*
+    Skill integrity rule:
+    one_step_subtraction_equation must visually show x - b = c.
+    Therefore b must be positive.
+  */
   const x = pickSolution(difficulty);
-  const b = pickConstant(difficulty);
+  const b = randInt(1, difficulty <= 1 ? 12 : 15);
   const result = x - b;
 
   return buildQuestion({
@@ -1874,7 +1884,7 @@ function generateOneStepSubtractionEquation(difficulty = 1) {
     solutionSteps: [
       `Original equation: x - ${formatNumber(b)} = ${formatNumber(result)}`,
       `Add ${formatNumber(b)} to both sides.`,
-      `x = ${formatNumber(result + b)}`,
+      `x = ${formatNumber(result)} + ${formatNumber(b)}`,
       `x = ${formatNumber(x)}`
     ]
   });
