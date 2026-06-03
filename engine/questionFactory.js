@@ -204,7 +204,6 @@ const GENERATORS = {
   // ============================================================
   // UNIT 6 — EXPONENTS & EXPONENTIAL FUNCTIONS
   // ============================================================
-
   product_rule_exponents: generateProductRuleExponents,
   quotient_rule_exponents: generateQuotientRuleExponents,
   power_rule_exponents: generatePowerRuleExponents,
@@ -232,10 +231,7 @@ const GENERATORS = {
   identify_exponential_function: generateIdentifyExponentialFunction,
   compare_exponential_growth: generateCompareExponentialGrowth,
 
-  // ============================================================
-  // LEGACY GENERATORS (KEEP)
-  // ============================================================
-
+  // LEGACY GENERATORS
   exponent_rules: generateExponentRules,
   factoring: generateFactoring,
   quadratics: generateQuadraticRoots
@@ -679,6 +675,33 @@ one_step_division_equation: {
     ],
     misconception:
       "Students often focus on one point instead of the overall trend."
+  },
+
+  product_rule_exponents: {
+    hintSteps: [
+      "Identify the common base.",
+      "When multiplying powers with the same base, add the exponents.",
+      "Keep the base and simplify the exponent."
+    ],
+    misconception: "Students often multiply the exponents instead of adding them for the product rule."
+  },
+
+  quotient_rule_exponents: {
+    hintSteps: [
+      "Identify the common base.",
+      "When dividing powers with the same base, subtract the exponents.",
+      "Keep the base and simplify the exponent."
+    ],
+    misconception: "Students often add exponents instead of subtracting them for the quotient rule."
+  },
+
+  power_rule_exponents: {
+    hintSteps: [
+      "Identify the power raised to another power.",
+      "Multiply the exponents.",
+      "Keep the same base."
+    ],
+    misconception: "Students often add the exponents instead of multiplying them in a power of a power."
   },
 
   exponent_rules: {
@@ -2058,6 +2081,396 @@ function generateScatterPlot(difficulty = 1) {
 }
 
 
+/* ============================================================
+   GENERATORS — UNIT 6: EXPONENTS & EXPONENTIAL FUNCTIONS
+   QuestionFactory 4.0 Phase A
+   ============================================================ */
+
+function generateProductRuleExponents(difficulty = 1) {
+  const base = pickRandom(["x", "a", "m", "n"]);
+  const p = randInt(2, 8);
+  const q = randInt(2, 8);
+  return buildQuestion({
+    prompt: `Simplify: ${base}^${p} × ${base}^${q}`,
+    answer: `${base}^${p + q}`,
+    problemType: "product_rule_exponents",
+    difficulty,
+    solutionSteps: [
+      "When multiplying powers with the same base, add the exponents.",
+      `${base}^${p} × ${base}^${q} = ${base}^(${p} + ${q})`,
+      `The simplified expression is ${base}^${p + q}.`
+    ]
+  });
+}
+
+function generateQuotientRuleExponents(difficulty = 1) {
+  const base = pickRandom(["x", "a", "m", "n"]);
+  const p = randInt(6, 12);
+  const q = randInt(2, p - 1);
+  return buildQuestion({
+    prompt: `Simplify: ${base}^${p} ÷ ${base}^${q}`,
+    answer: `${base}^${p - q}`,
+    problemType: "quotient_rule_exponents",
+    difficulty,
+    solutionSteps: [
+      "When dividing powers with the same base, subtract the exponents.",
+      `${base}^${p} ÷ ${base}^${q} = ${base}^(${p} - ${q})`,
+      `The simplified expression is ${base}^${p - q}.`
+    ]
+  });
+}
+
+function generatePowerRuleExponents(difficulty = 1) {
+  const base = pickRandom(["x", "a", "m", "n"]);
+  const p = randInt(2, 5);
+  const q = randInt(2, 5);
+  return buildQuestion({
+    prompt: `Simplify: (${base}^${p})^${q}`,
+    answer: `${base}^${p * q}`,
+    problemType: "power_rule_exponents",
+    difficulty,
+    solutionSteps: [
+      "When raising a power to a power, multiply the exponents.",
+      `(${base}^${p})^${q} = ${base}^(${p} × ${q})`,
+      `The simplified expression is ${base}^${p * q}.`
+    ]
+  });
+}
+
+function generatePowerOfProduct(difficulty = 1) {
+  const a = randInt(2, 6);
+  const p = randInt(2, 5);
+  return buildQuestion({
+    prompt: `Simplify: (${a}x)^${p}`,
+    answer: `${formatNumber(a ** p)}x^${p}`,
+    problemType: "power_of_product",
+    difficulty,
+    solutionSteps: [
+      "Apply the exponent to each factor inside the parentheses.",
+      `(${a}x)^${p} = ${a}^${p}x^${p}`,
+      `${a}^${p} = ${formatNumber(a ** p)}`,
+      `The simplified expression is ${formatNumber(a ** p)}x^${p}.`
+    ]
+  });
+}
+
+function generatePowerOfQuotient(difficulty = 1) {
+  const a = randInt(2, 6);
+  const b = randInt(2, 6, [a]);
+  const p = randInt(2, 4);
+  return buildQuestion({
+    prompt: `Simplify: (${a}x ÷ ${b})^${p}`,
+    answer: `${formatNumber(a ** p)}x^${p} ÷ ${formatNumber(b ** p)}`,
+    problemType: "power_of_quotient",
+    difficulty,
+    solutionSteps: [
+      "Apply the exponent to the numerator and the denominator.",
+      `(${a}x ÷ ${b})^${p} = ${a}^${p}x^${p} ÷ ${b}^${p}`,
+      `The simplified expression is ${formatNumber(a ** p)}x^${p} ÷ ${formatNumber(b ** p)}.`
+    ]
+  });
+}
+
+function generateZeroExponent(difficulty = 1) {
+  const base = pickRandom(["x", "a", "5", "12", "m"]);
+  return buildQuestion({
+    prompt: `Simplify: ${base}^0`,
+    answer: "1",
+    problemType: "zero_exponent",
+    difficulty,
+    solutionSteps: [
+      "Any nonzero base raised to the zero power equals 1.",
+      `${base}^0 = 1`
+    ]
+  });
+}
+
+function generateNegativeExponent(difficulty = 1) {
+  const base = pickRandom(["x", "a", "m", "n"]);
+  const p = randInt(2, 6);
+  return buildQuestion({
+    prompt: `Rewrite with a positive exponent: ${base}^-${p}`,
+    answer: `1 ÷ ${base}^${p}`,
+    problemType: "negative_exponent",
+    difficulty,
+    solutionSteps: [
+      "A negative exponent means the factor moves to the denominator.",
+      `${base}^-${p} = 1 ÷ ${base}^${p}`
+    ]
+  });
+}
+
+function generateMixedExponentSimplify(difficulty = 1) {
+  const base = pickRandom(["x", "a", "m"]);
+  const p = randInt(3, 8);
+  const q = randInt(1, p - 1);
+  const r = randInt(2, 4);
+  const exp = (p - q) * r;
+  return buildQuestion({
+    prompt: `Simplify: (${base}^${p} ÷ ${base}^${q})^${r}`,
+    answer: `${base}^${exp}`,
+    problemType: "mixed_exponent_simplify",
+    difficulty,
+    solutionSteps: [
+      "First use the quotient rule by subtracting exponents.",
+      `${base}^${p} ÷ ${base}^${q} = ${base}^${p - q}`,
+      "Then use the power rule by multiplying exponents.",
+      `(${base}^${p - q})^${r} = ${base}^${exp}`
+    ]
+  });
+}
+
+function generateRewritePositiveExponent(difficulty = 1) {
+  const base = pickRandom(["x", "a", "m", "n"]);
+  const p = randInt(2, 6);
+  return buildQuestion({
+    prompt: `Rewrite using only positive exponents: 1 ÷ ${base}^-${p}`,
+    answer: `${base}^${p}`,
+    problemType: "rewrite_with_positive_exponents",
+    difficulty,
+    solutionSteps: [
+      "A factor with a negative exponent in the denominator moves to the numerator.",
+      `1 ÷ ${base}^-${p} = ${base}^${p}`
+    ]
+  });
+}
+
+function generateScientificNotation(difficulty = 1) {
+  const coefficient = randInt(11, 99) / 10;
+  const exponent = randInt(3, 7);
+  const standard = coefficient * 10 ** exponent;
+  return buildQuestion({
+    prompt: `Write ${formatNumber(standard)} in scientific notation.`,
+    answer: `${formatNumber(coefficient)} × 10^${exponent}`,
+    problemType: "convert_to_scientific_notation",
+    difficulty,
+    solutionSteps: [
+      "Move the decimal so the first factor is at least 1 and less than 10.",
+      `The decimal moves ${exponent} places.`,
+      `Scientific notation: ${formatNumber(coefficient)} × 10^${exponent}`
+    ]
+  });
+}
+
+function generateFromScientificNotation(difficulty = 1) {
+  const coefficient = randInt(11, 99) / 10;
+  const exponent = randInt(2, 6);
+  const standard = coefficient * 10 ** exponent;
+  return buildQuestion({
+    prompt: `Write ${formatNumber(coefficient)} × 10^${exponent} in standard form.`,
+    answer: formatNumber(standard),
+    problemType: "convert_from_scientific_notation",
+    difficulty,
+    solutionSteps: [
+      `A positive exponent moves the decimal ${exponent} places to the right.`,
+      `${formatNumber(coefficient)} × 10^${exponent} = ${formatNumber(standard)}`
+    ]
+  });
+}
+
+function generateMultiplyScientificNotation(difficulty = 1) {
+  const a = randInt(11, 45) / 10;
+  const b = randInt(11, 35) / 10;
+  const p = randInt(2, 5);
+  const q = randInt(2, 5);
+  const product = a * b;
+  const extra = product >= 10 ? 1 : 0;
+  const coeff = product >= 10 ? product / 10 : product;
+  const exp = p + q + extra;
+  return buildQuestion({
+    prompt: `Multiply: (${formatNumber(a)} × 10^${p})(${formatNumber(b)} × 10^${q})`,
+    answer: `${formatNumber(coeff)} × 10^${exp}`,
+    problemType: "multiply_scientific_notation",
+    difficulty,
+    solutionSteps: [
+      "Multiply the coefficients and add the powers of 10.",
+      `${formatNumber(a)} × ${formatNumber(b)} = ${formatNumber(product)}`,
+      `10^${p} × 10^${q} = 10^${p + q}`,
+      `Scientific notation: ${formatNumber(coeff)} × 10^${exp}`
+    ]
+  });
+}
+
+function generateDivideScientificNotation(difficulty = 1) {
+  const b = randInt(2, 5);
+  const quotient = randInt(2, 8);
+  const a = b * quotient;
+  const p = randInt(5, 8);
+  const q = randInt(1, 4);
+  return buildQuestion({
+    prompt: `Divide: (${a} × 10^${p}) ÷ (${b} × 10^${q})`,
+    answer: `${quotient} × 10^${p - q}`,
+    problemType: "divide_scientific_notation",
+    difficulty,
+    solutionSteps: [
+      "Divide the coefficients and subtract the powers of 10.",
+      `${a} ÷ ${b} = ${quotient}`,
+      `10^${p} ÷ 10^${q} = 10^${p - q}`,
+      `Answer: ${quotient} × 10^${p - q}`
+    ]
+  });
+}
+
+function generateCompareScientificNotation(difficulty = 1) {
+  const a = randInt(11, 98) / 10;
+  const b = randInt(11, 98) / 10;
+  let p = randInt(2, 6);
+  let q = randInt(2, 6, [p]);
+  const left = `${formatNumber(a)} × 10^${p}`;
+  const right = `${formatNumber(b)} × 10^${q}`;
+  const answer = p > q ? left : right;
+  return buildQuestion({
+    prompt: `Which number is greater: ${left} or ${right}?`,
+    answer,
+    problemType: "compare_scientific_notation",
+    difficulty,
+    solutionSteps: [
+      "Compare the powers of 10 first.",
+      `10^${Math.max(p, q)} is greater than 10^${Math.min(p, q)}.`,
+      `So the greater number is ${answer}.`
+    ]
+  });
+}
+
+function generateExponentialGrowth(difficulty = 1) {
+  const start = randInt(20, 100);
+  const rate = pickRandom([0.05, 0.1, 0.2]);
+  const t = randInt(2, 5);
+  const value = Math.round(start * (1 + rate) ** t);
+  return buildQuestion({
+    prompt: `A quantity starts at ${start} and grows by ${formatNumber(rate * 100)}% each year. What is its value after ${t} years?`,
+    answer: `${value}`,
+    problemType: "exponential_growth_evaluate",
+    difficulty,
+    solutionSteps: [
+      "Use exponential growth: initial value × growth factor^time.",
+      `Growth factor = 1 + ${formatNumber(rate)} = ${formatNumber(1 + rate)}`,
+      `${start} × ${formatNumber(1 + rate)}^${t} ≈ ${value}`
+    ]
+  });
+}
+
+function generateExponentialDecay(difficulty = 1) {
+  const start = randInt(100, 500);
+  const rate = pickRandom([0.1, 0.2, 0.25]);
+  const t = randInt(2, 5);
+  const value = Math.round(start * (1 - rate) ** t);
+  return buildQuestion({
+    prompt: `A quantity starts at ${start} and decreases by ${formatNumber(rate * 100)}% each year. What is its value after ${t} years?`,
+    answer: `${value}`,
+    problemType: "exponential_decay_evaluate",
+    difficulty,
+    solutionSteps: [
+      "Use exponential decay: initial value × decay factor^time.",
+      `Decay factor = 1 - ${formatNumber(rate)} = ${formatNumber(1 - rate)}`,
+      `${start} × ${formatNumber(1 - rate)}^${t} ≈ ${value}`
+    ]
+  });
+}
+
+function generateIdentifyGrowthDecay(difficulty = 1) {
+  const factor = pickRandom([0.6, 0.75, 0.8, 1.2, 1.3, 1.5]);
+  const answer = factor > 1 ? "Exponential growth" : "Exponential decay";
+  return buildQuestion({
+    prompt: `Does y = 40(${formatNumber(factor)})^x represent exponential growth or exponential decay?`,
+    answer,
+    problemType: "identify_growth_decay",
+    difficulty,
+    solutionSteps: [
+      "Look at the base of the exponential function.",
+      "If the base is greater than 1, it is growth. If the base is between 0 and 1, it is decay.",
+      `The base is ${formatNumber(factor)}, so this is ${answer.toLowerCase()}.`
+    ]
+  });
+}
+
+function generateExponentialModel(difficulty = 1) {
+  const start = randInt(20, 100);
+  const factor = pickRandom([1.1, 1.2, 1.5, 0.8, 0.75]);
+  return buildQuestion({
+    prompt: `Write an exponential model for an initial value of ${start} with a multiplier of ${formatNumber(factor)} each time period.`,
+    answer: `y = ${start}(${formatNumber(factor)})^x`,
+    problemType: "write_exponential_model",
+    difficulty,
+    solutionSteps: [
+      "An exponential model has the form y = a(b)^x.",
+      `The initial value is a = ${start}.`,
+      `The multiplier is b = ${formatNumber(factor)}.`,
+      `The model is y = ${start}(${formatNumber(factor)})^x.`
+    ]
+  });
+}
+
+function generateExponentialTable(difficulty = 1) {
+  const start = randInt(2, 8);
+  const factor = pickRandom([2, 3, 4]);
+  const x = randInt(2, 4);
+  const y = start * factor ** x;
+  return buildQuestion({
+    prompt: `For y = ${start}(${factor})^x, what is y when x = ${x}?`,
+    answer: `${y}`,
+    problemType: "exponential_table",
+    difficulty,
+    solutionSteps: [
+      `Substitute x = ${x}.`,
+      `y = ${start}(${factor})^${x}`,
+      `y = ${y}`
+    ]
+  });
+}
+
+function generateExponentialGraphFeatures(difficulty = 1) {
+  const a = randInt(1, 8);
+  const b = pickRandom([2, 3, 0.5]);
+  return buildQuestion({
+    prompt: `For y = ${a}(${formatNumber(b)})^x, what is the y-intercept?`,
+    answer: `(0, ${a})`,
+    problemType: "exponential_graph_features",
+    difficulty,
+    solutionSteps: [
+      "The y-intercept occurs when x = 0.",
+      `${formatNumber(b)}^0 = 1`,
+      `y = ${a} × 1 = ${a}`,
+      `The y-intercept is (0, ${a}).`
+    ]
+  });
+}
+
+function generateIdentifyExponentialFunction(difficulty = 1) {
+  const factor = pickRandom([2, 3, 4]);
+  const start = randInt(1, 5);
+  return buildQuestion({
+    prompt: `A table has y-values ${start}, ${start * factor}, ${start * factor ** 2}, ${start * factor ** 3}. What type of function does it represent?`,
+    answer: "Exponential function",
+    problemType: "identify_exponential_function",
+    difficulty,
+    solutionSteps: [
+      "Check whether the outputs are multiplied by the same factor each time.",
+      `Each y-value is multiplied by ${factor}.`,
+      "A constant multiplier means the function is exponential."
+    ]
+  });
+}
+
+function generateCompareExponentialGrowth(difficulty = 1) {
+  const a = pickRandom([2, 3, 4]);
+  let b = pickRandom([2, 3, 4, 5]);
+  if (b === a) b += 1;
+  const answer = a > b ? `y = 10(${a})^x` : `y = 10(${b})^x`;
+  return buildQuestion({
+    prompt: `Which function grows faster: y = 10(${a})^x or y = 10(${b})^x?`,
+    answer,
+    problemType: "compare_exponential_growth",
+    difficulty,
+    solutionSteps: [
+      "For exponential growth, the larger base grows faster.",
+      `Compare the bases ${a} and ${b}.`,
+      `${Math.max(a, b)} is larger, so ${answer} grows faster.`
+    ]
+  });
+}
+
+
 function generateExponentRules(difficulty = 1) {
   const base = pickRandom(["x", "a", "m"]);
   const p = randInt(2, 6);
@@ -2392,6 +2805,27 @@ function generateChoices(answer, problemType) {
       "no association",
       "linear association",
       "nonlinear association"
+    ]);
+  }
+
+  if (
+    type.includes("exponent") ||
+    type.includes("scientific") ||
+    type.includes("exponential") ||
+    type.includes("growth") ||
+    type.includes("decay")
+  ) {
+    return finalizeChoices(answer, [
+      "1",
+      "0",
+      "Exponential growth",
+      "Exponential decay",
+      "Exponential function",
+      "Linear function",
+      "Quadratic function",
+      "Cannot be determined",
+      String(answer).replace("^", "^2"),
+      String(answer).replace("×", "÷")
     ]);
   }
 
