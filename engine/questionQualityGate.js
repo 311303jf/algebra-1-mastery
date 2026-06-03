@@ -1,5 +1,5 @@
 /* ============================================================
-   Algebra OS — Question QualityGate Engine 2.1 Semantic
+   Algebra OS — Question QualityGate Engine 3.0 Semantic
    File: engine/questionQualityGate.js
 
    Purpose:
@@ -7,6 +7,7 @@
    - Validate answer/choices quality
    - Prevent cross-domain distractors
    - Reject mathematically equivalent duplicate choices
+   - Reject multiple mathematically correct answer choices
    ============================================================ */
 
 function hasBadText(value){
@@ -164,6 +165,123 @@ function validateChoiceFamily(question, errors){
   }
 }
 
+
+/* ============================================================
+   SEMANTIC CORRECTNESS LAYER — QualityGate 3.0
+   Purpose:
+   - Prevent questions with more than one mathematically correct answer.
+   - Block invalid distractors that are also correct.
+   - Catch topic-specific ambiguity that structural QA cannot detect.
+   ============================================================ */
+
+function isQuadraticChoice(text){
+  const t = String(text || "").toLowerCase().replace(/\s+/g, "");
+
+  return (
+    t.includes("x²") ||
+    t.includes("x^2") ||
+    /y=.*x\^?2/.test(t)
+  );
+}
+
+function isLinearChoice(text){
+  const t = String(text || "").toLowerCase().replace(/\s+/g, "");
+
+  if(isQuadraticChoice(t)) return false;
+  if(isExponentialChoice(t)) return false;
+  if(t.includes("|x|") || t.includes("abs")) return false;
+
+  return /^y=-?\d*x([+-]\d+)?$/.test(t) || /^f\(x\)=-?\d*x([+-]\d+)?$/.test(t);
+}
+
+function isExponentialChoice(text){
+  const t = String(text || "").toLowerCase().replace(/\s+/g, "");
+
+  return (
+    t.includes("^x") ||
+    /\(\d+(?:\.\d+)?\)\^x/.test(t) ||
+    /^y=\d+\(\d+(?:\.\d+)?\)\^x/.test(t)
+  );
+}
+
+function isAbsoluteValueChoice(text){
+  const t = String(text || "").toLowerCase().replace(/\s+/g, "");
+  return t.includes("|x|") || t.includes("|x") || t.includes("abs(");
+}
+
+function countChoices(choices, predicate){
+  return choices.filter(choice => predicate(choice)).length;
+}
+
+function validateSemanticCorrectness(question, errors){
+  if(!question || !Array.isArray(question.choices)) return;
+
+  const type = normalize(question.problemType);
+  const choices = question.choices.map(String);
+  const answer = String(question.answer || "");
+
+  if(type === "identify_quadratic_function"){
+    const quadraticCount = countChoices(choices, isQuadraticChoice);
+
+    if(quadraticCount !== 1){
+      errors.push(
+        "Semantic error: identify_quadratic_function must have exactly one quadratic choice."
+      );
+    }
+
+    if(!isQuadraticChoice(answer)){
+      errors.push(
+        "Semantic error: correct answer is not quadratic."
+      );
+    }
+  }
+
+  if(type === "linear_vs_quadratic_vs_exponential"){
+    const quadraticCount = countChoices(choices, isQuadraticChoice);
+    const linearCount = countChoices(choices, isLinearChoice);
+    const exponentialCount = countChoices(choices, isExponentialChoice);
+
+    if(quadraticCount > 1){
+      errors.push("Semantic error: comparison question has multiple quadratic choices.");
+    }
+
+    if(linearCount > 1){
+      errors.push("Semantic error: comparison question has multiple linear choices.");
+    }
+
+    if(exponentialCount > 1){
+      errors.push("Semantic error: comparison question has multiple exponential choices.");
+    }
+  }
+
+  if(type === "quadratic_graph_shape"){
+    const validShapeAnswers = [
+      "parabola",
+      "u-shaped curve",
+      "opens up",
+      "opens down"
+    ];
+
+    const normalizedAnswer = normalize(answer);
+    const matches = validShapeAnswers.filter(valid => normalizedAnswer.includes(valid));
+
+    if(matches.length === 0 && !isQuadraticChoice(answer)){
+      errors.push("Semantic error: quadratic_graph_shape answer does not describe a quadratic graph shape.");
+    }
+  }
+
+  if(type === "identify_special_factoring_pattern"){
+    const specialPatternChoices = choices.filter(choice => {
+      const t = normalize(choice);
+      return t.includes("difference of squares") || t.includes("perfect square trinomial");
+    });
+
+    if(specialPatternChoices.length > 2){
+      errors.push("Semantic error: special factoring pattern question has too many correct-style pattern choices.");
+    }
+  }
+}
+
 function validateQuestionAlignment(question, lesson){
   const errors = [];
 
@@ -246,6 +364,7 @@ function validateQuestion(question, lesson = null){
   }
 
   validateChoiceFamily(question, errors);
+  validateSemanticCorrectness(question, errors);
   errors.push(...validateQuestionAlignment(question, lesson));
 
   return {
