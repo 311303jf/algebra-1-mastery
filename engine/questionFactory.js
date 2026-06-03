@@ -1950,28 +1950,38 @@ function generateTwoStepEquation(difficulty = 1) {
 }
 
 function generateMultiStepEquation(difficulty = 1) {
-  const x = pickSolution(difficulty);
-  const coeff = pickCoefficient(difficulty);
-  const b = pickConstant(difficulty);
-  const c = pickConstant(difficulty);
-  const combined = b + c;
-  const result = coeff.value * x + combined;
+  /*
+    Algebra OS 4.8 Semantic Skill Integrity Rule:
+    A multi-step equation must visibly require simplification before solving.
 
-  return buildQuestion({
-    prompt: `Solve for x: ${formatCoeffForVariable(coeff)} ${formatSigned(b)} ${formatSigned(c)} = ${formatNumber(result)}`,
-    answer: `x = ${formatNumber(x)}`,
-    problemType: "multi_step_equation",
-    difficulty,
-    solutionSteps: [
-      `Original equation: ${formatCoeffForVariable(coeff)} ${formatSigned(b)} ${formatSigned(c)} = ${formatNumber(result)}`,
-      `Combine constants: ${formatNumber(b)} ${formatSigned(c)} = ${formatNumber(combined)}`,
-      `${formatCoeffForVariable(coeff)} ${formatSigned(combined)} = ${formatNumber(result)}`,
-      combined >= 0 ? `Subtract ${formatNumber(combined)} from both sides.` : `Add ${formatNumber(Math.abs(combined))} to both sides.`,
-      `${formatCoeffForVariable(coeff)} = ${formatNumber(result - combined)}`,
-      `Divide both sides by ${coeff.text}.`,
-      `x = ${formatNumber(x)}`
-    ]
-  });
+    Lesson 1.2 must NOT generate one-step equations such as:
+    x - 6 = -2
+    x + 5 = 10
+    4x = 20
+
+    Therefore, this generator delegates only to true multi-step subskills:
+    - combine like terms
+    - distributive property
+  */
+
+  const mode = pickRandom([
+    "combine_like_terms",
+    "distributive_property"
+  ]);
+
+  if (mode === "combine_like_terms") {
+    const question = generateCombineLikeTermsEquation(difficulty);
+    question.problemType = "multi_step_equation";
+    question.hintSteps = METADATA.multi_step_equation.hintSteps;
+    question.misconception = METADATA.multi_step_equation.misconception;
+    return question;
+  }
+
+  const question = generateDistributivePropertyEquation(difficulty);
+  question.problemType = "multi_step_equation";
+  question.hintSteps = METADATA.multi_step_equation.hintSteps;
+  question.misconception = METADATA.multi_step_equation.misconception;
+  return question;
 }
 
 function generateVariablesBothSides(difficulty = 1) {
@@ -4826,6 +4836,136 @@ function isQualityQuestion(q) {
 }
 
 
+
+function isSemanticallyValidForProblemType(question) {
+  if (!question || !question.prompt || !question.problemType) return false;
+
+  const type = String(question.problemType || "").toLowerCase();
+  const prompt = String(question.prompt || "");
+
+  /*
+    1.1 One-step equations:
+    They should not contain parentheses and should contain only one visible variable term.
+  */
+  if (
+    type === "one_step_equation" ||
+    type === "one_step_addition_equation" ||
+    type === "one_step_subtraction_equation" ||
+    type === "one_step_multiplication_equation" ||
+    type === "one_step_division_equation"
+  ) {
+    if (prompt.includes("(") || prompt.includes(")")) return false;
+    return countVariableTerms(prompt) === 1;
+  }
+
+  /*
+    1.2 Multi-step equations:
+    They must show either true like terms or a distributive structure.
+    This blocks mislabeled one-step equations such as x - 6 = -2.
+  */
+  if (type === "multi_step_equation") {
+    const hasParentheses = prompt.includes("(") && prompt.includes(")");
+    const variableTermCount = countVariableTerms(prompt);
+    return hasParentheses || variableTermCount >= 2;
+  }
+
+  /*
+    1.3 Variables on both sides:
+    Both sides of the equation must visibly contain a variable.
+  */
+  if (type === "variables_both_sides") {
+    const parts = splitEquationOrInequality(prompt);
+    if (!parts) return false;
+
+    return /[a-z]/i.test(parts.left) && /[a-z]/i.test(parts.right);
+  }
+
+  /*
+    1.4 One-step inequalities:
+    Must contain an inequality symbol, no parentheses, and only one visible variable term.
+  */
+  if (
+    type === "inequality" ||
+    type === "inequalities" ||
+    type === "one_step_inequality" ||
+    type === "one_step_inequalities"
+  ) {
+    if (!/[<>≤≥]/.test(prompt)) return false;
+    if (prompt.includes("(") || prompt.includes(")")) return false;
+    return countVariableTerms(prompt) === 1;
+  }
+
+  /*
+    1.5 Multi-step inequalities:
+    Must contain an inequality symbol and either like terms or distributive structure.
+  */
+  if (
+    type === "multi_step_inequality" ||
+    type === "multi_step_inequalities"
+  ) {
+    if (!/[<>≤≥]/.test(prompt)) return false;
+
+    const hasParentheses = prompt.includes("(") && prompt.includes(")");
+    const variableTermCount = countVariableTerms(prompt);
+    return hasParentheses || variableTermCount >= 2;
+  }
+
+  /*
+    1.6 Compound inequalities:
+    Must contain AND/OR or be a three-part inequality.
+  */
+  if (
+    type === "compound_inequality" ||
+    type === "compound_inequalities"
+  ) {
+    const upper = prompt.toUpperCase();
+    const hasAndOr = upper.includes(" AND ") || upper.includes(" OR ");
+    const inequalitySymbolCount = (prompt.match(/[<>≤≥]/g) || []).length;
+
+    return hasAndOr || inequalitySymbolCount >= 2;
+  }
+
+  /*
+    1.7 Absolute value equations:
+    Must visibly contain absolute value bars.
+  */
+  if (
+    type === "absolute_value_equation" ||
+    type === "absolute_value_equations"
+  ) {
+    return prompt.includes("|");
+  }
+
+  /*
+    Future units:
+    No blocking unless a semantic rule exists.
+    This keeps current certified Units 2–9 stable while allowing rule expansion.
+  */
+  return true;
+}
+
+function countVariableTerms(text) {
+  const matches = String(text || "").match(/-?\s*\d*\.?\d*\s*[a-z](?![a-z])/gi);
+  return Array.isArray(matches) ? matches.length : 0;
+}
+
+function splitEquationOrInequality(prompt) {
+  const text = String(prompt || "")
+    .replace(/^Solve for [a-z]:/i, "")
+    .replace(/^Solve the inequality:/i, "")
+    .replace(/^Solve the compound inequality:/i, "")
+    .trim();
+
+  const match = text.match(/(.+?)(=|<|>|≤|≥)(.+)/);
+  if (!match) return null;
+
+  return {
+    left: match[1].trim(),
+    symbol: match[2].trim(),
+    right: match[3].trim()
+  };
+}
+
 function isQuestionAlignedToLesson(question, lesson) {
   if (!question || !lesson) return true;
 
@@ -4834,6 +4974,19 @@ function isQuestionAlignedToLesson(question, lesson) {
     lesson.allowedProblemTypes ||
     lesson.problem_types ||
     [];
+
+  if (!isSemanticallyValidForProblemType(question)) {
+    console.warn(
+      "QuestionFactory 4.8 Semantic Skill Guard blocked a mislabeled question:",
+      {
+        lessonId: lesson?.id || lesson?.lessonId || lesson?.title,
+        problemType: question.problemType,
+        prompt: question.prompt
+      }
+    );
+
+    return false;
+  }
 
   if (!Array.isArray(allowedTypes) || allowedTypes.length === 0) {
     return true;
@@ -5955,6 +6108,92 @@ function normalizeMetaType(type) {
   return type;
 }
 
+
+
+
+/* ============================================================
+   SEMANTIC SKILL AUDIT
+   Browser console helper:
+   AlgebraQuestionFactorySemanticAudit()
+   ============================================================ */
+
+export function AlgebraQuestionFactorySemanticAudit() {
+  const testLessons = [
+    {
+      id: "1.1-test",
+      title: "One-Step Equations",
+      problemTypes: [
+        "one_step_equation",
+        "one_step_addition_equation",
+        "one_step_subtraction_equation",
+        "one_step_multiplication_equation",
+        "one_step_division_equation"
+      ]
+    },
+    {
+      id: "1.2-test",
+      title: "Multi-Step Equations",
+      problemTypes: ["multi_step_equation"]
+    },
+    {
+      id: "1.3-test",
+      title: "Variables on Both Sides",
+      problemTypes: ["variables_both_sides"]
+    },
+    {
+      id: "1.4-test",
+      title: "Inequalities",
+      problemTypes: ["inequalities", "one_step_inequality"]
+    },
+    {
+      id: "1.5-test",
+      title: "Multi-Step Inequalities",
+      problemTypes: ["multi_step_inequalities"]
+    },
+    {
+      id: "1.6-test",
+      title: "Compound Inequalities",
+      problemTypes: ["compound_inequalities"]
+    },
+    {
+      id: "1.7-test",
+      title: "Absolute Value Equations",
+      problemTypes: ["absolute_value_equations"]
+    }
+  ];
+
+  const rows = [];
+
+  testLessons.forEach(lesson => {
+    for (let i = 0; i < 25; i++) {
+      const q = generateQuestionForLesson(lesson);
+
+      rows.push({
+        lesson: lesson.id,
+        problemType: q.problemType,
+        prompt: q.prompt,
+        semanticPass: isSemanticallyValidForProblemType(q),
+        alignedPass: isQuestionAlignedToLesson(q, lesson)
+      });
+    }
+  });
+
+  const summary = {
+    total: rows.length,
+    pass: rows.filter(row => row.semanticPass && row.alignedPass).length,
+    fail: rows.filter(row => !row.semanticPass || !row.alignedPass).length,
+    failures: rows.filter(row => !row.semanticPass || !row.alignedPass)
+  };
+
+  console.table(rows);
+  console.log("AlgebraQuestionFactorySemanticAudit Summary:", summary);
+
+  return summary;
+}
+
+if (typeof window !== "undefined") {
+  window.AlgebraQuestionFactorySemanticAudit = AlgebraQuestionFactorySemanticAudit;
+}
 
 
 /* ============================================================
