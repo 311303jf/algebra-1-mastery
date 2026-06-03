@@ -4484,6 +4484,20 @@ function generateQuadraticAnswerChoices(answer, problemType, finalizeChoices) {
     }
   }
 
+  // Two x-intercept answers must be handled BEFORE single-coordinate answers.
+  // Otherwise a correct answer like "(-7, 0) and (5, 0)" is mistakenly treated
+  // as one coordinate pair and receives weak one-intercept distractors.
+  if (looksLikeTwoInterceptAnswer(text)) {
+    const xs = extractTwoInterceptXValues(text);
+
+    if (xs) {
+      return finalizeChoices(
+        normalizeTwoXIntercepts(xs[0], xs[1]),
+        buildTwoSolutionDistractors(xs[0], xs[1], "intercepts")
+      );
+    }
+  }
+
   if (text.startsWith("(") && text.includes(",")) {
     const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
     if (nums.length >= 2) {
@@ -4494,17 +4508,6 @@ function generateQuadraticAnswerChoices(answer, problemType, finalizeChoices) {
         `(${formatNumber(y)}, ${formatNumber(x)})`,
         `(0, ${formatNumber(y)})`
       ]);
-    }
-  }
-
-  if (looksLikeTwoInterceptAnswer(text)) {
-    const xs = extractTwoInterceptXValues(text);
-
-    if (xs) {
-      return finalizeChoices(
-        normalizeTwoXIntercepts(xs[0], xs[1]),
-        buildTwoSolutionDistractors(xs[0], xs[1], "intercepts")
-      );
     }
   }
 
