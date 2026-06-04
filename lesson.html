@@ -92,7 +92,24 @@ function retryTutorStep(problemType){
 }
 
 function checkTutorAnswer(problemType){if(!currentLesson||!window.AlgebraRecoveryLessonEngine)return;const lessonData=AlgebraRecoveryLessonEngine.generateRecoveryLesson(problemType,getQuestionMetadataForRecovery(currentQuestion),currentQuestion);const state=AlgebraRecoveryLessonEngine.loadTutorState(currentLesson.id,problemType);const step=lessonData.tutorDialogue[state.tutorStep];const input=document.getElementById("tutorAnswerInput");const feedback=document.getElementById("tutorFeedback");if(!input||!feedback||!step)return;if(!input.value){feedback.innerHTML=`<div class="tutor-feedback-box warning">Choose one option before submitting.</div>`;return;}const isCorrect=tutorAnswerMatches(input.value,step.expected);AlgebraRecoveryLessonEngine.recordTutorAnswer(currentLesson.id,problemType,isCorrect,lessonData.tutorDialogue.length);if(isCorrect){feedback.innerHTML=`<div class="tutor-feedback-box correct">✅ Correct. ${step.explanation}<div class="intervention-actions"><button class="mini-btn primary" onclick="renderInteractiveTutorStep('${problemType}')">Next Tutor Step</button></div></div>`;}else{feedback.innerHTML=`<div class="tutor-feedback-box incorrect">❌ Not yet.<br><strong>Theory:</strong> ${step.theory}<br><strong>Try again:</strong> Choose another option and submit again.<div class="intervention-actions"><button class="mini-btn" onclick="retryTutorStep('${problemType}')">Try Again</button></div></div>`;}} 
-function generateRecoveryPractice(problemType){if(!currentLesson||!window.AlgebraRecoveryLessonEngine)return;const tutorState=AlgebraRecoveryLessonEngine.loadTutorState(currentLesson.id,problemType);if(!tutorState.tutorCompleted){const box=document.getElementById('recoveryPracticeBox');if(box)box.innerHTML='<div class="recovery-locked-note">Complete the interactive tutor before starting recovery practice.</div>';renderInteractiveTutorStep(problemType);return;}const lessonData=AlgebraRecoveryLessonEngine.generateRecoveryLesson(problemType,getQuestionMetadataForRecovery(currentQuestion),currentQuestion);const state=AlgebraRecoveryLessonEngine.loadRecoveryState(currentLesson.id,problemType);const index=Math.min(state.recoveryCorrectStreak,lessonData.recoveryPractice.length-1);const item=lessonData.recoveryPractice[index]||lessonData.recoveryPractice[0];const box=document.getElementById("recoveryPracticeBox");if(!box)return;box.innerHTML=`<div class="tutor-card"><strong>Recovery Check ${state.recoveryCorrectStreak+1} of 2</strong><div style="margin-top:8px;">${item.prompt}</div><input id="recoveryAnswerInput" class="recovery-input" placeholder="Type your answer, for example: x = 7"><div class="intervention-actions"><button class="mini-btn primary" onclick="checkRecoveryAnswer('${problemType}','${String(item.answer).replaceAll("'","\\'")}')">Check Answer</button></div><div id="recoveryFeedback" style="margin-top:8px;font-size:13px;font-weight:900;"></div></div>`;}
+function generateRecoveryPractice(problemType){if(!currentLesson||!window.AlgebraRecoveryLessonEngine)return;const tutorState=AlgebraRecoveryLessonEngine.loadTutorState(currentLesson.id,problemType);if(!tutorState.tutorCompleted){const box=document.getElementById('recoveryPracticeBox');if(box)box.innerHTML='<div class="recovery-locked-note">Complete the interactive tutor before starting recovery practice.</div>';renderInteractiveTutorStep(problemType);return;}const lessonData=AlgebraRecoveryLessonEngine.generateRecoveryLesson(problemType,getQuestionMetadataForRecovery(currentQuestion),currentQuestion);const state=AlgebraRecoveryLessonEngine.loadRecoveryState(currentLesson.id,problemType);const index=Math.min(state.recoveryCorrectStreak,lessonData.recoveryPractice.length-1);const item=lessonData.recoveryPractice[index]||lessonData.recoveryPractice[0];const box=document.getElementById("recoveryPracticeBox");if(!box)return;box.innerHTML=`<div class="tutor-card"><strong>Recovery Check ${state.recoveryCorrectStreak+1} of 2</strong><div style="margin-top:8px;">${item.prompt}</div><div style="
+  display:flex;
+  align-items:center;
+  gap:8px;
+  margin-top:10px;
+">
+  <strong style="
+    font-size:18px;
+    color:#1e3a8a;
+  ">x =</strong>
+
+  <input
+    id="recoveryAnswerInput"
+    class="recovery-input"
+    placeholder="Enter value"
+    style="margin-top:0;"
+  >
+</div><div class="intervention-actions"><button class="mini-btn primary" onclick="checkRecoveryAnswer('${problemType}','${String(item.answer).replaceAll("'","\\'")}')">Check Answer</button></div><div id="recoveryFeedback" style="margin-top:8px;font-size:13px;font-weight:900;"></div></div>`;}
 function normalizeRecoveryAnswer(value){return String(value||"").toLowerCase().replace(/\s+/g,"").trim();}
 
 function clearRecoveryInterventionForSkill(lessonId, problemType){
