@@ -1,6 +1,6 @@
 /* =========================================================
    ALGEBRA OS — recoveryLessonEngine.js
-   Version: 2004 — TUTOR ANSWER MATCHING HOTFIX
+   Version: 2006 — EXACT SUBSKILL RECOVERY ROUTING
 
    PURPOSE:
    - Compatible with current lesson.html.
@@ -28,6 +28,7 @@
    - v2002: Restores legacy openRecoveryTutor export and local shuffle utility.
    - v2003: Adds a two-step bridge after simplification before the final solution.
    - v2004: Restores robust matching for tutor button choices such as Combine like terms.
+   - v2006: Routes Lesson 1.2 recovery by exact subskill: combine-like-terms vs distributive property.
 ========================================================= */
 
 const RECOVERY_PREFIX = "algebra_recovery_";
@@ -344,6 +345,57 @@ function isMultiStepEquationSkill(skill) {
   );
 }
 
+
+function isCombineLikeTermsSkill(skill) {
+  const text = normalizeSkill(skill);
+
+  return (
+    text.includes("combine_like") ||
+    text.includes("combine_terms") ||
+    text.includes("like_terms")
+  );
+}
+
+function isDistributivePropertySkill(skill) {
+  const text = normalizeSkill(skill);
+
+  return (
+    text.includes("distributive") ||
+    text.includes("distribution") ||
+    text.includes("distribute")
+  );
+}
+
+function requestedMultiStepSubskill(problemType) {
+  const skill = normalizeSkill(problemType);
+
+  if (isDistributivePropertySkill(skill)) {
+    return "distributive_property";
+  }
+
+  if (isCombineLikeTermsSkill(skill)) {
+    return "combine_like_terms";
+  }
+
+  return "multi_step_equation";
+}
+
+function parsedMatchesRequestedMultiStepSubskill(parsed, problemType) {
+  const requested = requestedMultiStepSubskill(problemType);
+
+  if (!parsed || parsed.tutorType === "certified_mismatch") return false;
+
+  // General multi-step may accept either combine-like-terms or distributive property.
+  if (requested === "multi_step_equation") {
+    return parsed.tutorType === "combine_like_terms" ||
+      parsed.tutorType === "distributive_property" ||
+      parsed.tutorType === "multi_step_equation";
+  }
+
+  return parsed.tutorType === requested;
+}
+
+
 function isVariablesBothSidesSkill(skill) {
   return (
     skill.includes("variables_on_both_sides") ||
@@ -544,29 +596,48 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
 function buildMultiStepEquationLesson(problemType, metadata, currentQuestion) {
   const parsed = parseMultiStepEquation(currentQuestion);
 
-  if (parsed.tutorType === "certified_mismatch") {
+  /*
+    v2006 Exact Subskill Routing:
+    Lesson 1.2 has different subskills. The tutor must not use a
+    combine-like-terms tutor when the student failed distributive property,
+    and it must not use a distributive tutor when the student failed combine-like-terms.
+  */
+  if (
+    parsed.tutorType === "certified_mismatch" ||
+    !parsedMatchesRequestedMultiStepSubskill(parsed, problemType)
+  ) {
     const alignedQuestion = generateAlignedRecoveryQuestionForSkill(problemType, currentQuestion);
 
     if (alignedQuestion) {
       const alignedParsed = parseMultiStepEquation(alignedQuestion);
 
-      if (alignedParsed.tutorType !== "certified_mismatch") {
+      if (
+        alignedParsed.tutorType !== "certified_mismatch" &&
+        parsedMatchesRequestedMultiStepSubskill(alignedParsed, problemType)
+      ) {
         const alignedLesson = buildMultiStepEquationLesson(problemType, metadata, alignedQuestion);
         alignedLesson.autoAlignedRecovery = {
           activated: true,
-          reason: parsed.certificationReason || "Original question did not match the requested tutor skill.",
+          reason: parsed.certificationReason || "Original question did not match the exact requested tutor subskill.",
           originalEquation: parsed.equationBefore,
+          requestedSubskill: requestedMultiStepSubskill(problemType),
+          originalTutorType: parsed.tutorType,
           replacementEquation: alignedParsed.equationBefore,
+          replacementTutorType: alignedParsed.tutorType,
           replacementProblemType: alignedQuestion.problemType
         };
         return alignedLesson;
       }
     }
 
-    return buildSkillMismatchLesson(problemType, metadata, currentQuestion, parsed);
+    return buildSkillMismatchLesson(problemType, metadata, currentQuestion, {
+      ...parsed,
+      tutorType: "certified_mismatch",
+      certificationReason: "The problem structure does not match the exact requested Lesson 1.2 recovery subskill."
+    });
   }
 
-  const recoveryPractice = buildMultiStepRecoveryPracticeItems(parsed);
+  const recoveryPractice = buildMultiStepRecoveryPracticeItems(parsed, problemType);
 
   return {
     title: "Recovery Tutor: Multi-Step Equations",
@@ -838,54 +909,66 @@ function buildFirstActionExpectedAnswers(firstAction) {
 
 function generateAlignedRecoveryQuestionForSkill(problemType, currentQuestion = null) {
   /*
-    Purpose:
-    If the original/current question does not match the requested tutor skill,
-    generate a clean replacement recovery question that DOES match the skill.
+    v2006:
+    Generate a clean replacement recovery question that matches the EXACT skill.
 
-    This protects students from seeing:
-    - wrong tutor
-    - skill mismatch screens
-    - one-step equations inside a multi-step tutor
+    Lesson 1.2 examples:
+    - combine_like_terms_equation -> 3x + 5 + 2x = 20
+    - distributive_property_equation -> 2(x + 3) = 14
+
+    This prevents distributive-property recovery from showing combine-like-terms.
   */
 
   const skill = normalizeSkill(problemType);
+  const requestedSubskill = requestedMultiStepSubskill(problemType);
   const originalEquation = normalizeEquationKey(extractEquation(getQuestionText(currentQuestion)) || "");
 
   let candidates = [];
 
   if (isMultiStepEquationSkill(skill)) {
-    candidates = [
+    const combineCandidates = [
       {
         prompt: "Solve for x: 3x + 5 + 2x = 20",
         answer: "x = 3",
-        problemType: "combine_like_terms"
+        problemType: "combine_like_terms_equation"
       },
       {
         prompt: "Solve for x: 4x + 6 + x = 21",
         answer: "x = 3",
-        problemType: "combine_like_terms"
+        problemType: "combine_like_terms_equation"
       },
       {
         prompt: "Solve for x: 6x - 4 - 2x = 12",
         answer: "x = 4",
-        problemType: "combine_like_terms"
-      },
+        problemType: "combine_like_terms_equation"
+      }
+    ];
+
+    const distributiveCandidates = [
       {
         prompt: "Solve for x: 2(x + 3) = 14",
         answer: "x = 4",
-        problemType: "distributive_property"
+        problemType: "distributive_property_equation"
       },
       {
         prompt: "Solve for x: 3(x + 2) = 21",
         answer: "x = 5",
-        problemType: "distributive_property"
+        problemType: "distributive_property_equation"
       },
       {
         prompt: "Solve for x: 4(x - 1) = 20",
         answer: "x = 6",
-        problemType: "distributive_property"
+        problemType: "distributive_property_equation"
       }
     ];
+
+    if (requestedSubskill === "distributive_property") {
+      candidates = distributiveCandidates;
+    } else if (requestedSubskill === "combine_like_terms") {
+      candidates = combineCandidates;
+    } else {
+      candidates = [...combineCandidates, ...distributiveCandidates];
+    }
   } else if (isVariablesBothSidesSkill(skill)) {
     candidates = [
       {
@@ -946,12 +1029,12 @@ function generateAlignedRecoveryQuestionForSkill(problemType, currentQuestion = 
   return {
     ...selected,
     id: `auto_recovery_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-    source: "recovery_auto_aligned",
+    source: "recovery_auto_aligned_exact_subskill",
+    requestedSubskill,
     originalPrompt: getQuestionText(currentQuestion),
     originalProblemType: currentQuestion?.problemType || problemType
   };
 }
-
 
 /* =========================================================
    v2000 — SKILL MISMATCH SAFE TUTOR
@@ -1479,10 +1562,11 @@ function buildOneStepRecoveryPracticeItems(originalParsed, operation) {
   return pickTwoUniquePracticeItems(candidates, used);
 }
 
-function buildMultiStepRecoveryPracticeItems(parsed) {
+function buildMultiStepRecoveryPracticeItems(parsed, problemType = "multi_step_equation") {
   const used = new Set([normalizeEquationKey(parsed.equationBefore)]);
+  const requestedSubskill = requestedMultiStepSubskill(problemType);
 
-  const candidates = [
+  const combineCandidates = [
     {
       equation: "3x + 4 + 2x = 19",
       answer: "x = 3"
@@ -1492,14 +1576,39 @@ function buildMultiStepRecoveryPracticeItems(parsed) {
       answer: "x = 3"
     },
     {
+      equation: "6x - 4 - 2x = 12",
+      answer: "x = 4"
+    }
+  ];
+
+  const distributiveCandidates = [
+    {
       equation: "2(x + 3) = 14",
       answer: "x = 4"
     },
     {
       equation: "3(x + 2) = 21",
       answer: "x = 5"
+    },
+    {
+      equation: "4(x - 1) = 20",
+      answer: "x = 6"
     }
   ];
+
+  let candidates;
+
+  if (requestedSubskill === "distributive_property") {
+    candidates = distributiveCandidates;
+  } else if (requestedSubskill === "combine_like_terms") {
+    candidates = combineCandidates;
+  } else if (parsed?.tutorType === "distributive_property") {
+    candidates = distributiveCandidates;
+  } else if (parsed?.tutorType === "combine_like_terms") {
+    candidates = combineCandidates;
+  } else {
+    candidates = [...combineCandidates, ...distributiveCandidates];
+  }
 
   return pickTwoUniquePracticeItems(candidates, used);
 }
@@ -2904,6 +3013,33 @@ function certifyRecoveryTutor() {
   }
 
 
+  
+  // v2006 Exact subskill routing certification tests
+  const distLesson = generateRecoveryLesson("distributive_property_equation", {}, {
+    prompt: "Solve for x: 3x + 5 + 2x = 20",
+    answer: "x = 3",
+    problemType: "combine_like_terms_equation"
+  });
+  if (distLesson.diagnostic?.firstAction !== "Use the distributive property") {
+    failures.push(`v2006: distributive recovery did not route to distributive tutor. Got: ${distLesson.diagnostic?.firstAction}`);
+  }
+  if (!String(distLesson.diagnostic?.equationBefore || "").includes("(")) {
+    failures.push(`v2006: distributive recovery did not generate a distributive equation. Got: ${distLesson.diagnostic?.equationBefore}`);
+  }
+
+  const combineLesson = generateRecoveryLesson("combine_like_terms_equation", {}, {
+    prompt: "Solve for x: 2(x + 3) = 14",
+    answer: "x = 4",
+    problemType: "distributive_property_equation"
+  });
+  if (combineLesson.diagnostic?.firstAction !== "Combine like terms") {
+    failures.push(`v2006: combine-like-terms recovery did not route to combine-like tutor. Got: ${combineLesson.diagnostic?.firstAction}`);
+  }
+  if (String(combineLesson.diagnostic?.equationBefore || "").includes("(")) {
+    failures.push(`v2006: combine-like recovery generated a distributive equation. Got: ${combineLesson.diagnostic?.equationBefore}`);
+  }
+
+
   const result = {
     passed: failures.length === 0,
     failures,
@@ -2972,7 +3108,11 @@ const AlgebraRecoveryLessonEngine = {
     generateAlignedRecoveryQuestionForSkill,
     buildTwoStepBridgeChoices,
     buildFirstActionExpectedAnswers,
-    normalizeTutorMatchValue
+    normalizeTutorMatchValue,
+    requestedMultiStepSubskill,
+    parsedMatchesRequestedMultiStepSubskill,
+    isDistributivePropertySkill,
+    isCombineLikeTermsSkill
   }
 };
 
