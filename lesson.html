@@ -25,8 +25,8 @@
 <script type="module">
 import { loadCurriculum, getLessonById } from "./engine/curriculumEngine.js";
 import { generateQuestionForLesson } from "./engine/questionFactory.js?v=4104";
-import "./engine/studentSessionEngine.js?v=2300";
-import "./engine/recoveryLessonEngine.js?v=1300";
+import "./engine/studentSessionEngine.js?v=2301";
+import "./engine/recoveryLessonEngine.js?v=2004";
 import "./engine/formulaEngine.js";
 import "./engine/misconceptionEngine.js";
 import "./engine/questionQualityGate.js";
@@ -94,8 +94,112 @@ function retryTutorStep(problemType){
 function checkTutorAnswer(problemType){if(!currentLesson||!window.AlgebraRecoveryLessonEngine)return;const lessonData=AlgebraRecoveryLessonEngine.generateRecoveryLesson(problemType,getQuestionMetadataForRecovery(currentQuestion),currentQuestion);const state=AlgebraRecoveryLessonEngine.loadTutorState(currentLesson.id,problemType);const step=lessonData.tutorDialogue[state.tutorStep];const input=document.getElementById("tutorAnswerInput");const feedback=document.getElementById("tutorFeedback");if(!input||!feedback||!step)return;if(!input.value){feedback.innerHTML=`<div class="tutor-feedback-box warning">Choose one option before submitting.</div>`;return;}const isCorrect=tutorAnswerMatches(input.value,step.expected);AlgebraRecoveryLessonEngine.recordTutorAnswer(currentLesson.id,problemType,isCorrect,lessonData.tutorDialogue.length);if(isCorrect){feedback.innerHTML=`<div class="tutor-feedback-box correct">✅ Correct. ${step.explanation}<div class="intervention-actions"><button class="mini-btn primary" onclick="renderInteractiveTutorStep('${problemType}')">Next Tutor Step</button></div></div>`;}else{feedback.innerHTML=`<div class="tutor-feedback-box incorrect">❌ Not yet.<br><strong>Theory:</strong> ${step.theory}<br><strong>Try again:</strong> Choose another option and submit again.<div class="intervention-actions"><button class="mini-btn" onclick="retryTutorStep('${problemType}')">Try Again</button></div></div>`;}} 
 function generateRecoveryPractice(problemType){if(!currentLesson||!window.AlgebraRecoveryLessonEngine)return;const tutorState=AlgebraRecoveryLessonEngine.loadTutorState(currentLesson.id,problemType);if(!tutorState.tutorCompleted){const box=document.getElementById('recoveryPracticeBox');if(box)box.innerHTML='<div class="recovery-locked-note">Complete the interactive tutor before starting recovery practice.</div>';renderInteractiveTutorStep(problemType);return;}const lessonData=AlgebraRecoveryLessonEngine.generateRecoveryLesson(problemType,getQuestionMetadataForRecovery(currentQuestion),currentQuestion);const state=AlgebraRecoveryLessonEngine.loadRecoveryState(currentLesson.id,problemType);const index=Math.min(state.recoveryCorrectStreak,lessonData.recoveryPractice.length-1);const item=lessonData.recoveryPractice[index]||lessonData.recoveryPractice[0];const box=document.getElementById("recoveryPracticeBox");if(!box)return;box.innerHTML=`<div class="tutor-card"><strong>Recovery Check ${state.recoveryCorrectStreak+1} of 2</strong><div style="margin-top:8px;">${item.prompt}</div><input id="recoveryAnswerInput" class="recovery-input" placeholder="Type your answer, for example: x = 7"><div class="intervention-actions"><button class="mini-btn primary" onclick="checkRecoveryAnswer('${problemType}','${String(item.answer).replaceAll("'","\\'")}')">Check Answer</button></div><div id="recoveryFeedback" style="margin-top:8px;font-size:13px;font-weight:900;"></div></div>`;}
 function normalizeRecoveryAnswer(value){return String(value||"").toLowerCase().replace(/\s+/g,"").trim();}
-function checkRecoveryAnswer(problemType,correctAnswer){const input=document.getElementById("recoveryAnswerInput");const feedback=document.getElementById("recoveryFeedback");if(!input||!feedback)return;const isCorrect=normalizeRecoveryAnswer(input.value)===normalizeRecoveryAnswer(correctAnswer);const state=AlgebraRecoveryLessonEngine.recordRecoveryPractice(currentLesson.id,problemType,isCorrect);if(isCorrect){feedback.style.color="#047857";feedback.textContent=state.completed?"✅ Recovery complete. Returning to normal practice.":"✅ Correct. Complete one more recovery check.";if(state.completed){setTimeout(()=>generatePracticeQuestion(true),900);}else{setTimeout(()=>generateRecoveryPractice(problemType),900);}}else{feedback.style.color="#b91c1c";feedback.textContent="Try again. Review the worked example before submitting.";}}
-function getNextCoverageProblemType(lesson){const types=getAllowedProblemTypesForLesson(lesson);if(!types.length)return null;const intervention=getTopInterventionSkill(lesson);if(intervention&&types.includes(intervention.problemType)){return intervention.problemType;}const skillMap=getSkillSummaryMap(lesson);const belowTarget=types.filter(type=>Number(skillMap?.[type]?.mastery||0)<SKILL_MASTERY_TARGET);const notPerfect=types.filter(type=>Number(skillMap?.[type]?.mastery||0)<100);let candidateTypes=belowTarget.length?belowTarget:notPerfect.length?notPerfect:types;const notAttempted=candidateTypes.filter(type=>Number(skillMap?.[type]?.attempted||0)===0);if(notAttempted.length){candidateTypes=notAttempted;}else{candidateTypes=[...candidateTypes].sort((a,b)=>{const ma=Number(skillMap?.[a]?.mastery||0);const mb=Number(skillMap?.[b]?.mastery||0);const ea=Number(skillMap?.[a]?.consecutiveErrors||0);const eb=Number(skillMap?.[b]?.consecutiveErrors||0);const aa=Number(skillMap?.[a]?.attempted||0);const ab=Number(skillMap?.[b]?.attempted||0);if(ea!==eb)return eb-ea;if(ma!==mb)return ma-mb;return aa-ab;});}const state=loadCoverageState(lesson);const selected=candidateTypes[0]||types[0];if(!Array.isArray(state.remaining)||state.remaining.length===0){state.cycle+=1;state.remaining=[...types];state.usedThisCycle=[];saveCoverageState(lesson,state);}return selected;}
+
+function clearRecoveryInterventionForSkill(lessonId, problemType){
+  /*
+    v2005 Recovery Exit Fix:
+    RecoveryLessonEngine correctly marks recovery as completed, but the
+    normal lesson session can still keep consecutiveErrors = 5.
+    This clears only the intervention trigger for the recovered skill.
+  */
+
+  if(!lessonId||!problemType)return null;
+
+  try{
+    const key="algebra_session_"+lessonId;
+    const session=JSON.parse(localStorage.getItem(key)||"{}");
+
+    if(!session.skillProgress||typeof session.skillProgress!=="object"){
+      return session;
+    }
+
+    if(!session.skillProgress[problemType]){
+      return session;
+    }
+
+    session.skillProgress[problemType]={
+      ...session.skillProgress[problemType],
+      consecutiveErrors:0,
+      interventionLevel:"none",
+      recoveryCompleted:true,
+      recoveryCompletedAt:new Date().toISOString()
+    };
+
+    localStorage.setItem(key,JSON.stringify(session));
+
+    console.log("✅ Recovery intervention cleared:",{
+      lessonId,
+      problemType,
+      skillProgress:session.skillProgress[problemType]
+    });
+
+    return session;
+  }catch(error){
+    console.warn("Could not clear recovery intervention:",error);
+    return null;
+  }
+}
+
+function returnToNormalPracticeAfterRecovery(problemType){
+  /*
+    Exit Recovery Mode cleanly:
+    1. Clear consecutiveErrors for the recovered skill.
+    2. Refresh dashboards.
+    3. Generate a normal practice question while bypassing the recovery gate once.
+  */
+
+  if(currentLesson&&problemType){
+    clearRecoveryInterventionForSkill(currentLesson.id,problemType);
+  }
+
+  updateHelpProgress();
+  renderAnalytics();
+
+  setTimeout(()=>{
+    generatePracticeQuestion(true);
+  },900);
+}
+function checkRecoveryAnswer(problemType,correctAnswer){
+  const input=document.getElementById("recoveryAnswerInput");
+  const feedback=document.getElementById("recoveryFeedback");
+
+  if(!input||!feedback)return;
+
+  const isCorrect=normalizeRecoveryAnswer(input.value)===normalizeRecoveryAnswer(correctAnswer);
+  const state=AlgebraRecoveryLessonEngine.recordRecoveryPractice(currentLesson.id,problemType,isCorrect);
+
+  if(isCorrect){
+    feedback.style.color="#047857";
+    feedback.textContent=state.completed
+      ?"✅ Recovery complete. Returning to normal practice."
+      :"✅ Correct. Complete one more recovery check.";
+
+    if(state.completed){
+      /*
+        Critical fix:
+        Clear the recovery intervention before generating another question.
+        Otherwise consecutiveErrors remains 5 and the app reopens the tutor.
+      */
+      returnToNormalPracticeAfterRecovery(problemType);
+    }else{
+      setTimeout(()=>generateRecoveryPractice(problemType),900);
+    }
+  }else{
+    feedback.style.color="#b91c1c";
+    feedback.textContent="Try again. Review the worked example before submitting.";
+  }
+}
+function getNextCoverageProblemType(lesson){const types=getAllowedProblemTypesForLesson(lesson);if(!types.length)return null;const intervention=getTopInterventionSkill(lesson);
+if(intervention&&types.includes(intervention.problemType)){
+  const recoveryCompleted =
+    window.AlgebraRecoveryLessonEngine &&
+    typeof AlgebraRecoveryLessonEngine.loadRecoveryState==="function" &&
+    AlgebraRecoveryLessonEngine.loadRecoveryState(lesson.id,intervention.problemType)?.completed===true;
+
+  if(!recoveryCompleted){
+    return intervention.problemType;
+  }
+}const skillMap=getSkillSummaryMap(lesson);const belowTarget=types.filter(type=>Number(skillMap?.[type]?.mastery||0)<SKILL_MASTERY_TARGET);const notPerfect=types.filter(type=>Number(skillMap?.[type]?.mastery||0)<100);let candidateTypes=belowTarget.length?belowTarget:notPerfect.length?notPerfect:types;const notAttempted=candidateTypes.filter(type=>Number(skillMap?.[type]?.attempted||0)===0);if(notAttempted.length){candidateTypes=notAttempted;}else{candidateTypes=[...candidateTypes].sort((a,b)=>{const ma=Number(skillMap?.[a]?.mastery||0);const mb=Number(skillMap?.[b]?.mastery||0);const ea=Number(skillMap?.[a]?.consecutiveErrors||0);const eb=Number(skillMap?.[b]?.consecutiveErrors||0);const aa=Number(skillMap?.[a]?.attempted||0);const ab=Number(skillMap?.[b]?.attempted||0);if(ea!==eb)return eb-ea;if(ma!==mb)return ma-mb;return aa-ab;});}const state=loadCoverageState(lesson);const selected=candidateTypes[0]||types[0];if(!Array.isArray(state.remaining)||state.remaining.length===0){state.cycle+=1;state.remaining=[...types];state.usedThisCycle=[];saveCoverageState(lesson,state);}return selected;}
 function recordGeneratedProblemType(lesson,problemType){if(!lesson||!problemType)return;const state=loadCoverageState(lesson);const index=state.remaining.indexOf(problemType);if(index>=0)state.remaining.splice(index,1);if(!state.usedThisCycle.includes(problemType))state.usedThisCycle.push(problemType);state.generatedCounts[problemType]=Number(state.generatedCounts[problemType]||0)+1;saveCoverageState(lesson,state);}
 function resetCoverageForLesson(lessonId){localStorage.removeItem(getCoverageStorageKey(lessonId));}
 function buildScopedLessonForProblemType(lesson,problemType){return{...lesson,problemTypes:[problemType],allowedProblemTypes:[problemType],problem_types:[problemType]};}
@@ -123,6 +227,8 @@ function checkAnswer(selected,correct){const feedback=document.getElementById("f
 window.checkAnswer=checkAnswer;
 async function startLesson(){const curriculum=await loadCurriculum();const lessonId=getLessonIdFromUrl();const lesson=getLessonById(curriculum,lessonId);if(!lesson){document.getElementById("lessonTitle").textContent="Lesson not found";document.getElementById("lessonObjective").textContent="Check the lesson ID in the URL.";return;}console.log("Dynamic lesson loaded:",lesson);renderLesson(lesson);}startLesson();
 
+
+
 window.renderRecoveryLesson = renderRecoveryLesson;
 window.generateRecoveryPractice = generateRecoveryPractice;
 window.checkRecoveryAnswer = checkRecoveryAnswer;
@@ -147,43 +253,7 @@ function computeStats(){const input=document.getElementById("statsInput")?.value
 function resetStatsTool(){document.getElementById("statsInput").value="12, 15, 18, 22, 10";computeStats();}
 ["graphType","coefA","coefB","coefC"].forEach(id=>{const el=document.getElementById(id);if(el)el.addEventListener("input",drawGraph);if(el&&id==="graphType")el.addEventListener("change",drawGraph);});const statsInput=document.getElementById("statsInput");if(statsInput)statsInput.addEventListener("input",computeStats);window.drawGraph=drawGraph;window.resetGraphTool=resetGraphTool;window.computeStats=computeStats;window.resetStatsTool=resetStatsTool;setTimeout(()=>{drawGraph();computeStats();},100);
 
-window.renderRecoveryLesson = renderRecoveryLesson;
-window.generateRecoveryPractice = generateRecoveryPractice;
-window.checkRecoveryAnswer = checkRecoveryAnswer;
-window.startInteractiveTutor = startInteractiveTutor;
-window.renderInteractiveTutorStep = renderInteractiveTutorStep;
-window.restartInteractiveTutor = restartInteractiveTutor;
-window.selectTutorChoice = selectTutorChoice;
-window.checkTutorAnswer = checkTutorAnswer;
-window.retryTutorStep = retryTutorStep;
 
-</script>
-  <script type="module">
-  import { openRecoveryTutor, generateRecoveryLesson } from "./engine/recoveryLessonEngine.js";
-
-  window.openRecoveryTutor = openRecoveryTutor;
-  window.generateRecoveryLesson = generateRecoveryLesson;
-
-  document.addEventListener("click", function (event) {
-    const btn = event.target.closest("button");
-    if (!btn) return;
-
-    const text = btn.textContent.trim().toLowerCase();
-
-    if (text.includes("open recovery tutor")) {
-      event.preventDefault();
-
-      const skill =
-        window.currentSkill ||
-        window.currentQuestion?.skill ||
-        window.currentQuestion?.skillId ||
-        "one_step_addition_equation";
-
-      const recoveryLesson = generateRecoveryLesson(skill, window.currentQuestion || null);
-
-      openRecoveryTutor(recoveryLesson);
-    }
-  });
 </script>
 </body>
 </html>
