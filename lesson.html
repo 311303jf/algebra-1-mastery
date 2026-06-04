@@ -197,7 +197,9 @@ function checkRecoveryAnswer(problemType,correctAnswer){
       ?"✅ Recovery complete. Returning to normal practice."
       :"✅ Correct. Complete one more recovery check.";
 
-    if(Number(state.recoveryCorrectStreak || 0) >= 2){
+    const recoveryStreak = Number(state.recoveryCorrectStreak || 0);
+
+if(recoveryStreak >= 2){
   returnToNormalPracticeAfterRecovery(problemType);
 }else{
   state.completed = false;
