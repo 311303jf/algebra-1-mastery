@@ -1,6 +1,6 @@
 /* =========================================================
    ALGEBRA OS — recoveryLessonEngine.js
-   Version: 2006 — EXACT SUBSKILL RECOVERY ROUTING
+   Version: 2101 — RECOVERY TUTOR STEP UI PATCH
 
    PURPOSE:
    - Compatible with current lesson.html.
@@ -1788,77 +1788,51 @@ function renderMultiplicationDivisionTransformation(parsed) {
   const rightValue = Number(parsed.rightValue);
   const solutionValue = parseSolutionValue(parsed.equationAfter);
 
-  if (parsed.operation === "Multiplication") {
-    return `
-      <div class="aos-math-workspace">
-        ${mathRendererStyle()}
-        <div class="aos-work-title">What happened to the equation?</div>
+  const isMultiplication = parsed.operation === "Multiplication";
 
-        <div class="aos-work-grid">
-          <div class="aos-work-math simple">
-            <div class="aos-eq-row aos-row-original">
-              <span>${formatNumber(constant)}${escapeHtml(variable)}</span>
-              <span>=</span>
-              <span>${formatNumber(rightValue)}</span>
-            </div>
+  const originalEquation = isMultiplication
+    ? `${formatNumber(constant)}${escapeHtml(variable)} = ${formatNumber(rightValue)}`
+    : `${escapeHtml(variable)} ÷ ${formatNumber(constant)} = ${formatNumber(rightValue)}`;
 
-            <div class="aos-eq-row aos-row-operation">
-              <span class="aos-red">÷ ${formatNumber(constant)}</span>
-              <span></span>
-              <span class="aos-red">÷ ${formatNumber(constant)}</span>
-            </div>
+  const inverseAction = isMultiplication ? "Divide" : "Multiply";
+  const inverseSymbol = isMultiplication ? "÷" : "×";
 
-            <div class="aos-eq-line"></div>
+  const inverseEquation = isMultiplication
+    ? `${formatNumber(constant)}${escapeHtml(variable)} ÷ ${formatNumber(constant)} = ${formatNumber(rightValue)} ÷ ${formatNumber(constant)}`
+    : `${escapeHtml(variable)} ÷ ${formatNumber(constant)} × ${formatNumber(constant)} = ${formatNumber(rightValue)} × ${formatNumber(constant)}`;
 
-            <div class="aos-eq-row aos-row-final">
-              <span>${escapeHtml(variable)}</span>
-              <span>=</span>
-              <span class="aos-green">${formatNumber(solutionValue)}</span>
-            </div>
-          </div>
-
-          <div class="aos-work-notes">
-            <div><strong>1</strong> Divide both sides by ${formatNumber(constant)}.</div>
-            <div><strong>2</strong> The coefficient is undone.</div>
-            <div><strong>3</strong> Bring down the = sign and simplify.</div>
-          </div>
-        </div>
-      </div>
-    `;
-  }
+  const simplifiedEquation =
+    `${escapeHtml(variable)} = ${formatNumber(solutionValue)}`;
 
   return `
-    <div class="aos-math-workspace">
+    <div class="aos-step-tutor">
       ${mathRendererStyle()}
-      <div class="aos-work-title">What happened to the equation?</div>
 
-      <div class="aos-work-grid">
-        <div class="aos-work-math simple">
-          <div class="aos-eq-row aos-row-original">
-            <span>${escapeHtml(variable)} ÷ ${formatNumber(constant)}</span>
-            <span>=</span>
-            <span>${formatNumber(rightValue)}</span>
-          </div>
+      <div class="aos-step-title">What happened to the equation?</div>
 
-          <div class="aos-eq-row aos-row-operation">
-            <span class="aos-red">× ${formatNumber(constant)}</span>
-            <span></span>
-            <span class="aos-red">× ${formatNumber(constant)}</span>
-          </div>
+      <div class="aos-step-card">
+        <div class="aos-step-badge">Step 1</div>
+        <div class="aos-step-label">Original Equation</div>
+        <div class="aos-step-equation">${originalEquation}</div>
+      </div>
 
-          <div class="aos-eq-line"></div>
-
-          <div class="aos-eq-row aos-row-final">
-            <span>${escapeHtml(variable)}</span>
-            <span>=</span>
-            <span class="aos-green">${formatNumber(solutionValue)}</span>
-          </div>
+      <div class="aos-step-card">
+        <div class="aos-step-badge">Step 2</div>
+        <div class="aos-step-label">${inverseAction} both sides by ${formatNumber(constant)}</div>
+        <div class="aos-step-equation">${inverseEquation}</div>
+        <div class="aos-step-note">
+          ${isMultiplication
+            ? "Division is the inverse of multiplication, so it cancels the coefficient."
+            : "Multiplication is the inverse of division, so it cancels the divisor."}
         </div>
+      </div>
 
-        <div class="aos-work-notes">
-          <div><strong>1</strong> Multiply both sides by ${formatNumber(constant)}.</div>
-          <div><strong>2</strong> Division is undone.</div>
-          <div><strong>3</strong> Bring down the = sign and simplify.</div>
+      <div class="aos-step-card success">
+        <div class="aos-step-badge">Step 3</div>
+        <div class="aos-step-label">Simplify</div>
+        <div class="aos-step-equation">${simplifiedEquation}</div>
+        <div class="aos-step-note">
+          The variable is now isolated, so this is the solution.
         </div>
       </div>
     </div>
