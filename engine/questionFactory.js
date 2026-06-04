@@ -4945,7 +4945,14 @@ function isSemanticallyValidForProblemType(question) {
 }
 
 function countVariableTerms(text) {
-  const matches = String(text || "").match(/-?\s*\d*\.?\d*\s*[a-z](?![a-z])/gi);
+  const cleaned = String(text || "")
+    .replace(/^Solve for [a-z]:/i, "")
+    .replace(/^Solve the inequality:/i, "")
+    .replace(/^Solve the compound inequality:/i, "")
+    .trim();
+
+  const matches = cleaned.match(/-?\s*\d*\.?\d*\s*[a-z](?![a-z])/gi);
+
   return Array.isArray(matches) ? matches.length : 0;
 }
 
