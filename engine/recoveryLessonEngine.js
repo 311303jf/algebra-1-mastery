@@ -1736,64 +1736,46 @@ function renderAdditionSubtractionTransformation(parsed) {
   const rightValue = Number(parsed.rightValue);
   const solutionValue = parseSolutionValue(parsed.equationAfter);
 
-  const originalSign = parsed.operation === "Addition" ? "+" : "−";
-  const inverseSign = parsed.operation === "Addition" ? "−" : "+";
+  const originalSign = parsed.operation === "Addition" ? "+" : "-";
+  const inverseAction = parsed.operation === "Addition" ? "Subtract" : "Add";
+  const inverseSign = parsed.operation === "Addition" ? "-" : "+";
 
-  const rightExpression = parsed.operation === "Addition"
-    ? `${formatNumber(rightValue)} − ${formatNumber(constant)}`
-    : `${formatNumber(rightValue)} + ${formatNumber(constant)}`;
+  const originalEquation =
+    `${escapeHtml(variable)} ${originalSign} ${formatNumber(constant)} = ${formatNumber(rightValue)}`;
+
+  const inverseEquation =
+    `${escapeHtml(variable)} ${originalSign} ${formatNumber(constant)} ${inverseSign} ${formatNumber(constant)} = ${formatNumber(rightValue)} ${inverseSign} ${formatNumber(constant)}`;
+
+  const simplifiedEquation =
+    `${escapeHtml(variable)} = ${formatNumber(solutionValue)}`;
 
   return `
-    <div class="aos-math-workspace">
+    <div class="aos-step-tutor">
       ${mathRendererStyle()}
-      <div class="aos-work-title">What happened to the equation?</div>
 
-      <div class="aos-work-grid">
-        <div class="aos-work-math">
-          <div class="aos-eq-row aos-row-original">
-            <span>${escapeHtml(variable)}</span>
-            <span>${originalSign}</span>
-            <span>${formatNumber(constant)}</span>
-            <span>=</span>
-            <span>${formatNumber(rightValue)}</span>
-          </div>
+      <div class="aos-step-title">What happened to the equation?</div>
 
-          <div class="aos-eq-row aos-row-operation">
-            <span></span>
-            <span></span>
-            <span class="aos-red">${inverseSign}${formatNumber(constant)}</span>
-            <span></span>
-            <span class="aos-red">${inverseSign}${formatNumber(constant)}</span>
-          </div>
+      <div class="aos-step-card">
+        <div class="aos-step-badge">Step 1</div>
+        <div class="aos-step-label">Original Equation</div>
+        <div class="aos-step-equation">${originalEquation}</div>
+      </div>
 
-          <div class="aos-eq-line"></div>
-
-          <div class="aos-eq-row aos-row-cancel">
-            <span>${escapeHtml(variable)}</span>
-            <span>${originalSign}</span>
-            <span>
-              <span class="aos-cancel">${formatNumber(constant)}</span>
-              <span class="aos-red aos-cancel">${inverseSign}${formatNumber(constant)}</span>
-            </span>
-            <span>=</span>
-            <span>${rightExpression}</span>
-          </div>
-
-          <div class="aos-eq-line"></div>
-
-          <div class="aos-eq-row aos-row-final">
-            <span>${escapeHtml(variable)}</span>
-            <span></span>
-            <span></span>
-            <span>=</span>
-            <span class="aos-green">${formatNumber(solutionValue)}</span>
-          </div>
+      <div class="aos-step-card">
+        <div class="aos-step-badge">Step 2</div>
+        <div class="aos-step-label">${inverseAction} ${formatNumber(constant)} from both sides</div>
+        <div class="aos-step-equation">${inverseEquation}</div>
+        <div class="aos-step-note">
+          We use the inverse operation to cancel the number attached to the variable.
         </div>
+      </div>
 
-        <div class="aos-work-notes">
-          <div><strong>1</strong> Apply the inverse operation to both sides.</div>
-          <div><strong>2</strong> The opposite terms cancel on the left.</div>
-          <div><strong>3</strong> Bring down the = sign and solve the right side.</div>
+      <div class="aos-step-card success">
+        <div class="aos-step-badge">Step 3</div>
+        <div class="aos-step-label">Simplify</div>
+        <div class="aos-step-equation">${simplifiedEquation}</div>
+        <div class="aos-step-note">
+          The variable is now isolated, so this is the solution.
         </div>
       </div>
     </div>
@@ -2097,6 +2079,73 @@ function mathRendererStyle() {
           padding-top:10px;
         }
       }
+      .aos-step-tutor{
+  background:#ffffff;
+  border:1px solid #bfdbfe;
+  border-radius:18px;
+  padding:18px;
+  margin-top:14px;
+}
+
+.aos-step-title{
+  font-size:17px;
+  font-weight:1000;
+  color:#1e3a8a;
+  text-align:center;
+  margin-bottom:16px;
+}
+
+.aos-step-card{
+  background:#f8fafc;
+  border:1px solid #dbeafe;
+  border-radius:16px;
+  padding:16px;
+  margin-bottom:14px;
+}
+
+.aos-step-card.success{
+  background:#f0fdf4;
+  border-color:#bbf7d0;
+}
+
+.aos-step-badge{
+  display:inline-block;
+  background:#2563eb;
+  color:white;
+  font-size:12px;
+  font-weight:1000;
+  padding:6px 10px;
+  border-radius:999px;
+  margin-bottom:8px;
+}
+
+.aos-step-label{
+  font-size:14px;
+  font-weight:1000;
+  color:#334155;
+  margin-bottom:10px;
+}
+
+.aos-step-equation{
+  background:white;
+  border:1px solid #e2e8f0;
+  border-radius:14px;
+  padding:14px;
+  font-size:24px;
+  font-weight:1000;
+  color:#0f172a;
+  text-align:center;
+  letter-spacing:.03em;
+  overflow-x:auto;
+}
+
+.aos-step-note{
+  margin-top:10px;
+  font-size:13px;
+  font-weight:800;
+  color:#475569;
+  line-height:1.4;
+}
     </style>
   `;
 }
