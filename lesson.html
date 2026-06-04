@@ -197,16 +197,16 @@ function checkRecoveryAnswer(problemType,correctAnswer){
       ?"✅ Recovery complete. Returning to normal practice."
       :"✅ Correct. Complete one more recovery check.";
 
-    if(state.completed){
-      /*
-        Critical fix:
-        Clear the recovery intervention before generating another question.
-        Otherwise consecutiveErrors remains 5 and the app reopens the tutor.
-      */
-      returnToNormalPracticeAfterRecovery(problemType);
-    }else{
-      setTimeout(()=>generateRecoveryPractice(problemType),900);
-    }
+    if(Number(state.recoveryCorrectStreak || 0) >= 2){
+  returnToNormalPracticeAfterRecovery(problemType);
+}else{
+  state.completed = false;
+  localStorage.setItem(
+    `algebra_recovery_${currentLesson.id}_${problemType}`,
+    JSON.stringify(state)
+  );
+  setTimeout(()=>generateRecoveryPractice(problemType),900);
+}
   }else{
     feedback.style.color="#b91c1c";
     feedback.textContent="Try again. Review the worked example before submitting.";
