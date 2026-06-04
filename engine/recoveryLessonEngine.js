@@ -1563,54 +1563,66 @@ function buildOneStepRecoveryPracticeItems(originalParsed, operation) {
 }
 
 function buildMultiStepRecoveryPracticeItems(parsed, problemType = "multi_step_equation") {
-  const used = new Set([normalizeEquationKey(parsed.equationBefore)]);
-  const requestedSubskill = requestedMultiStepSubskill(problemType);
 
-  const combineCandidates = [
-    {
-      equation: "3x + 4 + 2x = 19",
-      answer: "x = 3"
-    },
-    {
-      equation: "4x + 5 + x = 20",
-      answer: "x = 3"
-    },
-    {
-      equation: "6x - 4 - 2x = 12",
-      answer: "x = 4"
+  const requestedSubskill =
+    requestedMultiStepSubskill(problemType);
+
+  const items = [];
+  const used = new Set();
+
+  while (items.length < 2) {
+
+    let question;
+
+    if (requestedSubskill === "distributive_property") {
+
+      const a = Math.floor(Math.random() * 4) + 2;
+      const x = Math.floor(Math.random() * 8) + 2;
+      const b = Math.floor(Math.random() * 6) + 1;
+
+      const rightSide = a * (x + b);
+
+      question = {
+        equation: `${a}(x + ${b}) = ${rightSide}`,
+        answer: `x = ${x}`
+      };
+
+    } else {
+
+      const x = Math.floor(Math.random() * 8) + 2;
+
+      const a = Math.floor(Math.random() * 4) + 2;
+      const c = Math.floor(Math.random() * 4) + 1;
+      const b = Math.floor(Math.random() * 8) + 1;
+
+      const rightSide =
+        (a + c) * x + b;
+
+      question = {
+        equation: `${a}x + ${b} + ${c}x = ${rightSide}`,
+        answer: `x = ${x}`
+      };
+
     }
-  ];
 
-  const distributiveCandidates = [
-    {
-      equation: "2(x + 3) = 14",
-      answer: "x = 4"
-    },
-    {
-      equation: "3(x + 2) = 21",
-      answer: "x = 5"
-    },
-    {
-      equation: "4(x - 1) = 20",
-      answer: "x = 6"
+    const key =
+      normalizeEquationKey(question.equation);
+
+    if (!used.has(key)) {
+
+      used.add(key);
+
+      items.push({
+        prompt: `Solve: ${question.equation}`,
+        answer: question.answer,
+        equation: question.equation
+      });
+
     }
-  ];
 
-  let candidates;
-
-  if (requestedSubskill === "distributive_property") {
-    candidates = distributiveCandidates;
-  } else if (requestedSubskill === "combine_like_terms") {
-    candidates = combineCandidates;
-  } else if (parsed?.tutorType === "distributive_property") {
-    candidates = distributiveCandidates;
-  } else if (parsed?.tutorType === "combine_like_terms") {
-    candidates = combineCandidates;
-  } else {
-    candidates = [...combineCandidates, ...distributiveCandidates];
   }
 
-  return pickTwoUniquePracticeItems(candidates, used);
+  return items;
 }
 
 function buildVariablesBothSidesRecoveryPracticeItems(parsed) {
