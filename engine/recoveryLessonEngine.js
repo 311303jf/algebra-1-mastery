@@ -1744,7 +1744,7 @@ function renderAdditionSubtractionTransformation(parsed) {
     `${escapeHtml(variable)} ${originalSign} ${formatNumber(constant)} = ${formatNumber(rightValue)}`;
 
   const inverseEquation =
-    `${escapeHtml(variable)} ${originalSign} ${formatNumber(constant)} ${inverseSign} ${formatNumber(constant)} = ${formatNumber(rightValue)} ${inverseSign} ${formatNumber(constant)}`;
+    `${escapeHtml(variable)} ${originalSign} ${formatNumber(constant)} ${inverseSign} ${formatNumber(constant)} = ${formatNumber(rightValue)} ${inverseSign} ${formatNumber(constant)}`; 
 
   const simplifiedEquation =
     `${escapeHtml(variable)} = ${formatNumber(solutionValue)}`;
