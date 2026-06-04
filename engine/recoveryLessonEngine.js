@@ -1,6 +1,6 @@
 /* =========================================================
    ALGEBRA OS — recoveryLessonEngine.js
-   Version: 2101 — RECOVERY TUTOR STEP UI PATCH
+   Version: 2102 — RECOVERY TUTOR STEP UI PATCH
 
    PURPOSE:
    - Compatible with current lesson.html.
