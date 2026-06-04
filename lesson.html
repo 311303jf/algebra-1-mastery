@@ -110,7 +110,13 @@ function generateRecoveryPractice(problemType){if(!currentLesson||!window.Algebr
     style="margin-top:0;"
   >
 </div><div class="intervention-actions"><button class="mini-btn primary" onclick="checkRecoveryAnswer('${problemType}','${String(item.answer).replaceAll("'","\\'")}')">Check Answer</button></div><div id="recoveryFeedback" style="margin-top:8px;font-size:13px;font-weight:900;"></div></div>`;}
-function normalizeRecoveryAnswer(value){return String(value||"").toLowerCase().replace(/\s+/g,"").trim();}
+function normalizeRecoveryAnswer(value){
+  return String(value || "")
+    .toLowerCase()
+    .replace(/x\s*=/g,"")
+    .replace(/\s+/g,"")
+    .trim();
+}
 
 function clearRecoveryInterventionForSkill(lessonId, problemType){
   /*
