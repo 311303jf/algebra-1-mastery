@@ -28,7 +28,7 @@ export function buildTemplateRecoveryLesson(problemType, skillDefinition = {}, m
   return null;
 }
 
-function buildGenericTemplateLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null) {
+function buildGenericTemplateLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
   const skillName = formatSkillName(problemType);
   const strategyName = formatStrategyName(skillDefinition.strategy || "identify_skill");
 
