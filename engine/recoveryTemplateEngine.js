@@ -13,9 +13,16 @@ import {
 
 export function buildTemplateRecoveryLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null) {
   const tutorType = skillDefinition.tutor || "generic_skill";
+  const parsed = parseRecoveryQuestion(problemType, currentQuestion, skillDefinition);
 
   if (tutorType === "generic_skill") {
-    return buildGenericTemplateLesson(problemType, skillDefinition, metadata, currentQuestion);
+    return buildGenericTemplateLesson(
+      problemType,
+      skillDefinition,
+      metadata,
+      currentQuestion,
+      parsed
+    );
   }
 
   return null;
