@@ -1,189 +1,92 @@
 /*
   Algebra OS — Adaptive Engine
-  Version: 1.0
+  Version: 1.1
+  Purpose:
+  - Lightweight difficulty, hint, coach, and XP helper.
+  - StudentSessionEngine remains the main mastery/recovery engine.
 */
 
 const AlgebraAdaptiveEngine = (() => {
-
   function getPerformance(correct, attempted) {
-
-    if (attempted <= 0) {
-
-      return 0;
-
-    }
-
+    if (attempted <= 0) return 0;
     return correct / attempted;
-
   }
 
   function getDifficulty(correct, attempted) {
+    const rate = getPerformance(correct, attempted);
 
-    const rate =
-      getPerformance(correct, attempted);
-
-    if (attempted < 3) {
-
-      return "core";
-
-    }
-
-    if (rate < 0.50) {
-
-      return "support";
-
-    }
-
-    if (rate >= 0.85) {
-
-      return "challenge";
-
-    }
+    if (attempted < 3) return "core";
+    if (rate < 0.5) return "support";
+    if (rate >= 0.85) return "challenge";
 
     return "core";
-
   }
 
-  function getCoachMessage(
-    difficulty,
-    correct,
-    attempted
-  ) {
-
-    const rate = Math.round(
-      getPerformance(correct, attempted) * 100
-    );
+  function getCoachMessage(difficulty, correct, attempted) {
+    const rate = Math.round(getPerformance(correct, attempted) * 100);
 
     if (attempted === 0) {
-
-      return
-      "Start with the first question. Focus on the inverse operation.";
-
+      return "Start with the first question. Focus on identifying the skill before solving.";
     }
 
     if (difficulty === "support") {
-
-      return
-      `You are at ${rate}% accuracy. Let's slow down and practice with simpler numbers.`;
-
+      return `You are at ${rate}% accuracy. Let's slow down and practice with simpler numbers.`;
     }
 
     if (difficulty === "challenge") {
-
-      return
-      `Excellent work: ${rate}% accuracy. You are ready for a challenge set.`;
-
+      return `Excellent work: ${rate}% accuracy. You are ready for a challenge set.`;
     }
 
-    return
-    `You are at ${rate}% accuracy. Keep practicing at the core level.`;
-
+    return `You are at ${rate}% accuracy. Keep practicing at the core level.`;
   }
 
   function getHintPolicy(difficulty) {
-
     if (difficulty === "support") {
-
       return {
-
         showHintEarly: true,
-
-        hintMessage:
-          "Hint recommended: identify the operation attached to x first."
-
+        hintMessage: "Hint recommended: identify the skill and first operation before solving."
       };
-
     }
 
     if (difficulty === "challenge") {
-
       return {
-
         showHintEarly: false,
-
-        hintMessage:
-          "Try solving independently before using a hint."
-
+        hintMessage: "Try solving independently before using a hint."
       };
-
     }
 
     return {
-
       showHintEarly: false,
-
-      hintMessage:
-        "Use a hint if you feel stuck."
-
+      hintMessage: "Use a hint if you feel stuck."
     };
-
   }
 
   function getXPValue(difficulty) {
-
-    if (difficulty === "support") {
-
-      return 15;
-
-    }
-
-    if (difficulty === "challenge") {
-
-      return 35;
-
-    }
-
+    if (difficulty === "support") return 15;
+    if (difficulty === "challenge") return 35;
     return 25;
-
   }
 
-  function createAdaptiveProfile(
-    correct,
-    attempted
-  ) {
-
-    const difficulty =
-      getDifficulty(correct, attempted);
+  function createAdaptiveProfile(correct, attempted) {
+    const difficulty = getDifficulty(correct, attempted);
 
     return {
-
       difficulty,
-
-      accuracy: Math.round(
-        getPerformance(correct, attempted) * 100
-      ),
-
-      coachMessage:
-        getCoachMessage(
-          difficulty,
-          correct,
-          attempted
-        ),
-
-      hintPolicy:
-        getHintPolicy(difficulty),
-
-      xpValue:
-        getXPValue(difficulty)
-
+      accuracy: Math.round(getPerformance(correct, attempted) * 100),
+      coachMessage: getCoachMessage(difficulty, correct, attempted),
+      hintPolicy: getHintPolicy(difficulty),
+      xpValue: getXPValue(difficulty)
     };
-
   }
 
   return {
-
     getPerformance,
-
     getDifficulty,
-
     getCoachMessage,
-
     getHintPolicy,
-
     getXPValue,
-
     createAdaptiveProfile
-
   };
-
 })();
+
+window.AlgebraAdaptiveEngine = AlgebraAdaptiveEngine;
