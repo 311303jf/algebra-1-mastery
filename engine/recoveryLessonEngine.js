@@ -32,6 +32,10 @@
    - v2102: Rewrites renderer functions for clean step-card UI.
 ========================================================= */
 
+import {
+  getRecoverySkillDefinition,
+  getRecoveryTutorType
+} from "./recoverySkillRegistry.js?v=1000";
 const RECOVERY_PREFIX = "algebra_recovery_";
 
 
@@ -175,17 +179,27 @@ function tutorSynonymSet(value) {
 
 function generateRecoveryLesson(problemType = "one_step_addition_equation", metadata = {}, currentQuestion = null) {
   installRecoveryTutorKeyboardSupport();
-  const skill = normalizeSkill(problemType);
+
+  const skillDefinition = getRecoverySkillDefinition(problemType);
+  const tutorType = getRecoveryTutorType(problemType);
+
   let lesson;
-  if (isOneStepEquationSkill(skill)) {
+
+  if (tutorType === "one_step_equation") {
     lesson = buildOneStepEquationLesson(problemType, metadata, currentQuestion);
-  } else if (isMultiStepEquationSkill(skill)) {
+  } else if (tutorType === "multi_step_equation") {
     lesson = buildMultiStepEquationLesson(problemType, metadata, currentQuestion);
-  } else if (isVariablesBothSidesSkill(skill)) {
+  } else if (tutorType === "variables_both_sides") {
     lesson = buildVariablesBothSidesLesson(problemType, metadata, currentQuestion);
   } else {
     lesson = buildGenericLesson(problemType, metadata, currentQuestion);
   }
+
+  lesson.registry = {
+    problemType,
+    ...skillDefinition
+  };
+
   return certifyAndRepairRecoveryLesson(lesson, problemType, currentQuestion);
 }
 
