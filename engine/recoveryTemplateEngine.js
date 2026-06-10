@@ -138,6 +138,77 @@ function buildGenericTemplateLesson(problemType, skillDefinition = {}, metadata 
     source: "recoveryTemplateEngine_v2200"
   };
 }
+
+function buildLinearEquationTemplateLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
+  const skillName = formatSkillName(problemType);
+  const operation = skillDefinition.operation || "mixed";
+
+  return {
+    title: `Recovery Tutor: ${skillName}`,
+    diagnostic: {
+      problemType,
+      family: skillDefinition.family || "linear_equation",
+      strategy: skillDefinition.strategy || "inverse_operation",
+      operation,
+      tutorType: "linear_equation_template",
+      parsed
+    },
+    conceptSummary: [
+      "A linear equation is solved by isolating the variable.",
+      "Use inverse operations to undo what is attached to the variable.",
+      "Whatever you do to one side, you must do to the other side."
+    ],
+    misconception:
+      metadata?.misconception ||
+      "A common mistake is using the same operation instead of the inverse operation.",
+    tutorDialogue: [
+      {
+        id: "identify_operation",
+        tutor: `<div><strong>Problem:</strong> ${escapeHtml(parsed?.originalText || "linear equation")}</div><div style="margin-top:8px;">What should you identify first?</div>`,
+        choices: [
+          "The operation attached to the variable",
+          "A random answer",
+          "The largest number",
+          "The answer choice pattern"
+        ],
+        expected: ["The operation attached to the variable"],
+        explanation: "Correct. First identify what operation is attached to the variable.",
+        theory: "To solve an equation, first ask what is being done to the variable. Then undo that operation."
+      },
+      {
+        id: "use_inverse",
+        tutor: `<div><strong>Strategy:</strong> Use inverse operations.</div><div style="margin-top:8px;">What should you do to isolate the variable?</div>`,
+        choices: [
+          "Use the inverse operation on both sides",
+          "Only change the left side",
+          "Only change the right side",
+          "Guess and check only"
+        ],
+        expected: ["Use the inverse operation on both sides"],
+        explanation: "Correct. Use the inverse operation on both sides to keep the equation balanced.",
+        theory: "Equations stay balanced only when the same operation is applied to both sides."
+      }
+    ],
+    workedExample: [
+      "Identify the operation attached to the variable.",
+      "Choose the inverse operation.",
+      "Apply the inverse operation to both sides.",
+      "Simplify and check the solution."
+    ],
+    video: null,
+    recoveryPractice: [
+      {
+        prompt: "What should you identify first in a one-step equation?",
+        answer: "The operation attached to the variable"
+      },
+      {
+        prompt: "What operation should you use to isolate the variable?",
+        answer: "The inverse operation"
+      }
+    ],
+    source: "recoveryTemplateEngine_v2600"
+  };
+}
 function buildLinearInequalityTemplateLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
   const skillName = formatSkillName(problemType);
 
