@@ -6,7 +6,7 @@ import {
   Version: 2200
 
   Purpose:
-  - Generate reusable Recovery Tutor templates from registry definitions.
+  - Generate reusable Recovery Tutor templates from registry definitions. 
   - Reduce lesson-specific hardcoding.
   - Provide automatic generic tutors for skills not yet supported by custom parsers.
 */
