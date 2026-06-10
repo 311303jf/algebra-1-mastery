@@ -13,35 +13,35 @@ export const RECOVERY_SKILL_REGISTRY = {
     family: "linear_equation",
     strategy: "inverse_operation",
     operation: "mixed",
-    tutor: "one_step_equation"
+    tutor: "linear_equation_template"
   },
 
   one_step_addition_equation: {
     family: "linear_equation",
     strategy: "inverse_operation",
     operation: "addition",
-    tutor: "one_step_equation"
+    tutor: "linear_equation_template"
   },
 
   one_step_subtraction_equation: {
     family: "linear_equation",
     strategy: "inverse_operation",
     operation: "subtraction",
-    tutor: "one_step_equation"
+    tutor: "linear_equation_template"
   },
 
   one_step_multiplication_equation: {
     family: "linear_equation",
     strategy: "inverse_operation",
     operation: "multiplication",
-    tutor: "one_step_equation"
+    tutor: "linear_equation_template"
   },
 
   one_step_division_equation: {
     family: "linear_equation",
     strategy: "inverse_operation",
     operation: "division",
-    tutor: "one_step_equation"
+    tutor: "linear_equation_template"
   },
 
   two_step_equation: {
