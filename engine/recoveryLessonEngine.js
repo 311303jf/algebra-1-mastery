@@ -36,6 +36,10 @@ import {
   getRecoverySkillDefinition,
   getRecoveryTutorType
 } from "./recoverySkillRegistry.js?v=1000";
+
+import {
+  buildTemplateRecoveryLesson
+} from "./recoveryTemplateEngine.js?v=2200";
 const RECOVERY_PREFIX = "algebra_recovery_";
 
 
