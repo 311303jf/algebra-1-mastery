@@ -15,18 +15,47 @@ export function buildTemplateRecoveryLesson(problemType, skillDefinition = {}, m
   const tutorType = skillDefinition.tutor || "generic_skill";
   const parsed = parseRecoveryQuestion(problemType, currentQuestion, skillDefinition);
 
-  if (tutorType === "generic_skill") {
-    return buildGenericTemplateLesson(
-      problemType,
-      skillDefinition,
-      metadata,
-      currentQuestion,
-      parsed
-    );
-  }
-
-  return null;
+if (skillDefinition.family === "linear_inequality") {
+  return buildLinearInequalityTemplateLesson(
+    problemType,
+    skillDefinition,
+    metadata,
+    currentQuestion,
+    parsed
+  );
 }
+
+if (skillDefinition.family === "compound_inequality") {
+  return buildCompoundInequalityTemplateLesson(
+    problemType,
+    skillDefinition,
+    metadata,
+    currentQuestion,
+    parsed
+  );
+}
+
+if (skillDefinition.family === "absolute_value") {
+  return buildAbsoluteValueTemplateLesson(
+    problemType,
+    skillDefinition,
+    metadata,
+    currentQuestion,
+    parsed
+  );
+}
+
+if (tutorType === "generic_skill") {
+  return buildGenericTemplateLesson(
+    problemType,
+    skillDefinition,
+    metadata,
+    currentQuestion,
+    parsed
+  );
+}
+
+return null;
 
 function buildGenericTemplateLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
   const skillName = formatSkillName(problemType);
