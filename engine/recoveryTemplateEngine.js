@@ -15,6 +15,16 @@ export function buildTemplateRecoveryLesson(problemType, skillDefinition = {}, m
   const tutorType = skillDefinition.tutor || "generic_skill";
   const parsed = parseRecoveryQuestion(problemType, currentQuestion, skillDefinition);
 
+  if (skillDefinition.tutor === "linear_equation_template") {
+  return buildLinearEquationTemplateLesson(
+    problemType,
+    skillDefinition,
+    metadata,
+    currentQuestion,
+    parsed
+  );
+}
+
 if (skillDefinition.family === "linear_inequality") {
   return buildLinearInequalityTemplateLesson(
     problemType,
