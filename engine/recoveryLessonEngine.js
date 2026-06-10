@@ -187,7 +187,7 @@ function generateRecoveryLesson(problemType = "one_step_addition_equation", meta
   const skillDefinition = getRecoverySkillDefinition(problemType);
   const tutorType = getRecoveryTutorType(problemType);
 
-  let lesson;
+  let lesson = null;
 
   if (tutorType === "one_step_equation") {
     lesson = buildOneStepEquationLesson(problemType, metadata, currentQuestion);
@@ -195,7 +195,18 @@ function generateRecoveryLesson(problemType = "one_step_addition_equation", meta
     lesson = buildMultiStepEquationLesson(problemType, metadata, currentQuestion);
   } else if (tutorType === "variables_both_sides") {
     lesson = buildVariablesBothSidesLesson(problemType, metadata, currentQuestion);
-  } else {
+  }
+
+  if (!lesson) {
+    lesson = buildTemplateRecoveryLesson(
+      problemType,
+      skillDefinition,
+      metadata,
+      currentQuestion
+    );
+  }
+
+  if (!lesson) {
     lesson = buildGenericLesson(problemType, metadata, currentQuestion);
   }
 
