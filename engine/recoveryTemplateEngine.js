@@ -56,6 +56,7 @@ if (tutorType === "generic_skill") {
 }
 
 return null;
+}
 
 function buildGenericTemplateLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
   const skillName = formatSkillName(problemType);
