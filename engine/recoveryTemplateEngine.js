@@ -35,11 +35,12 @@ function buildGenericTemplateLesson(problemType, skillDefinition = {}, metadata 
   return {
     title: `Recovery Tutor: ${skillName}`,
     diagnostic: {
-      problemType,
-      family: skillDefinition.family || "generic",
-      strategy: skillDefinition.strategy || "identify_skill",
-      tutorType: "generic_skill_template"
-    },
+  problemType,
+  family: skillDefinition.family || "generic",
+  strategy: skillDefinition.strategy || "identify_skill",
+  tutorType: "generic_skill_template",
+  parsed
+},
     conceptSummary: [
       `This skill belongs to the ${formatSkillName(skillDefinition.family || "general math")} family.`,
       `The main strategy is: ${strategyName}.`,
