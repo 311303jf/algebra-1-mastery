@@ -5253,26 +5253,38 @@ function generateChoices(answer, problemType) {
     return generateQuadraticAnswerChoices(answer, problemType, finalizeChoices);
   }
 
-  if (
-    type.includes("exponent") ||
-    type.includes("scientific") ||
-    type.includes("exponential") ||
-    type.includes("growth") ||
-    type.includes("decay")
-  ) {
-    return finalizeChoices(answer, [
-      "1",
-      "0",
-      "Exponential growth",
-      "Exponential decay",
-      "Exponential function",
-      "Linear function",
-      "Quadratic function",
-      "Cannot be determined",
-      String(answer).replace("^", "^2"),
-      String(answer).replace("×", "÷")
-    ]);
-  }
+// Exponential FUNCTIONS
+if (
+  type.includes("exponential") ||
+  type.includes("growth") ||
+  type.includes("decay")
+) {
+
+  return finalizeChoices(answer, [
+    "Exponential growth",
+    "Exponential decay",
+    "Exponential function",
+    "Linear function",
+    "Quadratic function",
+    "Cannot be determined"
+  ]);
+
+}
+
+
+// Exponent RULES
+if (
+  type.includes("exponent") ||
+  type.includes("scientific")
+) {
+
+  return generateExponentAnswerChoices(
+    answer,
+    problemType,
+    finalizeChoices
+  );
+
+}
 
   if (
     type.includes("polynomial") ||
