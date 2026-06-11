@@ -5294,12 +5294,23 @@ function generateChoices(answer, problemType) {
     return generateQuadraticAnswerChoices(answer, problemType, finalizeChoices);
   }
 
-// Exponential FUNCTIONS
+// Exponential FUNCTIONS / MODELS / TABLES / GRAPHS
 if (
-  type.includes("exponential") ||
-  type.includes("growth") ||
-  type.includes("decay")
+  type.includes("exponential_growth") ||
+  type.includes("exponential_decay") ||
+  type.includes("growth_decay") ||
+  type.includes("identify_exponential") ||
+  type.includes("write_exponential_model") ||
+  type.includes("exponential_table") ||
+  type.includes("exponential_graph") ||
+  type.includes("compare_exponential_growth")
 ) {
+  return generateExponentialFunctionAnswerChoices(
+    answer,
+    problemType,
+    finalizeChoices
+  );
+}
 
   return finalizeChoices(answer, [
     "Exponential growth",
