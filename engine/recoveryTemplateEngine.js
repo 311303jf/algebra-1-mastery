@@ -45,6 +45,36 @@ if (skillDefinition.tutor === "variables_both_sides_template") {
   );
 }
 
+  if (skillDefinition.tutor === "exponent_template") {
+  return buildExponentTemplateLesson(
+    problemType,
+    skillDefinition,
+    metadata,
+    currentQuestion,
+    parsed
+  );
+}
+
+if (skillDefinition.tutor === "factoring_template") {
+  return buildFactoringTemplateLesson(
+    problemType,
+    skillDefinition,
+    metadata,
+    currentQuestion,
+    parsed
+  );
+}
+
+if (skillDefinition.tutor === "quadratic_template") {
+  return buildQuadraticTemplateLesson(
+    problemType,
+    skillDefinition,
+    metadata,
+    currentQuestion,
+    parsed
+  );
+}
+  
 if (skillDefinition.family === "linear_inequality") {
   return buildLinearInequalityTemplateLesson(
     problemType,
