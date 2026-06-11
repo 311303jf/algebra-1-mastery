@@ -5507,7 +5507,23 @@ function generateExponentAnswerChoices(answer, problemType, finalizeChoices) {
       `${variable}^${exponent}`
     ]);
   }
+  const quotientExpressionMatch = text.match(/^(-?\d+)([a-z])\^(-?\d+)\s*÷\s*(-?\d+)$/i);
 
+  if (quotientExpressionMatch) {
+    const coeff = Number(quotientExpressionMatch[1]);
+    const variable = quotientExpressionMatch[2];
+    const exponent = Number(quotientExpressionMatch[3]);
+    const denominator = Number(quotientExpressionMatch[4]);
+
+    return finalizeChoices(text, [
+      `${coeff}${variable}^${exponent + 1} ÷ ${denominator}`,
+      `${coeff}${variable}^${Math.max(1, exponent - 1)} ÷ ${denominator}`,
+      `${coeff}${variable}^${exponent} ÷ ${denominator + 1}`,
+      `${Math.max(1, coeff / 2)}${variable}^${exponent} ÷ ${denominator}`,
+      `${coeff}${variable} ÷ ${denominator}`
+    ]);
+  }
+   
   if (text.includes("× 10^")) {
     const expMatch = text.match(/×\s*10\^(-?\d+)/);
     const coeffMatch = text.match(/^(-?\d+(?:\.\d+)?)/);
