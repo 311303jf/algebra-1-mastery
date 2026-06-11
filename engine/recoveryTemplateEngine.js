@@ -25,6 +25,26 @@ export function buildTemplateRecoveryLesson(problemType, skillDefinition = {}, m
   );
 }
 
+  if (skillDefinition.tutor === "multi_step_template") {
+  return buildMultiStepTemplateLesson(
+    problemType,
+    skillDefinition,
+    metadata,
+    currentQuestion,
+    parsed
+  );
+}
+
+if (skillDefinition.tutor === "variables_both_sides_template") {
+  return buildVariablesBothSidesTemplateLesson(
+    problemType,
+    skillDefinition,
+    metadata,
+    currentQuestion,
+    parsed
+  );
+}
+
 if (skillDefinition.family === "linear_inequality") {
   return buildLinearInequalityTemplateLesson(
     problemType,
