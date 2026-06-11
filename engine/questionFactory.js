@@ -4784,6 +4784,12 @@ function buildQuestion({ prompt, answer, problemType, difficulty, solutionSteps 
 
   const choices = generateChoices(cleanAnswer, problemType);
 
+   if (!areChoicesFamilyConsistent(cleanAnswer, problemType, choices)) {
+  throw new Error(
+    `QuestionFactory Choice Family Error: Invalid choices for ${problemType}: ${choices.join(" | ")}`
+  );
+}
+
   return {
     id: createId(),
     prompt: cleanPrompt,
@@ -5136,6 +5142,41 @@ function addUniqueByEquivalence(list, choice) {
   }
 }
 
+function areChoicesFamilyConsistent(answer, problemType, choices) {
+  const type = String(problemType || "").toLowerCase();
+  const list = Array.isArray(choices) ? choices.map(String) : [];
+
+  const forbiddenForExpression = [
+    /^x\s*=/i,
+    /^y\s*=/i,
+    /^t\s*=/i,
+    /all real numbers/i,
+    /no solution/i,
+    /no real solutions/i,
+    /exponential growth/i,
+    /exponential decay/i,
+    /linear function/i,
+    /quadratic function/i,
+    /exponential function/i,
+    /cannot be determined/i
+  ];
+
+  const isExponentExpressionSkill =
+    type.includes("exponent") ||
+    type.includes("scientific") ||
+    type === "power_of_product" ||
+    type === "power_of_quotient" ||
+    type === "mixed_exponent_simplify" ||
+    type === "rewrite_with_positive_exponents";
+
+  if (isExponentExpressionSkill) {
+    return list.every(choice =>
+      !forbiddenForExpression.some(pattern => pattern.test(choice))
+    );
+  }
+
+  return true;
+}
 
 function generateChoices(answer, problemType) {
   if (typeof answer !== "string") answer = String(answer);
