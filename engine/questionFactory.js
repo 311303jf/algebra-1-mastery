@@ -5430,7 +5430,82 @@ if (
   return finalizeChoices(answer, shuffle(Array.from(distractors)));
 }
 
+function generateExponentAnswerChoices(answer, problemType, finalizeChoices) {
+  const text = String(answer || "").trim();
+  const type = String(problemType || "").toLowerCase();
 
+  const powerMatch = text.match(/^([a-z])\^(-?\d+)$/i);
+
+  if (powerMatch) {
+    const base = powerMatch[1];
+    const exponent = Number(powerMatch[2]);
+
+    return finalizeChoices(text, [
+      `${base}^${exponent + 1}`,
+      `${base}^${Math.max(0, exponent - 1)}`,
+      `${base}^${exponent + 2}`,
+      `${base}^${Math.abs(exponent)}`,
+      "1",
+      `${base}`
+    ]);
+  }
+
+  const coefficientPowerMatch = text.match(/^(-?\d+)([a-z])\^(-?\d+)$/i);
+
+  if (coefficientPowerMatch) {
+    const coeff = Number(coefficientPowerMatch[1]);
+    const variable = coefficientPowerMatch[2];
+    const exponent = Number(coefficientPowerMatch[3]);
+
+    return finalizeChoices(text, [
+      `${coeff + 1}${variable}^${exponent}`,
+      `${coeff}${variable}^${exponent + 1}`,
+      `${coeff}${variable}^${Math.max(0, exponent - 1)}`,
+      `${Math.abs(coeff)}${variable}^${exponent}`,
+      "1",
+      `${variable}^${exponent}`
+    ]);
+  }
+
+  if (text.includes("× 10^")) {
+    const expMatch = text.match(/×\s*10\^(-?\d+)/);
+    const coeffMatch = text.match(/^(-?\d+(?:\.\d+)?)/);
+
+    if (expMatch && coeffMatch) {
+      const exponent = Number(expMatch[1]);
+      const coeff = Number(coeffMatch[1]);
+
+      return finalizeChoices(text, [
+        `${formatNumber(coeff)} × 10^${exponent + 1}`,
+        `${formatNumber(coeff)} × 10^${exponent - 1}`,
+        `${formatNumber(coeff + 1)} × 10^${exponent}`,
+        `${formatNumber(Math.max(1, coeff - 1))} × 10^${exponent}`,
+        `${formatNumber(coeff)} × 10^${Math.abs(exponent)}`
+      ]);
+    }
+  }
+
+  if (!Number.isNaN(Number(text))) {
+    const value = Number(text);
+
+    return finalizeChoices(text, [
+      formatNumber(value + 1),
+      formatNumber(value - 1),
+      formatNumber(value * 10),
+      formatNumber(value / 10),
+      "1",
+      "0"
+    ]);
+  }
+
+  return finalizeChoices(text, [
+    String(text).replace("^", "^2"),
+    String(text).replace("×", "÷"),
+    "1",
+    "0",
+    "Cannot be determined"
+  ]);
+}
 
 function generateQuadraticAnswerChoices(answer, problemType, finalizeChoices) {
   const text = String(answer || "").trim();
