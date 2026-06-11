@@ -53,41 +53,41 @@ export const RECOVERY_SKILL_REGISTRY = {
   multi_step_equation: {
     family: "linear_equation",
     strategy: "simplify_then_solve",
-    tutor: "multi_step_equation"
+    tutor: "multi_step_template"
   },
 
   combine_like_terms: {
     family: "linear_equation",
     strategy: "simplify_then_solve",
     firstStep: "combine_like_terms",
-    tutor: "multi_step_equation"
+    tutor: "multi_step_template"
   },
 
   combine_like_terms_equation: {
     family: "linear_equation",
     strategy: "simplify_then_solve",
     firstStep: "combine_like_terms",
-    tutor: "multi_step_equation"
+    tutor: "multi_step_template"
   },
 
   distributive_property: {
     family: "linear_equation",
     strategy: "simplify_then_solve",
     firstStep: "distributive_property",
-    tutor: "multi_step_equation"
+    tutor: "multi_step_template"
   },
 
   distributive_property_equation: {
     family: "linear_equation",
     strategy: "simplify_then_solve",
     firstStep: "distributive_property",
-    tutor: "multi_step_equation"
+    tutor: "multi_step_template"
   },
 
   variables_both_sides: {
     family: "linear_equation",
     strategy: "move_variables_first",
-    tutor: "variables_both_sides"
+    tutor: "variables_both_sides_template"
   },
 
   inequality: {
