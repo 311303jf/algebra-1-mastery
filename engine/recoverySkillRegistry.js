@@ -150,7 +150,7 @@ export const RECOVERY_SKILL_REGISTRY = {
     tutor: "generic_skill"
   },
 
-  product_rule_exponents: {
+   product_rule_exponents: {
     family: "exponents",
     strategy: "add_exponents",
     tutor: "exponent_template"
@@ -166,7 +166,74 @@ export const RECOVERY_SKILL_REGISTRY = {
     family: "exponents",
     strategy: "multiply_exponents",
     tutor: "exponent_template"
+  },
+
+  power_of_product: {
+    family: "exponents",
+    strategy: "distribute_power",
+    tutor: "exponent_template"
+  },
+
+  power_of_quotient: {
+    family: "exponents",
+    strategy: "distribute_power",
+    tutor: "exponent_template"
+  },
+
+  factoring: {
+    family: "factoring",
+    strategy: "find_two_numbers",
+    tutor: "factoring_template"
+  },
+
+  identify_special_factoring_pattern: {
+    family: "factoring",
+    strategy: "recognize_pattern",
+    tutor: "factoring_template"
+  },
+
+  mixed_special_factoring: {
+    family: "factoring",
+    strategy: "recognize_pattern",
+    tutor: "factoring_template"
+  },
+
+  solve_quadratic_by_factoring: {
+    family: "quadratics",
+    strategy: "factor_and_zero_product",
+    tutor: "quadratic_template"
+  },
+
+  zero_product_property: {
+    family: "quadratics",
+    strategy: "zero_product",
+    tutor: "quadratic_template"
+  },
+
+  quadratic_factoring_word_problem: {
+    family: "quadratics",
+    strategy: "context_root",
+    tutor: "quadratic_template"
+  },
+
+  quadratic_number_of_solutions: {
+    family: "quadratics",
+    strategy: "analyze_roots",
+    tutor: "quadratic_template"
+  },
+
+  interpret_quadratic_roots: {
+    family: "quadratics",
+    strategy: "meaningful_root",
+    tutor: "quadratic_template"
+  },
+
+  quadratic_formula_real_solutions: {
+    family: "quadratics",
+    strategy: "quadratic_formula",
+    tutor: "quadratic_template"
   }
+
 };
 
 export function normalizeRecoverySkillKey(problemType) {
