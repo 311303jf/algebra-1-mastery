@@ -5144,7 +5144,26 @@ function addUniqueByEquivalence(list, choice) {
 
 function areChoicesFamilyConsistent(answer, problemType, choices) {
   const type = String(problemType || "").toLowerCase();
+  const text = String(answer || "").trim();
   const list = Array.isArray(choices) ? choices.map(String) : [];
+
+  const isExponentExpressionSkill =
+    type.includes("exponent") ||
+    type.includes("scientific") ||
+    type === "power_of_product" ||
+    type === "power_of_quotient" ||
+    type === "mixed_exponent_simplify" ||
+    type === "rewrite_with_positive_exponents";
+
+  const isExponentialFunctionSkill =
+    type.includes("exponential_growth") ||
+    type.includes("exponential_decay") ||
+    type.includes("growth_decay") ||
+    type.includes("identify_exponential") ||
+    type.includes("write_exponential_model") ||
+    type.includes("exponential_table") ||
+    type.includes("exponential_graph") ||
+    type.includes("compare_exponential_growth");
 
   const forbiddenForExpression = [
     /^x\s*=/i,
@@ -5161,18 +5180,14 @@ function areChoicesFamilyConsistent(answer, problemType, choices) {
     /cannot be determined/i
   ];
 
-  const isExponentExpressionSkill =
-    type.includes("exponent") ||
-    type.includes("scientific") ||
-    type === "power_of_product" ||
-    type === "power_of_quotient" ||
-    type === "mixed_exponent_simplify" ||
-    type === "rewrite_with_positive_exponents";
-
-  if (isExponentExpressionSkill) {
+  if (isExponentExpressionSkill && !isExponentialFunctionSkill) {
     return list.every(choice =>
       !forbiddenForExpression.some(pattern => pattern.test(choice))
     );
+  }
+
+  if (isExponentialFunctionSkill) {
+    return true;
   }
 
   return true;
