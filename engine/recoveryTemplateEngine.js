@@ -229,6 +229,158 @@ function buildLinearEquationTemplateLesson(problemType, skillDefinition = {}, me
     source: "recoveryTemplateEngine_v2600"
   };
 }
+function buildMultiStepTemplateLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
+  const skillName = formatSkillName(problemType);
+  const firstStep = skillDefinition.firstStep || "simplify";
+
+  return {
+    title: `Recovery Tutor: ${skillName}`,
+    diagnostic: {
+      problemType,
+      family: skillDefinition.family || "linear_equation",
+      strategy: skillDefinition.strategy || "simplify_then_solve",
+      firstStep,
+      tutorType: "multi_step_template",
+      parsed
+    },
+    conceptSummary: [
+      "A multi-step equation must be simplified before solving.",
+      "First combine like terms or use the distributive property when needed.",
+      "After simplifying, use inverse operations to isolate the variable."
+    ],
+    misconception:
+      metadata?.misconception ||
+      "A common mistake is jumping straight to the answer without simplifying first.",
+    tutorDialogue: [
+      {
+        id: "identify_first_step",
+        tutor: `<div><strong>Problem:</strong> ${escapeHtml(parsed?.originalText || "multi-step equation")}</div><div style="margin-top:8px;">What should you do first?</div>`,
+        choices: [
+          firstStep === "distributive_property" ? "Use the distributive property" : "Combine like terms",
+          "Divide both sides immediately",
+          "Guess the value of x",
+          "Ignore the expression structure"
+        ],
+        expected: [
+          firstStep === "distributive_property" ? "Use the distributive property" : "Combine like terms"
+        ],
+        explanation:
+          firstStep === "distributive_property"
+            ? "Correct. First use the distributive property to remove parentheses."
+            : "Correct. First combine like terms before solving.",
+        theory: "Before solving a multi-step equation, simplify the expression so the equation becomes easier to solve."
+      },
+      {
+        id: "solve_after_simplifying",
+        tutor: `<div><strong>Strategy:</strong> Simplify first, then solve.</div><div style="margin-top:8px;">What should you do after simplifying?</div>`,
+        choices: [
+          "Use inverse operations to isolate the variable",
+          "Stop immediately",
+          "Change the equation",
+          "Use only mental guessing"
+        ],
+        expected: ["Use inverse operations to isolate the variable"],
+        explanation: "Correct. After simplifying, use inverse operations to isolate the variable.",
+        theory: "Once the equation is simplified, solve it like a two-step or one-step equation."
+      }
+    ],
+    workedExample: [
+      "Inspect the equation structure.",
+      firstStep === "distributive_property"
+        ? "Use the distributive property first."
+        : "Combine like terms first.",
+      "Simplify the equation.",
+      "Use inverse operations.",
+      "Check the solution."
+    ],
+    video: null,
+    recoveryPractice: [
+      {
+        prompt: "What should you usually do first in a multi-step equation?",
+        answer:
+          firstStep === "distributive_property"
+            ? "Use the distributive property"
+            : "Combine like terms"
+      },
+      {
+        prompt: "What should you do after simplifying?",
+        answer: "Use inverse operations"
+      }
+    ],
+    source: "recoveryTemplateEngine_v2700"
+  };
+}
+
+function buildVariablesBothSidesTemplateLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
+  const skillName = formatSkillName(problemType);
+
+  return {
+    title: `Recovery Tutor: ${skillName}`,
+    diagnostic: {
+      problemType,
+      family: skillDefinition.family || "linear_equation",
+      strategy: skillDefinition.strategy || "move_variables_first",
+      tutorType: "variables_both_sides_template",
+      parsed
+    },
+    conceptSummary: [
+      "When variables appear on both sides, move variable terms to one side first.",
+      "Then move constants to the other side.",
+      "Finally, use inverse operations to isolate the variable."
+    ],
+    misconception:
+      metadata?.misconception ||
+      "A common mistake is moving constants first before collecting variable terms.",
+    tutorDialogue: [
+      {
+        id: "move_variables_first",
+        tutor: `<div><strong>Problem:</strong> ${escapeHtml(parsed?.originalText || "variables on both sides")}</div><div style="margin-top:8px;">What should you move first?</div>`,
+        choices: [
+          "Move variable terms",
+          "Move constants first",
+          "Divide immediately",
+          "Change the equal sign"
+        ],
+        expected: ["Move variable terms"],
+        explanation: "Correct. Move variable terms first so all variables are on one side.",
+        theory: "Variables on both sides must be collected before isolating the variable."
+      },
+      {
+        id: "move_constants_next",
+        tutor: `<div><strong>Strategy:</strong> Variables first, constants second.</div><div style="margin-top:8px;">What should you move after variable terms are together?</div>`,
+        choices: [
+          "Move constants",
+          "Move variables again",
+          "Stop solving",
+          "Guess the answer"
+        ],
+        expected: ["Move constants"],
+        explanation: "Correct. After variables are together, move constants away from the variable term.",
+        theory: "Once variables are on one side, move constants to the other side and solve."
+      }
+    ],
+    workedExample: [
+      "Identify variable terms on both sides.",
+      "Move variable terms to one side.",
+      "Move constants to the other side.",
+      "Divide or multiply to isolate the variable.",
+      "Check the solution."
+    ],
+    video: null,
+    recoveryPractice: [
+      {
+        prompt: "What should you move first when variables are on both sides?",
+        answer: "Move variable terms"
+      },
+      {
+        prompt: "What should you move after variable terms are together?",
+        answer: "Move constants"
+      }
+    ],
+    source: "recoveryTemplateEngine_v2700"
+  };
+}
+
 function buildLinearInequalityTemplateLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
   const skillName = formatSkillName(problemType);
 
