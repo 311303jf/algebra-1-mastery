@@ -411,6 +411,251 @@ function buildVariablesBothSidesTemplateLesson(problemType, skillDefinition = {}
   };
 }
 
+function buildExponentTemplateLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
+  const skillName = formatSkillName(problemType);
+  const strategy = skillDefinition.strategy || "exponent_rule";
+
+  const strategyLabel =
+    strategy === "add_exponents"
+      ? "Add the exponents"
+      : strategy === "subtract_exponents"
+        ? "Subtract the exponents"
+        : strategy === "multiply_exponents"
+          ? "Multiply the exponents"
+          : strategy === "distribute_power"
+            ? "Apply the power to each factor"
+            : "Identify the exponent rule";
+
+  return {
+    title: `Recovery Tutor: ${skillName}`,
+    diagnostic: {
+      problemType,
+      family: skillDefinition.family || "exponents",
+      strategy,
+      tutorType: "exponent_template",
+      parsed
+    },
+    conceptSummary: [
+      "Exponent rules depend on the structure of the expression.",
+      "When multiplying same bases, add exponents.",
+      "When dividing same bases, subtract exponents.",
+      "When raising a power to a power, multiply exponents."
+    ],
+    misconception:
+      metadata?.misconception ||
+      "A common mistake is using the wrong exponent rule, such as multiplying exponents when the product rule requires addition.",
+    tutorDialogue: [
+      {
+        id: "identify_rule",
+        tutor: `<div><strong>Problem:</strong> ${escapeHtml(parsed?.originalText || "exponent expression")}</div><div style="margin-top:8px;">What should you identify first?</div>`,
+        choices: [
+          "The exponent rule",
+          "Only the base letter",
+          "A random exponent",
+          "The largest number"
+        ],
+        expected: ["The exponent rule"],
+        explanation: `Correct. First identify the rule. Here the strategy is: <strong>${escapeHtml(strategyLabel)}</strong>.`,
+        theory: "Exponent problems are mostly about matching the structure to the correct rule."
+      },
+      {
+        id: "apply_rule",
+        tutor: `<div><strong>Strategy:</strong> ${escapeHtml(strategyLabel)}</div><div style="margin-top:8px;">What should you do next?</div>`,
+        choices: [
+          strategyLabel,
+          "Always add the bases",
+          "Always multiply the bases",
+          "Ignore the exponent"
+        ],
+        expected: [strategyLabel],
+        explanation: "Correct. Apply the matching exponent rule carefully.",
+        theory: "The base usually stays the same. The operation changes how the exponents combine."
+      }
+    ],
+    workedExample: [
+      "Look at the structure of the expression.",
+      "Decide which exponent rule applies.",
+      `Use the strategy: ${strategyLabel}.`,
+      "Simplify and check that the base stays consistent."
+    ],
+    video: null,
+    recoveryPractice: [
+      {
+        prompt: "When multiplying powers with the same base, what do you do with the exponents?",
+        answer: "Add the exponents"
+      },
+      {
+        prompt: "When raising a power to a power, what do you do with the exponents?",
+        answer: "Multiply the exponents"
+      }
+    ],
+    source: "recoveryTemplateEngine_v2800"
+  };
+}
+
+function buildFactoringTemplateLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
+  const skillName = formatSkillName(problemType);
+  const strategy = skillDefinition.strategy || "factor_expression";
+
+  const strategyLabel =
+    strategy === "find_two_numbers"
+      ? "Find two numbers that multiply to c and add to b"
+      : strategy === "recognize_pattern"
+        ? "Recognize the factoring pattern"
+        : "Choose the correct factoring strategy";
+
+  return {
+    title: `Recovery Tutor: ${skillName}`,
+    diagnostic: {
+      problemType,
+      family: skillDefinition.family || "factoring",
+      strategy,
+      tutorType: "factoring_template",
+      parsed
+    },
+    conceptSummary: [
+      "Factoring rewrites an expression as a product.",
+      "For trinomials, look for numbers that multiply to the constant and add to the middle coefficient.",
+      "For special patterns, recognize the structure before factoring."
+    ],
+    misconception:
+      metadata?.misconception ||
+      "A common mistake is finding numbers that multiply correctly but do not add to the middle coefficient.",
+    tutorDialogue: [
+      {
+        id: "identify_factoring_strategy",
+        tutor: `<div><strong>Problem:</strong> ${escapeHtml(parsed?.originalText || "factoring problem")}</div><div style="margin-top:8px;">What should you identify first?</div>`,
+        choices: [
+          "The factoring strategy",
+          "A random factor",
+          "Only the constant term",
+          "The answer choice length"
+        ],
+        expected: ["The factoring strategy"],
+        explanation: `Correct. First identify the factoring strategy: <strong>${escapeHtml(strategyLabel)}</strong>.`,
+        theory: "Factoring depends on recognizing the structure before writing factors."
+      },
+      {
+        id: "apply_factoring_strategy",
+        tutor: `<div><strong>Strategy:</strong> ${escapeHtml(strategyLabel)}</div><div style="margin-top:8px;">What should you do after choosing the strategy?</div>`,
+        choices: [
+          "Write factors and check by multiplying",
+          "Stop immediately",
+          "Change the expression",
+          "Ignore the middle term"
+        ],
+        expected: ["Write factors and check by multiplying"],
+        explanation: "Correct. After factoring, multiply back to check the original expression.",
+        theory: "A factored form is correct only if it multiplies back to the original expression."
+      }
+    ],
+    workedExample: [
+      "Identify the expression type.",
+      `Use the strategy: ${strategyLabel}.`,
+      "Write the factored form.",
+      "Multiply the factors to check your answer."
+    ],
+    video: null,
+    recoveryPractice: [
+      {
+        prompt: "How can you check a factoring answer?",
+        answer: "Multiply the factors"
+      },
+      {
+        prompt: "For x² + bx + c, what must the two numbers do?",
+        answer: "Multiply to c and add to b"
+      }
+    ],
+    source: "recoveryTemplateEngine_v2800"
+  };
+}
+
+function buildQuadraticTemplateLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
+  const skillName = formatSkillName(problemType);
+  const strategy = skillDefinition.strategy || "quadratic_strategy";
+
+  const strategyLabel =
+    strategy === "factor_and_zero_product"
+      ? "Factor and use the zero product property"
+      : strategy === "zero_product"
+        ? "Set each factor equal to zero"
+        : strategy === "context_root"
+          ? "Choose the root that makes sense in context"
+          : strategy === "analyze_roots"
+            ? "Analyze the number of real solutions"
+            : strategy === "meaningful_root"
+              ? "Interpret the meaningful root"
+              : strategy === "quadratic_formula"
+                ? "Use the quadratic formula"
+                : "Choose the correct quadratic strategy";
+
+  return {
+    title: `Recovery Tutor: ${skillName}`,
+    diagnostic: {
+      problemType,
+      family: skillDefinition.family || "quadratics",
+      strategy,
+      tutorType: "quadratic_template",
+      parsed
+    },
+    conceptSummary: [
+      "Quadratic problems often involve roots, intercepts, factoring, or the vertex.",
+      "When solving by factoring, set the quadratic equal to zero first.",
+      "Use the zero product property after factoring.",
+      "In word problems, reject solutions that do not make sense in context."
+    ],
+    misconception:
+      metadata?.misconception ||
+      "A common mistake is factoring correctly but forgetting to set each factor equal to zero.",
+    tutorDialogue: [
+      {
+        id: "identify_quadratic_strategy",
+        tutor: `<div><strong>Problem:</strong> ${escapeHtml(parsed?.originalText || "quadratic problem")}</div><div style="margin-top:8px;">What should you identify first?</div>`,
+        choices: [
+          "The quadratic strategy",
+          "Only the largest number",
+          "A random root",
+          "The graph color"
+        ],
+        expected: ["The quadratic strategy"],
+        explanation: `Correct. First identify the quadratic strategy: <strong>${escapeHtml(strategyLabel)}</strong>.`,
+        theory: "Quadratic questions can ask for different features, so the first step is identifying the task."
+      },
+      {
+        id: "apply_quadratic_strategy",
+        tutor: `<div><strong>Strategy:</strong> ${escapeHtml(strategyLabel)}</div><div style="margin-top:8px;">What should you do next?</div>`,
+        choices: [
+          strategyLabel,
+          "Ignore the equation",
+          "Always choose x = 0",
+          "Use a linear rule"
+        ],
+        expected: [strategyLabel],
+        explanation: "Correct. Apply the strategy that matches the quadratic task.",
+        theory: "Quadratics require matching the method to the question: factoring, graphing, formula, vertex, or interpretation."
+      }
+    ],
+    workedExample: [
+      "Identify what the quadratic problem is asking.",
+      `Use the strategy: ${strategyLabel}.`,
+      "Carry out the method carefully.",
+      "Check whether the answer makes sense."
+    ],
+    video: null,
+    recoveryPractice: [
+      {
+        prompt: "After factoring a quadratic equation equal to zero, what property should you use?",
+        answer: "Zero product property"
+      },
+      {
+        prompt: "In a quadratic word problem, should every algebraic solution always be kept?",
+        answer: "No"
+      }
+    ],
+    source: "recoveryTemplateEngine_v2800"
+  };
+}
+
 function buildLinearInequalityTemplateLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
   const skillName = formatSkillName(problemType);
 
