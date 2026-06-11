@@ -144,68 +144,29 @@ export const RECOVERY_SKILL_REGISTRY = {
     tutor: "generic_skill"
   },
 
- absolute_value_equations: {
-  family: "absolute_value",
-  strategy: "split_into_cases",
-  tutor: "generic_skill"
-},
+  absolute_value_equations: {
+    family: "absolute_value",
+    strategy: "split_into_cases",
+    tutor: "generic_skill"
+  },
 
-exponent_product_rule: {
-  family: "exponents",
-  strategy: "add_exponents",
-  tutor: "exponent_template"
-},
+  product_rule_exponents: {
+    family: "exponents",
+    strategy: "add_exponents",
+    tutor: "exponent_template"
+  },
 
-exponent_quotient_rule: {
-  family: "exponents",
-  strategy: "subtract_exponents",
-  tutor: "exponent_template"
-},
+  quotient_rule_exponents: {
+    family: "exponents",
+    strategy: "subtract_exponents",
+    tutor: "exponent_template"
+  },
 
-power_of_power: {
-  family: "exponents",
-  strategy: "multiply_exponents",
-  tutor: "exponent_template"
-},
-
-scientific_notation: {
-  family: "scientific_notation",
-  strategy: "move_decimal",
-  tutor: "scientific_notation_template"
-},
-
-polynomial_addition: {
-  family: "polynomials",
-  strategy: "combine_like_terms",
-  tutor: "polynomial_template"
-},
-
-polynomial_multiplication: {
-  family: "polynomials",
-  strategy: "distribute_and_combine",
-  tutor: "polynomial_template"
-},
-
-factoring_gcf: {
-  family: "factoring",
-  strategy: "greatest_common_factor",
-  tutor: "factoring_template"
-},
-
-difference_of_squares: {
-  family: "factoring",
-  strategy: "difference_of_squares",
-  tutor: "factoring_template"
-},
-
-quadratic_factoring: {
-  family: "quadratics",
-  strategy: "reverse_foil",
-  tutor: "quadratic_template"
-}
-
-};
-  
+  power_rule_exponents: {
+    family: "exponents",
+    strategy: "multiply_exponents",
+    tutor: "exponent_template"
+  }
 };
 
 export function normalizeRecoverySkillKey(problemType) {
