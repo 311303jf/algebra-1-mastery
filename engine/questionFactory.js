@@ -5312,30 +5312,16 @@ if (
   );
 }
 
-  return finalizeChoices(answer, [
-    "Exponential growth",
-    "Exponential decay",
-    "Exponential function",
-    "Linear function",
-    "Quadratic function",
-    "Cannot be determined"
-  ]);
-
-}
-
-
 // Exponent RULES
 if (
   type.includes("exponent") ||
   type.includes("scientific")
 ) {
-
   return generateExponentAnswerChoices(
     answer,
     problemType,
     finalizeChoices
   );
-
 }
 
   if (
