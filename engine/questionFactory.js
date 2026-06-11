@@ -5482,6 +5482,71 @@ if (
   return finalizeChoices(answer, shuffle(Array.from(distractors)));
 }
 
+function generateExponentialFunctionAnswerChoices(answer, problemType, finalizeChoices) {
+  const text = String(answer || "").trim();
+  const type = String(problemType || "").toLowerCase();
+
+  if (text === "Exponential growth" || text === "Exponential decay") {
+    return finalizeChoices(text, [
+      "Exponential growth",
+      "Exponential decay",
+      "Linear function",
+      "Quadratic function"
+    ]);
+  }
+
+  if (text === "Exponential function") {
+    return finalizeChoices(text, [
+      "Exponential function",
+      "Linear function",
+      "Quadratic function",
+      "Not a function"
+    ]);
+  }
+
+  if (text.startsWith("y = ")) {
+    return finalizeChoices(text, [
+      text.replace(/\^x/g, "^2"),
+      text.replace(/\(([^)]+)\)\^x/g, "($1)x"),
+      "y = 2x + 5",
+      "y = x² + 3"
+    ]);
+  }
+
+  if (text.startsWith("(0,")) {
+    const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+    const y = nums[1];
+
+    if (!Number.isNaN(y)) {
+      return finalizeChoices(text, [
+        `(0, ${formatNumber(y + 1)})`,
+        `(0, ${formatNumber(Math.max(0, y - 1))})`,
+        `(1, ${formatNumber(y)})`,
+        `(${formatNumber(y)}, 0)`
+      ]);
+    }
+  }
+
+  if (!Number.isNaN(Number(text))) {
+    const value = Number(text);
+
+    return finalizeChoices(text, [
+      formatNumber(value + 1),
+      formatNumber(Math.max(0, value - 1)),
+      formatNumber(value * 2),
+      formatNumber(Math.round(value / 2))
+    ]);
+  }
+
+  return finalizeChoices(text, [
+    "Exponential growth",
+    "Exponential decay",
+    "Exponential function",
+    "Linear function",
+    "Quadratic function",
+    "Cannot be determined"
+  ]);
+}
 function generateExponentAnswerChoices(answer, problemType, finalizeChoices) {
   const text = String(answer || "").trim();
   const type = String(problemType || "").toLowerCase();
