@@ -5330,7 +5330,11 @@ if (
 // Exponent RULES
 if (
   type.includes("exponent") ||
-  type.includes("scientific")
+  type.includes("scientific") ||
+  type === "power_of_product" ||
+  type === "power_of_quotient" ||
+  type === "mixed_exponent_simplify" ||
+  type === "rewrite_with_positive_exponents"
 ) {
   return generateExponentAnswerChoices(
     answer,
