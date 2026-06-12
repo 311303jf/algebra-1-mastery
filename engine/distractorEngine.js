@@ -100,6 +100,11 @@ function generateUniversalDistractors(answer) {
   }
 }
 
+function formatUniversalNumber(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return String(value);
+  return Number.isInteger(n) ? String(n) : String(Number(n.toFixed(3)));
+}
 
 window.AlgebraDistractorEngine = {
 
