@@ -5550,7 +5550,6 @@ function generateExponentialFunctionAnswerChoices(answer, problemType, finalizeC
 }
 function generateExponentAnswerChoices(answer, problemType, finalizeChoices) {
   const text = String(answer || "").trim();
-  const type = String(problemType || "").toLowerCase();
 
   const powerMatch = text.match(/^([a-z])\^(-?\d+)$/i);
 
@@ -5560,11 +5559,10 @@ function generateExponentAnswerChoices(answer, problemType, finalizeChoices) {
 
     return finalizeChoices(text, [
       `${base}^${exponent + 1}`,
-      `${base}^${Math.max(0, exponent - 1)}`,
+      `${base}^${Math.max(1, exponent - 1)}`,
       `${base}^${exponent + 2}`,
-      `${base}^${Math.abs(exponent)}`,
-      "1",
-      `${base}`
+      `${base}`,
+      "1"
     ]);
   }
 
@@ -5578,12 +5576,29 @@ function generateExponentAnswerChoices(answer, problemType, finalizeChoices) {
     return finalizeChoices(text, [
       `${coeff + 1}${variable}^${exponent}`,
       `${coeff}${variable}^${exponent + 1}`,
-      `${coeff}${variable}^${Math.max(0, exponent - 1)}`,
-      `${Math.abs(coeff)}${variable}^${exponent}`,
-      "1",
-      `${variable}^${exponent}`
+      `${coeff}${variable}^${Math.max(1, exponent - 1)}`,
+      `${Math.max(1, Math.abs(coeff / 2))}${variable}^${exponent}`,
+      `${variable}^${exponent}`,
+      `${coeff}${variable}`
     ]);
   }
+
+  const coeffVariableNoPowerMatch = text.match(/^(-?\d+)([a-z])$/i);
+
+  if (coeffVariableNoPowerMatch) {
+    const coeff = Number(coeffVariableNoPowerMatch[1]);
+    const variable = coeffVariableNoPowerMatch[2];
+
+    return finalizeChoices(text, [
+      `${coeff + 1}${variable}`,
+      `${Math.max(1, coeff - 1)}${variable}`,
+      `${coeff}${variable}^2`,
+      `${coeff * 2}${variable}`,
+      `${variable}`,
+      "1"
+    ]);
+  }
+
   const quotientExpressionMatch = text.match(/^(-?\d+)([a-z])\^(-?\d+)\s*÷\s*(-?\d+)$/i);
 
   if (quotientExpressionMatch) {
@@ -5600,7 +5615,7 @@ function generateExponentAnswerChoices(answer, problemType, finalizeChoices) {
       `${coeff}${variable} ÷ ${denominator}`
     ]);
   }
-   
+
   if (text.includes("× 10^")) {
     const expMatch = text.match(/×\s*10\^(-?\d+)/);
     const coeffMatch = text.match(/^(-?\d+(?:\.\d+)?)/);
@@ -5636,8 +5651,7 @@ function generateExponentAnswerChoices(answer, problemType, finalizeChoices) {
     String(text).replace("^", "^2"),
     String(text).replace("×", "÷"),
     "1",
-    "0",
-    "Cannot be determined"
+    "0"
   ]);
 }
 
