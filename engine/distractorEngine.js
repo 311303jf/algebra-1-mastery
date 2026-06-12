@@ -48,32 +48,56 @@ function detectAnswerFamily(answer) {
 
 
 function generateUniversalDistractors(answer) {
-
   const family = detectAnswerFamily(answer);
   const text = String(answer || "").trim();
 
   switch (family) {
+    case "point": {
+      const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
 
-    case "point":
-      return [];
+      if (nums.length >= 2) {
+        const x = nums[0];
+        const y = nums[1];
 
-    case "equation_solution":
-      return [];
+        return [
+          `(${formatUniversalNumber(x + 1)}, ${formatUniversalNumber(y)})`,
+          `(${formatUniversalNumber(x)}, ${formatUniversalNumber(y + 1)})`,
+          `(${formatUniversalNumber(x)}, ${formatUniversalNumber(y - 1)})`,
+          `(${formatUniversalNumber(y)}, ${formatUniversalNumber(x)})`,
+          `(${formatUniversalNumber(-x)}, ${formatUniversalNumber(y)})`,
+          `(${formatUniversalNumber(x)}, ${formatUniversalNumber(-y)})`
+        ];
+      }
 
-    case "inequality":
       return [];
+    }
 
-    case "classification":
-      return [];
+    case "number": {
+      const value = Number(text);
 
-    case "number":
-      return [];
+      return [
+        formatUniversalNumber(value + 1),
+        formatUniversalNumber(value - 1),
+        formatUniversalNumber(-value),
+        formatUniversalNumber(value * 2),
+        formatUniversalNumber(value / 2)
+      ];
+    }
+
+    case "classification": {
+      return [
+        "Exponential growth",
+        "Exponential decay",
+        "Exponential function",
+        "Linear function",
+        "Quadratic function",
+        "Not a function"
+      ].filter(choice => choice !== text);
+    }
 
     default:
       return [];
-
   }
-
 }
 
 
