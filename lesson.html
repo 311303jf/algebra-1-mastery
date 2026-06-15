@@ -240,17 +240,34 @@ if(recoveryStreak >= 2){
     feedback.textContent="Try again. Review the worked example before submitting.";
   }
 }
-function getNextCoverageProblemType(lesson){const types=getAllowedProblemTypesForLesson(lesson);if(!types.length)return null;const intervention=getTopInterventionSkill(lesson);
-if(intervention&&types.includes(intervention.problemType)){
-  const recoveryCompleted =
-    window.AlgebraRecoveryLessonEngine &&
-    typeof AlgebraRecoveryLessonEngine.loadRecoveryState==="function" &&
-    AlgebraRecoveryLessonEngine.loadRecoveryState(lesson.id,intervention.problemType)?.completed===true;
+function getNextCoverageProblemType(lesson){
+  const types = getAllowedProblemTypesForLesson(lesson);
 
-  if(!recoveryCompleted){
-    return intervention.problemType;
+  if(!types.length) return null;
+
+  if(
+    window.AlgebraSkillRoutingEngine &&
+    typeof AlgebraSkillRoutingEngine.getNextProblemType === "function"
+  ){
+    return AlgebraSkillRoutingEngine.getNextProblemType({
+      lessonId: lesson.id,
+      requiredProblemTypes: types,
+      targetSkillMastery: SKILL_MASTERY_TARGET
+    });
   }
-}const skillMap=getSkillSummaryMap(lesson);const belowTarget=types.filter(type=>Number(skillMap?.[type]?.mastery||0)<SKILL_MASTERY_TARGET);const notPerfect=types.filter(type=>Number(skillMap?.[type]?.mastery||0)<100);let candidateTypes=belowTarget.length?belowTarget:notPerfect.length?notPerfect:types;const notAttempted=candidateTypes.filter(type=>Number(skillMap?.[type]?.attempted||0)===0);if(notAttempted.length){candidateTypes=notAttempted;}else{candidateTypes=[...candidateTypes].sort((a,b)=>{const ma=Number(skillMap?.[a]?.mastery||0);const mb=Number(skillMap?.[b]?.mastery||0);const ea=Number(skillMap?.[a]?.consecutiveErrors||0);const eb=Number(skillMap?.[b]?.consecutiveErrors||0);const aa=Number(skillMap?.[a]?.attempted||0);const ab=Number(skillMap?.[b]?.attempted||0);if(ea!==eb)return eb-ea;if(ma!==mb)return ma-mb;return aa-ab;});}const state=loadCoverageState(lesson);const selected=candidateTypes[0]||types[0];if(!Array.isArray(state.remaining)||state.remaining.length===0){state.cycle+=1;state.remaining=[...types];state.usedThisCycle=[];saveCoverageState(lesson,state);}return selected;}
+
+  // Fallback: old simple coverage behavior
+  const state = loadCoverageState(lesson);
+
+  if(!Array.isArray(state.remaining) || state.remaining.length === 0){
+    state.cycle += 1;
+    state.remaining = [...types];
+    state.usedThisCycle = [];
+    saveCoverageState(lesson,state);
+  }
+
+  return state.remaining[0] || types[0];
+}
 function recordGeneratedProblemType(lesson,problemType){if(!lesson||!problemType)return;const state=loadCoverageState(lesson);const index=state.remaining.indexOf(problemType);if(index>=0)state.remaining.splice(index,1);if(!state.usedThisCycle.includes(problemType))state.usedThisCycle.push(problemType);state.generatedCounts[problemType]=Number(state.generatedCounts[problemType]||0)+1;saveCoverageState(lesson,state);}
 function resetCoverageForLesson(lessonId){localStorage.removeItem(getCoverageStorageKey(lessonId));}
 function buildScopedLessonForProblemType(lesson,problemType){return{...lesson,problemTypes:[problemType],allowedProblemTypes:[problemType],problem_types:[problemType]};}
