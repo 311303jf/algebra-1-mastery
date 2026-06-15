@@ -208,7 +208,29 @@ symbol === ">"
 
     ])].filter(choice => choice !== text);
   }
+// Monomial expressions: 3x^2, -2m^4, 5a^3
+if (/^-?\d+[a-z]\^\d+$/i.test(text)) {
 
+  const match = text.match(/^(-?\d+)([a-z])\^(\d+)$/i);
+
+  const coefficient = Number(match[1]);
+  const variable = match[2];
+  const exponent = Number(match[3]);
+
+  return [...new Set([
+
+    `${coefficient * 2}${variable}^${exponent}`,
+
+    `${coefficient}${variable}`,
+
+    `${coefficient}${variable}^${exponent * 2}`,
+
+    `${coefficient - 1}${variable}^${exponent}`,
+
+    `${Math.abs(coefficient)}${variable}^${exponent}`
+
+  ])].filter(choice => choice !== text);
+}
   return [];
 }
     default:
