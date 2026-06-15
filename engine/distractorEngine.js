@@ -284,6 +284,49 @@ const cText =
   .map(prettifyMathExpression)
   .filter(choice => choice !== prettifyMathExpression(text));
 }
+
+     // Simple quadratic trinomials: x^2 + 5x + 6
+if (/^[a-z]\^2\s*[+-]\s*\d+[a-z]\s*[+-]\s*\d+$/i.test(text)) {
+
+  const match = text.match(
+    /^([a-z])\^2\s*([+-])\s*(\d+)([a-z])\s*([+-])\s*(\d+)$/i
+  );
+
+  if (!match) return [];
+
+  const variable = match[1];
+  const signB = match[2];
+  const b = Number(match[3]);
+  const signC = match[5];
+  const c = Number(match[6]);
+
+  const signedB = signB === "+" ? b : -b;
+  const signedC = signC === "+" ? c : -c;
+
+  function buildTrinomial(aExp, bValue, cValue) {
+    const firstTerm = `${variable}^${aExp}`;
+    const middleSign = bValue >= 0 ? " + " : " - ";
+    const constantSign = cValue >= 0 ? " + " : " - ";
+
+    return `${firstTerm}${middleSign}${Math.abs(bValue)}${variable}${constantSign}${Math.abs(cValue)}`;
+  }
+
+  return [...new Set([
+
+    buildTrinomial(2, signedB, -signedC),
+
+    buildTrinomial(2, signedB + 1, signedC),
+
+    buildTrinomial(2, signedB - 1, signedC),
+
+    buildTrinomial(2, signedB, signedC + 1),
+
+    buildTrinomial(4, signedB, signedC)
+
+  ])]
+  .map(prettifyMathExpression)
+  .filter(choice => choice !== prettifyMathExpression(text));
+}
      
   return [];
 }
