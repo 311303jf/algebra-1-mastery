@@ -5262,6 +5262,20 @@ function generateChoices(answer, problemType) {
       ? universalEngine.detectAnswerFamily(answer)
       : null;
 
+  const allowUniversalExpression =
+    family === "expression" &&
+    (
+      type.includes("exponent") ||
+      type.includes("polynomial") ||
+      type.includes("binomial") ||
+      type.includes("factor") ||
+      type.includes("factoring") ||
+      type.includes("special_product") ||
+      type.includes("difference_of_squares") ||
+      type.includes("monomial_times") ||
+      type.includes("distributive_polynomial")
+    );
+
   if (
     universalEngine &&
     typeof universalEngine.generateUniversalDistractors === "function" &&
@@ -5270,7 +5284,8 @@ function generateChoices(answer, problemType) {
       family === "number" ||
       family === "classification" ||
       family === "equation_solution" ||
-      family === "inequality"
+      family === "inequality" ||
+      allowUniversalExpression
     )
   ) {
     return finalizeChoices(
