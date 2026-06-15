@@ -192,6 +192,58 @@ function formatUniversalNumber(value) {
   if (!Number.isFinite(n)) return String(value);
   return Number.isInteger(n) ? String(n) : String(Number(n.toFixed(3)));
 }
+function parseUniversalNumber(text) {
+
+  text = String(text).trim();
+
+  if (text.includes("/")) {
+
+    const [num, den] = text.split("/").map(Number);
+
+    return den === 0 ? NaN : num / den;
+  }
+
+  return Number(text);
+}
+
+
+function formatUniversalFraction(value) {
+
+  if (Number.isInteger(value)) {
+    return String(value);
+  }
+
+  const tolerance = 1e-10;
+
+  for (let denominator = 2; denominator <= 20; denominator++) {
+
+    const numerator = Math.round(value * denominator);
+
+    if (Math.abs(value - numerator / denominator) < tolerance) {
+
+      const divisor = gcd(
+        Math.abs(numerator),
+        Math.abs(denominator)
+      );
+
+      return `${numerator / divisor}/${denominator / divisor}`;
+    }
+  }
+
+  return formatUniversalNumber(value);
+}
+
+
+function gcd(a, b) {
+
+  while (b !== 0) {
+
+    [a, b] = [b, a % b];
+
+  }
+
+  return a || 1;
+}
 
 window.AlgebraDistractorEngine = {
 
