@@ -375,6 +375,61 @@ if (/^-?\d+[a-z]\^2\s*[+-]\s*\d+[a-z]\s*[+-]\s*\d+$/i.test(text)) {
   .map(prettifyMathExpression)
   .filter(choice => choice !== prettifyMathExpression(text));
 }
+
+// Factored binomials: (x + 3)(x - 2)
+if (/^\([a-z]\s*[+-]\s*\d+\)\([a-z]\s*[+-]\s*\d+\)$/i.test(text)) {
+
+  const match = text.match(
+    /^\(([a-z])\s*([+-])\s*(\d+)\)\(([a-z])\s*([+-])\s*(\d+)\)$/i
+  );
+
+  if (!match) return [];
+
+  const variable1 = match[1];
+  const sign1 = match[2];
+  const n1 = Number(match[3]);
+
+  const variable2 = match[4];
+  const sign2 = match[5];
+  const n2 = Number(match[6]);
+
+  if (variable1 !== variable2) return [];
+
+  function buildFactor(signA, valueA, signB, valueB) {
+    return `(${variable1} ${signA} ${valueA})(${variable1} ${signB} ${valueB})`;
+  }
+
+  const oppositeSign1 = sign1 === "+" ? "-" : "+";
+  const oppositeSign2 = sign2 === "+" ? "-" : "+";
+
+  const signedA = sign1 === "+" ? n1 : -n1;
+  const signedB = sign2 === "+" ? n2 : -n2;
+
+  const expandedB = signedA + signedB;
+  const expandedC = signedA * signedB;
+
+  function buildExpanded(b, c) {
+    const middleSign = b >= 0 ? " + " : " - ";
+    const constantSign = c >= 0 ? " + " : " - ";
+    return `${variable1}^2${middleSign}${Math.abs(b)}${variable1}${constantSign}${Math.abs(c)}`;
+  }
+
+  return [...new Set([
+
+    buildFactor(oppositeSign1, n1, sign2, n2),
+
+    buildFactor(sign1, n1, oppositeSign2, n2),
+
+    buildFactor(oppositeSign1, n1, oppositeSign2, n2),
+
+    buildFactor(sign2, n2, sign1, n1),
+
+    buildExpanded(expandedB, expandedC)
+
+  ])]
+  .map(prettifyMathExpression)
+  .filter(choice => choice !== prettifyMathExpression(text));
+}
      
   return [];
 }
