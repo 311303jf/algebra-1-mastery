@@ -16,7 +16,7 @@ function detectAnswerFamily(answer) {
 
   // Equation solution
   if (
-  /^[a-z]\s*=/.test(text) ||
+  /^[a-z]\s*=/i.test(text) ||
   text === "No Solution" ||
   text === "All Real Numbers"
 ) {
@@ -97,12 +97,16 @@ function generateUniversalDistractors(answer) {
     ];
   }
 
-  const match = text.match(/^([a-z])\s*=\s*(-?\d+(?:\.\d+)?)$/i);
+  const match = text.match(/^([a-z])\s*=\s*(-?\d+(?:\.\d+)?|-?\d+\/\d+)$/i);
 
   if (!match) return [];
 
   const variable = match[1];
-  const value = Number(match[2]);
+  const rawValue = match[2];
+
+const value = rawValue.includes("/")
+  ? rawValue.split("/").map(Number).reduce((a, b) => a / b)
+  : Number(rawValue);
 
   return [
 
