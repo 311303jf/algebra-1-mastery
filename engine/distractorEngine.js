@@ -102,19 +102,16 @@ function generateUniversalDistractors(answer) {
   if (!match) return [];
 
   const variable = match[1];
-  const rawValue = match[2];
-
-const value = rawValue.includes("/")
-  ? rawValue.split("/").map(Number).reduce((a, b) => a / b)
-  : Number(rawValue);
+const rawValue = match[2];
+const value = parseUniversalNumber(rawValue);
 
   return [
 
-    `${variable} = ${formatUniversalNumber(value - 1)}`,
+`${variable} = ${formatUniversalFraction(value - 1)}`,
 
-    `${variable} = ${formatUniversalNumber(value + 1)}`,
+`${variable} = ${formatUniversalFraction(value + 1)}`,
 
-    `${variable} = ${formatUniversalNumber(-value)}`,
+`${variable} = ${formatUniversalFraction(-value)}`,
 
     "No Solution",
 
