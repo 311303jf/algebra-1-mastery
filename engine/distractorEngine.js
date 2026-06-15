@@ -551,3 +551,70 @@ window.AlgebraDistractorEngine = {
 window.prettifyExponent = prettifyExponent;
 window.prettifyMonomial = prettifyMonomial;
 window.prettifyMathExpression = prettifyMathExpression;
+
+function runDistractorCertification() {
+
+  console.clear();
+
+  console.log("================================");
+  console.log("DISTRACTOR ENGINE CERTIFICATION");
+  console.log("================================");
+
+  const testCases = [
+
+    // POINT
+    "(0,8)",
+
+    // NUMBER
+    "12",
+    "-5",
+
+    // EQUATION SOLUTION
+    "x = 3",
+    "x = -4",
+    "x = 1/2",
+    "No Solution",
+    "All Real Numbers",
+
+    // INEQUALITY
+    "x > 5",
+    "x < -3/4",
+
+    // EXPONENTS
+    "x^2",
+    "m^4",
+
+    // MONOMIALS
+    "3x^2",
+    "-2m^4",
+
+    // BINOMIALS
+    "x + 5",
+    "2x - 3",
+
+    // TRINOMIALS
+    "x^2 + 5x + 6",
+    "2x^2 - 3x + 1",
+
+    // FACTORED FORMS
+    "(x + 3)(x - 2)",
+    "(m - 3)(m - 6)"
+
+  ];
+
+  let failures = 0;
+
+  for (const answer of testCases) {
+
+    const distractors =
+      AlgebraDistractorEngine.generateUniversalDistractors(answer);
+
+    console.log(answer, "→", distractors);
+
+  }
+
+  console.log("--------------------------------");
+  console.log("INITIAL CERTIFICATION COMPLETE");
+  console.log("--------------------------------");
+
+}
