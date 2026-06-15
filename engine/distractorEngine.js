@@ -322,6 +322,14 @@ function prettifyExponent(text) {
   });
 }
 
+function prettifyMonomial(text) {
+
+  return String(text)
+    .replace(/\b1([a-z])/gi, "$1")
+    .replace(/\b-1([a-z])/gi, "-$1");
+
+}
+
 window.AlgebraDistractorEngine = {
 
   detectAnswerFamily,
