@@ -618,3 +618,5 @@ function runDistractorCertification() {
   console.log("--------------------------------");
 
 }
+
+window.runDistractorCertification = runDistractorCertification;
