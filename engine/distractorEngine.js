@@ -107,17 +107,19 @@ const value = parseUniversalNumber(rawValue);
 
   return [
 
-`${variable} = ${formatUniversalFraction(value - 1)}`,
+return [...new Set([
 
-`${variable} = ${formatUniversalFraction(value + 1)}`,
+  `${variable} = ${formatUniversalFraction(value - 1)}`,
 
-`${variable} = ${formatUniversalFraction(-value)}`,
+  `${variable} = ${formatUniversalFraction(value + 1)}`,
 
-    "No Solution",
+  `${variable} = ${formatUniversalFraction(-value)}`,
 
-    "All Real Numbers"
+  "No Solution",
 
-  ].filter(choice => choice !== text);
+  "All Real Numbers"
+
+])].filter(choice => choice !== text);
 }
 
 
