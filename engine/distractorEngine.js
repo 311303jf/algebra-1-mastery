@@ -255,10 +255,14 @@ if (/^-?\d*[a-z]\s*[+-]\s*-?\d+$/i.test(text)) {
   const signedConstant = sign === "+" ? constant : -constant;
 
   function buildBinomial(c, k) {
-    const cText =
-      c === 1 ? variable :
-      c === -1 ? `-${variable}` :
-      `${c}${variable}`;
+if (c === 0) {
+  return String(k);
+}
+
+const cText =
+  c === 1 ? variable :
+  c === -1 ? `-${variable}` :
+  `${c}${variable}`;
 
     const signText = k >= 0 ? " + " : " - ";
     return `${cText}${signText}${Math.abs(k)}`;
