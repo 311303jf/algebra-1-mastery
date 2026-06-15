@@ -123,13 +123,15 @@ return [...new Set([
 
 case "inequality": {
 
-  const match = text.match(/^([a-z])\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)$/i);
+  const match = text.match(
+  /^([a-z])\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?|-?\d+\/\d+)$/i
+);
 
   if (!match) return [];
 
   const variable = match[1];
   const symbol = match[2];
-  const value = Number(match[3]);
+  const value = parseUniversalNumber(match[3]);
 
   const opposite = {
     ">": "<",
@@ -140,17 +142,17 @@ case "inequality": {
 
   return [
 
-    `${variable} ${opposite[symbol]} ${formatUniversalNumber(value)}`,
+  `${variable} ${opposite[symbol]} ${formatUniversalFraction(value)}`,
 
-    `${variable} ${symbol} ${formatUniversalNumber(-value)}`,
+   `${variable} ${symbol} ${formatUniversalFraction(-value)}`,
 
-    symbol === ">"
-      ? `${variable} ≥ ${formatUniversalNumber(value)}`
+symbol === ">"
+      ? `${variable} ≥ ${formatUniversalFraction(value)}`
       : symbol === "<"
-      ? `${variable} ≤ ${formatUniversalNumber(value)}`
+      ? `${variable} ≤ ${formatUniversalFraction(value)}`
       : symbol === "≥"
-      ? `${variable} > ${formatUniversalNumber(value)}`
-      : `${variable} < ${formatUniversalNumber(value)}`,
+      ? `${variable} > ${formatUniversalFraction(value)}`
+      : `${variable} < ${formatUniversalFraction(value)}`
 
     "All Real Numbers"
 
