@@ -557,65 +557,153 @@ function runDistractorCertification() {
   console.clear();
 
   console.log("================================");
-  console.log("DISTRACTOR ENGINE CERTIFICATION");
+  console.log("DISTRACTOR ENGINE CERTIFICATION V3203");
   console.log("================================");
 
   const testCases = [
 
-    // POINT
     "(0,8)",
-
-    // NUMBER
     "12",
     "-5",
 
-    // EQUATION SOLUTION
     "x = 3",
     "x = -4",
     "x = 1/2",
     "No Solution",
     "All Real Numbers",
 
-    // INEQUALITY
     "x > 5",
     "x < -3/4",
 
-    // EXPONENTS
     "x^2",
     "m^4",
 
-    // MONOMIALS
     "3x^2",
     "-2m^4",
 
-    // BINOMIALS
     "x + 5",
     "2x - 3",
 
-    // TRINOMIALS
     "x^2 + 5x + 6",
     "2x^2 - 3x + 1",
 
-    // FACTORED FORMS
     "(x + 3)(x - 2)",
     "(m - 3)(m - 6)"
 
   ];
 
   let failures = 0;
+  let totalTests = 0;
+
+  function normalize(value) {
+    return String(value || "")
+      .replace(/\s+/g, "")
+      .replace(/\^2/g, "²")
+      .replace(/\^3/g, "³")
+      .replace(/\^4/g, "⁴")
+      .trim();
+  }
+
+  function hasDuplicateDistractors(distractors) {
+    return new Set(distractors.map(normalize)).size !== distractors.length;
+  }
+
+  function containsCorrectAnswer(answer, distractors) {
+    const correct = normalize(prettifyMathExpression(answer));
+    return distractors.some(choice => normalize(choice) === correct);
+  }
+
+  function hasMalformedExpression(distractors) {
+    return distractors.some(choice =>
+      /\b0[a-z]/i.test(choice) ||
+      /\b1[a-z]/i.test(choice) ||
+      /\b-1[a-z]/i.test(choice)
+    );
+  }
+
+  function normalizeFactoredForm(value) {
+    const text = String(value || "").replace(/\s+/g, "");
+
+    const match = text.match(
+      /^\(([a-z][+-]\d+)\)\(([a-z][+-]\d+)\)$/i
+    );
+
+    if (!match) return normalize(value);
+
+    return [match[1], match[2]].sort().join("*");
+  }
+
+  function containsEquivalentFactoredAnswer(answer, distractors) {
+    const correct = normalizeFactoredForm(answer);
+
+    return distractors.some(choice =>
+      normalizeFactoredForm(choice) === correct
+    );
+  }
 
   for (const answer of testCases) {
+
+    totalTests++;
 
     const distractors =
       AlgebraDistractorEngine.generateUniversalDistractors(answer);
 
-    console.log(answer, "→", distractors);
+    const errors = [];
 
+    if (!Array.isArray(distractors)) {
+      errors.push("Not an array");
+    }
+
+    if (Array.isArray(distractors) && distractors.length === 0) {
+      errors.push("Empty distractor array");
+    }
+
+    if (Array.isArray(distractors) && hasDuplicateDistractors(distractors)) {
+      errors.push("Duplicate distractors");
+    }
+
+    if (Array.isArray(distractors) && containsCorrectAnswer(answer, distractors)) {
+      errors.push("Correct answer appears as distractor");
+    }
+
+    if (Array.isArray(distractors) && hasMalformedExpression(distractors)) {
+      errors.push("Malformed expression: 0x, 1x, or -1x");
+    }
+
+    if (
+      String(answer).includes("(") &&
+      String(answer).includes(")") &&
+      Array.isArray(distractors) &&
+      containsEquivalentFactoredAnswer(answer, distractors)
+    ) {
+      errors.push("Equivalent factored form appears as distractor");
+    }
+
+    if (errors.length > 0) {
+
+      failures++;
+
+      console.error("FAIL:", answer);
+      console.error("Distractors:", distractors);
+      console.error("Errors:", errors);
+
+    } else {
+
+      console.log("PASS:", answer, "→", distractors);
+
+    }
   }
 
   console.log("--------------------------------");
-  console.log("INITIAL CERTIFICATION COMPLETE");
+  console.log("TOTAL TESTS:", totalTests);
+  console.log("FAILURES:", failures);
   console.log("--------------------------------");
+
+  if (failures === 0) {
+    console.log("CERTIFICATION: PASS");
+  } else {
+    console.error("CERTIFICATION: FAIL");
+  }
 
 }
 
