@@ -5197,19 +5197,7 @@ function generateChoices(answer, problemType) {
   if (typeof answer !== "string") answer = String(answer);
 
   const type = String(problemType || "").toLowerCase();
-   const family =
-  window.AlgebraDistractorEngine?.detectAnswerFamily(answer);
 
-if (
-  family === "point" ||
-  family === "number" ||
-  family === "classification"
-) {
-  return finalizeChoices(
-    answer,
-    window.AlgebraDistractorEngine.generateUniversalDistractors(answer)
-  );
-}
 
   const addUnique = (list, choice) => {
     addUniqueByEquivalence(list, choice);
@@ -5222,6 +5210,20 @@ if (
     candidates.forEach(choice => {
       if (choices.length < 4) addUnique(choices, choice);
     });
+
+     const family =
+  window.AlgebraDistractorEngine?.detectAnswerFamily(answer);
+
+if (
+  family === "point" ||
+  family === "number" ||
+  family === "classification"
+) {
+  return finalizeChoices(
+    answer,
+    window.AlgebraDistractorEngine.generateUniversalDistractors(answer)
+  );
+}
 
     let safety = 0;
     while (choices.length < 4 && safety < 200) {
