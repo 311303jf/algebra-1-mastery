@@ -206,7 +206,9 @@ symbol === ">"
 
       "1"
 
-    ])].filter(choice => choice !== text);
+    ])]
+.map(prettifyMathExpression)
+.filter(choice => choice !== prettifyMathExpression(text));
   }
 // Monomial expressions: 3x^2, -2m^4, 5a^3
 if (/^-?\d+[a-z]\^\d+$/i.test(text)) {
