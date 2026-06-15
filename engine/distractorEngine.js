@@ -181,6 +181,34 @@ symbol === ">"
       ].filter(choice => choice !== text);
     }
 
+    case "expression": {
+
+  // Pure exponent expression: x^2, m^4, a^7
+  if (/^[a-z]\^\d+$/i.test(text)) {
+
+    const variable = text[0];
+
+    const exponent = Number(
+      text.match(/\d+/)[0]
+    );
+
+    return [...new Set([
+
+      `${variable}^${exponent + 1}`,
+
+      `${variable}^${Math.max(1, exponent - 1)}`,
+
+      `${variable}^${exponent * 2}`,
+
+      variable,
+
+      "1"
+
+    ])].filter(choice => choice !== text);
+  }
+
+  return [];
+}
     default:
       return [];
   }
