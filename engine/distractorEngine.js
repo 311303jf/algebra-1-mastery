@@ -15,9 +15,13 @@ function detectAnswerFamily(answer) {
   }
 
   // Equation solution
-  if (/^[a-z]\s*=/.test(text)) {
-    return "equation_solution";
-  }
+  if (
+  /^[a-z]\s*=/.test(text) ||
+  text === "No Solution" ||
+  text === "All Real Numbers"
+) {
+  return "equation_solution";
+}
 
   // Inequality
   if (/[<>≤≥]/.test(text)) {
