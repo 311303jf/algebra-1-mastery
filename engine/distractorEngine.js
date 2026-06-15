@@ -330,6 +330,14 @@ function prettifyMonomial(text) {
 
 }
 
+function prettifyMathExpression(text) {
+
+  return prettifyExponent(
+    prettifyMonomial(text)
+  );
+
+}
+
 window.AlgebraDistractorEngine = {
 
   detectAnswerFamily,
