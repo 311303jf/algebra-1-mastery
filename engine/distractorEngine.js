@@ -152,7 +152,7 @@ symbol === ">"
       ? `${variable} ≤ ${formatUniversalFraction(value)}`
       : symbol === "≥"
       ? `${variable} > ${formatUniversalFraction(value)}`
-      : `${variable} < ${formatUniversalFraction(value)}`
+      : `${variable} < ${formatUniversalFraction(value)}`,
 
     "All Real Numbers"
 
