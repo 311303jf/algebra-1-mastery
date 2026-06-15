@@ -327,6 +327,54 @@ if (/^[a-z]\^2\s*[+-]\s*\d+[a-z]\s*[+-]\s*\d+$/i.test(text)) {
   .map(prettifyMathExpression)
   .filter(choice => choice !== prettifyMathExpression(text));
 }
+
+// General quadratic trinomials: 2x^2 - 3x + 1
+if (/^-?\d+[a-z]\^2\s*[+-]\s*\d+[a-z]\s*[+-]\s*\d+$/i.test(text)) {
+
+  const match = text.match(
+    /^(-?\d+)([a-z])\^2\s*([+-])\s*(\d+)([a-z])\s*([+-])\s*(\d+)$/i
+  );
+
+  if (!match) return [];
+
+  const a = Number(match[1]);
+  const variable = match[2];
+  const signB = match[3];
+  const b = Number(match[4]);
+  const signC = match[6];
+  const c = Number(match[7]);
+
+  const signedB = signB === "+" ? b : -b;
+  const signedC = signC === "+" ? c : -c;
+
+  function buildGeneralTrinomial(aValue, bValue, cValue, exponent = 2) {
+    const firstTerm =
+      aValue === 1 ? `${variable}^${exponent}` :
+      aValue === -1 ? `-${variable}^${exponent}` :
+      `${aValue}${variable}^${exponent}`;
+
+    const middleSign = bValue >= 0 ? " + " : " - ";
+    const constantSign = cValue >= 0 ? " + " : " - ";
+
+    return `${firstTerm}${middleSign}${Math.abs(bValue)}${variable}${constantSign}${Math.abs(cValue)}`;
+  }
+
+  return [...new Set([
+
+    buildGeneralTrinomial(a, signedB, -signedC),
+
+    buildGeneralTrinomial(a + 1, signedB, signedC),
+
+    buildGeneralTrinomial(a - 1, signedB, signedC),
+
+    buildGeneralTrinomial(a, signedB + 1, signedC),
+
+    buildGeneralTrinomial(a, signedB, signedC, 4)
+
+  ])]
+  .map(prettifyMathExpression)
+  .filter(choice => choice !== prettifyMathExpression(text));
+}
      
   return [];
 }
