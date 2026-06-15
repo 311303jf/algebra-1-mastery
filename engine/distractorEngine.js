@@ -333,9 +333,12 @@ function prettifyMonomial(text) {
 window.AlgebraDistractorEngine = {
 
   detectAnswerFamily,
-  generateUniversalDistractors
+  generateUniversalDistractors,
+  prettifyExponent,
+  prettifyMonomial
 
 };
 
 // Temporary debugging
 window.prettifyExponent = prettifyExponent;
+window.prettifyMonomial = prettifyMonomial;
