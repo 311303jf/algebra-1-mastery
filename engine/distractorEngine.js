@@ -350,3 +350,4 @@ window.AlgebraDistractorEngine = {
 // Temporary debugging
 window.prettifyExponent = prettifyExponent;
 window.prettifyMonomial = prettifyMonomial;
+window.prettifyMathExpression = prettifyMathExpression;
