@@ -217,19 +217,21 @@ if (/^-?\d+[a-z]\^\d+$/i.test(text)) {
   const variable = match[2];
   const exponent = Number(match[3]);
 
-  return [...new Set([
+return [...new Set([
 
-    `${coefficient * 2}${variable}^${exponent}`,
+  `${coefficient * 2}${variable}^${exponent}`,
 
-    `${coefficient}${variable}`,
+  `${coefficient}${variable}`,
 
-    `${coefficient}${variable}^${exponent * 2}`,
+  `${coefficient}${variable}^${exponent * 2}`,
 
-    `${coefficient - 1}${variable}^${exponent}`,
+  `${coefficient - 1}${variable}^${exponent}`,
 
-   `${coefficient + 1}${variable}^${exponent}`
+  `${coefficient + 1}${variable}^${exponent}`
 
-  ])].filter(choice => choice !== text);
+])]
+.map(prettifyMathExpression)
+.filter(choice => choice !== prettifyMathExpression(text));
 }
   return [];
 }
