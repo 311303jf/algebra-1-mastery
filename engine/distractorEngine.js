@@ -65,14 +65,26 @@ case "point": {
 
     const normalizedText = text.replace(/\s+/g, "");
 
-    return [...new Set([
-      `(${formatUniversalNumber(x + 1)}, ${formatUniversalNumber(y)})`,
-      `(${formatUniversalNumber(x)}, ${formatUniversalNumber(y + 1)})`,
-      `(${formatUniversalNumber(x)}, ${formatUniversalNumber(y - 1)})`,
+     const candidates = [
       `(${formatUniversalNumber(y)}, ${formatUniversalNumber(x)})`,
       `(${formatUniversalNumber(-x)}, ${formatUniversalNumber(y)})`,
-      `(${formatUniversalNumber(x)}, ${formatUniversalNumber(-y)})`
-    ])].filter(choice => choice.replace(/\s+/g, "") !== normalizedText);
+      `(${formatUniversalNumber(x)}, ${formatUniversalNumber(-y)})`,
+      `(${formatUniversalNumber(-x)}, ${formatUniversalNumber(-y)})`,
+      `(${formatUniversalNumber(x + 1)}, ${formatUniversalNumber(y)})`,
+      `(${formatUniversalNumber(x - 1)}, ${formatUniversalNumber(y)})`,
+      `(${formatUniversalNumber(x)}, ${formatUniversalNumber(y + 1)})`,
+      `(${formatUniversalNumber(x)}, ${formatUniversalNumber(y - 1)})`,
+      `(${formatUniversalNumber(x + 1)}, ${formatUniversalNumber(y + 1)})`,
+      `(${formatUniversalNumber(x - 1)}, ${formatUniversalNumber(y - 1)})`
+    ];
+
+    return candidates
+      .filter(choice => choice.replace(/\s+/g, "") !== normalizedText)
+      .filter((choice, index, array) =>
+        array.findIndex(item =>
+          item.replace(/\s+/g, "") === choice.replace(/\s+/g, "")
+        ) === index
+      );
   }
 
   return [];
