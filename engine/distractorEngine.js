@@ -63,14 +63,14 @@ function generateUniversalDistractors(answer) {
         const x = nums[0];
         const y = nums[1];
 
-        return [
-          `(${formatUniversalNumber(x + 1)}, ${formatUniversalNumber(y)})`,
-          `(${formatUniversalNumber(x)}, ${formatUniversalNumber(y + 1)})`,
-          `(${formatUniversalNumber(x)}, ${formatUniversalNumber(y - 1)})`,
-          `(${formatUniversalNumber(y)}, ${formatUniversalNumber(x)})`,
-          `(${formatUniversalNumber(-x)}, ${formatUniversalNumber(y)})`,
-          `(${formatUniversalNumber(x)}, ${formatUniversalNumber(-y)})`
-        ];
+        return [...new Set([
+  `(${formatUniversalNumber(x + 1)}, ${formatUniversalNumber(y)})`,
+  `(${formatUniversalNumber(x)}, ${formatUniversalNumber(y + 1)})`,
+  `(${formatUniversalNumber(x)}, ${formatUniversalNumber(y - 1)})`,
+  `(${formatUniversalNumber(y)}, ${formatUniversalNumber(x)})`,
+  `(${formatUniversalNumber(-x)}, ${formatUniversalNumber(y)})`,
+  `(${formatUniversalNumber(x)}, ${formatUniversalNumber(-y)})`
+])].filter(choice => choice !== text);
       }
 
       return [];
