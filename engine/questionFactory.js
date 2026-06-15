@@ -5251,19 +5251,35 @@ function generateChoices(answer, problemType) {
     return shuffle(choices.slice(0, 4));
   };
 
-   const family =
-  window.AlgebraDistractorEngine?.detectAnswerFamily(answer);
+  const universalEngine =
+    typeof window !== "undefined"
+      ? window.AlgebraDistractorEngine
+      : null;
 
-if (
-  family === "point" ||
-  family === "number" ||
-  family === "classification"
-) {
-  return finalizeChoices(
-    answer,
-    window.AlgebraDistractorEngine.generateUniversalDistractors(answer)
-  );
-}
+  const family =
+    universalEngine &&
+    typeof universalEngine.detectAnswerFamily === "function"
+      ? universalEngine.detectAnswerFamily(answer)
+      : null;
+
+  if (
+    universalEngine &&
+    typeof universalEngine.generateUniversalDistractors === "function" &&
+    (
+      family === "point" ||
+      family === "number" ||
+      family === "classification" ||
+      family === "equation_solution" ||
+      family === "inequality"
+    )
+  ) {
+    return finalizeChoices(
+      answer,
+      universalEngine.generateUniversalDistractors(answer, {
+        problemType
+      })
+    );
+  }
 
   if (answer === "No Solution") {
     if (type.includes("inequalit")) {
