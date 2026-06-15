@@ -227,7 +227,7 @@ if (/^-?\d+[a-z]\^\d+$/i.test(text)) {
 
     `${coefficient - 1}${variable}^${exponent}`,
 
-    `${Math.abs(coefficient)}${variable}^${exponent}`
+   `${coefficient + 1}${variable}^${exponent}`
 
   ])].filter(choice => choice !== text);
 }
