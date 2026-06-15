@@ -65,7 +65,16 @@ if (skillDefinition.tutor === "factoring_template") {
   );
 }
 
-if (skillDefinition.tutor === "quadratic_template") {
+if (problemType === "identify_quadratic_function") {
+  return buildIdentifyQuadraticFunctionTeacherV3300(
+    problemType,
+    skillDefinition,
+    metadata,
+    currentQuestion,
+    parsed
+  );
+}
+  if (skillDefinition.tutor === "quadratic_template") {
   return buildQuadraticTemplateLesson(
     problemType,
     skillDefinition,
@@ -864,7 +873,130 @@ function buildAbsoluteValueTemplateLesson(problemType, skillDefinition = {}, met
     source: "recoveryTemplateEngine_v2400"
   };
 }
-  
+function buildIdentifyQuadraticFunctionTeacherV3300(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
+  const exampleEquation =
+    currentQuestion?.answer && String(currentQuestion.answer).startsWith("y = ")
+      ? currentQuestion.answer
+      : "y = x² + 3x + 2";
+
+  return {
+    title: "AI Math Teacher: Identify Quadratic Functions",
+    diagnostic: {
+      problemType,
+      family: "quadratic_functions",
+      strategy: "identify_highest_exponent",
+      tutorType: "quadratic_teacher_v3300",
+      parsed
+    },
+    conceptSummary: [
+      "A quadratic function is identified by the highest exponent of x.",
+      "If the highest exponent is 2, the function is quadratic.",
+      "Linear functions have highest exponent 1.",
+      "Exponential functions have the variable in the exponent."
+    ],
+    misconception:
+      metadata?.misconception ||
+      "Students often choose any nonlinear-looking equation without checking whether the highest exponent is 2.",
+    tutorDialogue: [
+      {
+        id: "notice_expression",
+        tutor:
+          `<div><strong>Let’s learn this skill step by step.</strong></div>` +
+          `<div style="margin-top:8px;">Look at this function:</div>` +
+          `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">${escapeHtml(exampleEquation)}</div>` +
+          `<div style="margin-top:10px;">What should we look for first?</div>`,
+        choices: [
+          "The highest exponent of x",
+          "The largest number",
+          "The y-intercept only",
+          "The longest answer choice"
+        ],
+        expected: ["The highest exponent of x"],
+        explanation:
+          "Correct. To identify a quadratic function, first look for the highest exponent of x.",
+        theory:
+          "The degree of the function tells us the family. Quadratic functions have degree 2."
+      },
+      {
+        id: "highest_exponent",
+        tutor:
+          `<div><strong>Now inspect the function:</strong></div>` +
+          `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">${escapeHtml(exampleEquation)}</div>` +
+          `<div style="margin-top:10px;">What highest exponent tells us the function is quadratic?</div>`,
+        choices: [
+          "2",
+          "1",
+          "0",
+          "The coefficient"
+        ],
+        expected: ["2"],
+        explanation:
+          "Correct. A highest exponent of 2 means the function is quadratic.",
+        theory:
+          "Quadratic means degree 2. The x² term is the key feature."
+      },
+      {
+        id: "compare_function_families",
+        tutor:
+          `<div><strong>Compare the families:</strong></div>` +
+          `<ul style="margin-top:8px;">` +
+          `<li><strong>Linear:</strong> highest exponent is 1</li>` +
+          `<li><strong>Quadratic:</strong> highest exponent is 2</li>` +
+          `<li><strong>Exponential:</strong> x is in the exponent</li>` +
+          `</ul>` +
+          `<div style="margin-top:10px;">If a function contains x² as the highest power, what type of function is it?</div>`,
+        choices: [
+          "Quadratic function",
+          "Linear function",
+          "Exponential function",
+          "Not a function"
+        ],
+        expected: ["Quadratic function"],
+        explanation:
+          "Correct. x² as the highest power means it is a quadratic function.",
+        theory:
+          "Do not classify by appearance only. Always check the exponent structure."
+      },
+      {
+        id: "micro_practice",
+        tutor:
+          `<div><strong>Try one.</strong></div>` +
+          `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">y = 4x² - 7</div>` +
+          `<div style="margin-top:10px;">What type of function is this?</div>`,
+        choices: [
+          "Quadratic function",
+          "Linear function",
+          "Exponential function",
+          "Not a function"
+        ],
+        expected: ["Quadratic function"],
+        explanation:
+          "Correct. The highest exponent is 2, so this is quadratic.",
+        theory:
+          "The coefficient 4 does not change the family. The exponent 2 is what matters."
+      }
+    ],
+    workedExample: [
+      "Look at the equation.",
+      "Find the highest exponent of x.",
+      "If the highest exponent is 2, classify it as a quadratic function.",
+      "Do not confuse quadratic with exponential: exponential functions have x in the exponent."
+    ],
+    video: null,
+    recoveryPractice: [
+      {
+        prompt: "In y = x² + 5x + 6, what is the highest exponent?",
+        answer: "2"
+      },
+      {
+        prompt: "If the highest exponent of x is 2, what type of function is it?",
+        answer: "Quadratic function"
+      }
+    ],
+    source: "quadratic_teacher_v3300"
+  };
+}
+
 function formatSkillName(value) {
   return String(value || "skill")
     .replace(/_/g, " ")
