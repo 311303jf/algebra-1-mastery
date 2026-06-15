@@ -56,25 +56,27 @@ function generateUniversalDistractors(answer) {
   const text = String(answer || "").trim();
 
   switch (family) {
-    case "point": {
-      const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+case "point": {
+  const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
 
-      if (nums.length >= 2) {
-        const x = nums[0];
-        const y = nums[1];
+  if (nums.length >= 2) {
+    const x = nums[0];
+    const y = nums[1];
 
-        return [...new Set([
-  `(${formatUniversalNumber(x + 1)}, ${formatUniversalNumber(y)})`,
-  `(${formatUniversalNumber(x)}, ${formatUniversalNumber(y + 1)})`,
-  `(${formatUniversalNumber(x)}, ${formatUniversalNumber(y - 1)})`,
-  `(${formatUniversalNumber(y)}, ${formatUniversalNumber(x)})`,
-  `(${formatUniversalNumber(-x)}, ${formatUniversalNumber(y)})`,
-  `(${formatUniversalNumber(x)}, ${formatUniversalNumber(-y)})`
-])].filter(choice => choice !== text);
-      }
+    const normalizedText = text.replace(/\s+/g, "");
 
-      return [];
-    }
+    return [...new Set([
+      `(${formatUniversalNumber(x + 1)}, ${formatUniversalNumber(y)})`,
+      `(${formatUniversalNumber(x)}, ${formatUniversalNumber(y + 1)})`,
+      `(${formatUniversalNumber(x)}, ${formatUniversalNumber(y - 1)})`,
+      `(${formatUniversalNumber(y)}, ${formatUniversalNumber(x)})`,
+      `(${formatUniversalNumber(-x)}, ${formatUniversalNumber(y)})`,
+      `(${formatUniversalNumber(x)}, ${formatUniversalNumber(-y)})`
+    ])].filter(choice => choice.replace(/\s+/g, "") !== normalizedText);
+  }
+
+  return [];
+}
 
    case "equation_solution": {
 
