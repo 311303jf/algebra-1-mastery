@@ -5163,7 +5163,8 @@ function areChoicesFamilyConsistent(answer, problemType, choices) {
     type.includes("write_exponential_model") ||
     type.includes("exponential_table") ||
     type.includes("exponential_graph") ||
-    type.includes("compare_exponential_growth");
+    type.includes("compare_exponential_growth") ||
+    type.includes("linear_vs_quadratic_vs_exponential");
 
   const forbiddenForExpression = [
     /^x\s*=/i,
