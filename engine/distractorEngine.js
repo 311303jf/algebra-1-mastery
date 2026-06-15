@@ -72,7 +72,86 @@ function generateUniversalDistractors(answer) {
       return [];
     }
 
-    case "number": {
+   case "equation_solution": {
+
+  // Special cases
+  if (text === "No Solution") {
+    return [
+      "All Real Numbers",
+      "x = 0",
+      "x = 1",
+      "x = -1"
+    ];
+  }
+
+  if (text === "All Real Numbers") {
+    return [
+      "No Solution",
+      "x = 0",
+      "x = 1",
+      "x = -1"
+    ];
+  }
+
+  const match = text.match(/^([a-z])\s*=\s*(-?\d+(?:\.\d+)?)$/i);
+
+  if (!match) return [];
+
+  const variable = match[1];
+  const value = Number(match[2]);
+
+  return [
+
+    `${variable} = ${formatUniversalNumber(value - 1)}`,
+
+    `${variable} = ${formatUniversalNumber(value + 1)}`,
+
+    `${variable} = ${formatUniversalNumber(-value)}`,
+
+    "No Solution",
+
+    "All Real Numbers"
+
+  ].filter(choice => choice !== text);
+}
+
+
+case "inequality": {
+
+  const match = text.match(/^([a-z])\s*(>|<|≥|≤)\s*(-?\d+(?:\.\d+)?)$/i);
+
+  if (!match) return [];
+
+  const variable = match[1];
+  const symbol = match[2];
+  const value = Number(match[3]);
+
+  const opposite = {
+    ">": "<",
+    "<": ">",
+    "≥": "≤",
+    "≤": "≥"
+  };
+
+  return [
+
+    `${variable} ${opposite[symbol]} ${formatUniversalNumber(value)}`,
+
+    `${variable} ${symbol} ${formatUniversalNumber(-value)}`,
+
+    symbol === ">"
+      ? `${variable} ≥ ${formatUniversalNumber(value)}`
+      : symbol === "<"
+      ? `${variable} ≤ ${formatUniversalNumber(value)}`
+      : symbol === "≥"
+      ? `${variable} > ${formatUniversalNumber(value)}`
+      : `${variable} < ${formatUniversalNumber(value)}`,
+
+    "All Real Numbers"
+
+  ].filter(choice => choice !== text);
+} 
+   case "number": {
       const value = Number(text);
 
       return [
