@@ -305,3 +305,6 @@ window.AlgebraDistractorEngine = {
   generateUniversalDistractors
 
 };
+
+// Temporary debugging
+window.prettifyExponent = prettifyExponent;
