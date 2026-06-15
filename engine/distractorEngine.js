@@ -235,6 +235,51 @@ return [...new Set([
 .map(prettifyMathExpression)
 .filter(choice => choice !== prettifyMathExpression(text));
 }
+     // Binomial linear expressions: x + 5, 2x - 3, 3a + 7
+if (/^-?\d*[a-z]\s*[+-]\s*-?\d+$/i.test(text)) {
+
+  const match = text.match(/^(-?\d*)([a-z])\s*([+-])\s*(-?\d+)$/i);
+
+  if (!match) return [];
+
+  const rawCoefficient = match[1];
+  const variable = match[2];
+  const sign = match[3];
+  const constant = Number(match[4]);
+
+  const coefficient =
+    rawCoefficient === "" ? 1 :
+    rawCoefficient === "-" ? -1 :
+    Number(rawCoefficient);
+
+  const signedConstant = sign === "+" ? constant : -constant;
+
+  function buildBinomial(c, k) {
+    const cText =
+      c === 1 ? variable :
+      c === -1 ? `-${variable}` :
+      `${c}${variable}`;
+
+    const signText = k >= 0 ? " + " : " - ";
+    return `${cText}${signText}${Math.abs(k)}`;
+  }
+
+  return [...new Set([
+
+    buildBinomial(coefficient, -signedConstant),
+
+    buildBinomial(coefficient + 1, signedConstant),
+
+    buildBinomial(coefficient - 1, signedConstant),
+
+    buildBinomial(coefficient, signedConstant + 1),
+
+    buildBinomial(coefficient, signedConstant - 1)
+
+  ])]
+  .map(prettifyMathExpression)
+  .filter(choice => choice !== prettifyMathExpression(text));
+}
   return [];
 }
     default:
