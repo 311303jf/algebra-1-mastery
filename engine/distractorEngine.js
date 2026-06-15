@@ -196,7 +196,9 @@ symbol === ">"
 
       `${variable}^${exponent + 1}`,
 
-      `${variable}^${Math.max(1, exponent - 1)}`,
+      exponent - 1 === 1
+  ? variable
+  : `${variable}^${Math.max(1, exponent - 1)}`,
 
       `${variable}^${exponent * 2}`,
 
