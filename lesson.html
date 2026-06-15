@@ -193,6 +193,20 @@ function generateRecoveryPractice(problemType){
     </div>
   `;
 }
+
+function selectRecoveryChoice(button,value){
+  document.querySelectorAll("#recoveryPracticeBox .tutor-choice-btn").forEach(btn=>{
+    btn.classList.remove("selected");
+    btn.setAttribute("aria-pressed","false");
+  });
+
+  button.classList.add("selected");
+  button.setAttribute("aria-pressed","true");
+
+  const input=document.getElementById("recoveryAnswerInput");
+  if(input)input.value=value;
+}
+  
 function normalizeRecoveryAnswer(value){
   return String(value || "")
     .toLowerCase()
