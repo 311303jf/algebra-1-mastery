@@ -290,13 +290,14 @@ function prettifyExponent(text) {
     "-": "⁻"
   };
 
-  return String(text).replace(
-    /\^(-?\d+)/g,
-    (_, exponent) =>
-      [...String(exponent)]
-        .map(char => superscripts[char] || char)
-        .join("")
-  );
+  return String(text).replace(/\^(-?\d+)/g, function(match, exponent) {
+    return String(exponent)
+      .split("")
+      .map(function(char) {
+        return superscripts[char] || char;
+      })
+      .join("");
+  });
 }
 
 window.AlgebraDistractorEngine = {
