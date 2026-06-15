@@ -280,6 +280,7 @@ if (/^-?\d*[a-z]\s*[+-]\s*-?\d+$/i.test(text)) {
   .map(prettifyMathExpression)
   .filter(choice => choice !== prettifyMathExpression(text));
 }
+     
   return [];
 }
     default:
