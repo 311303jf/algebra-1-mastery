@@ -1,7 +1,7 @@
 /*
 ==================================================
  Algebra OS — Universal Distractor Engine
- Version: 3200
+ Version: 3204
 ==================================================
 */
 
@@ -569,7 +569,7 @@ function runDistractorCertification() {
   console.clear();
 
   console.log("================================");
-  console.log("DISTRACTOR ENGINE CERTIFICATION V3203");
+  console.log("DISTRACTOR ENGINE CERTIFICATION V3204");
   console.log("================================");
 
   const testCases = [
