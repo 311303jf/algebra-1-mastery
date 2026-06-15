@@ -5211,21 +5211,7 @@ function generateChoices(answer, problemType) {
       if (choices.length < 4) addUnique(choices, choice);
     });
 
-     const family =
-  window.AlgebraDistractorEngine?.detectAnswerFamily(answer);
-
-if (
-  family === "point" ||
-  family === "number" ||
-  family === "classification"
-) {
-  return finalizeChoices(
-    answer,
-    window.AlgebraDistractorEngine.generateUniversalDistractors(answer)
-  );
-}
-
-    let safety = 0;
+     let safety = 0;
     while (choices.length < 4 && safety < 200) {
       safety++;
 
@@ -5264,6 +5250,20 @@ if (
 
     return shuffle(choices.slice(0, 4));
   };
+
+   const family =
+  window.AlgebraDistractorEngine?.detectAnswerFamily(answer);
+
+if (
+  family === "point" ||
+  family === "number" ||
+  family === "classification"
+) {
+  return finalizeChoices(
+    answer,
+    window.AlgebraDistractorEngine.generateUniversalDistractors(answer)
+  );
+}
 
   if (answer === "No Solution") {
     if (type.includes("inequalit")) {
