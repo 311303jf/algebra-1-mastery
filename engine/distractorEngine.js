@@ -105,8 +105,6 @@ function generateUniversalDistractors(answer) {
 const rawValue = match[2];
 const value = parseUniversalNumber(rawValue);
 
-  return [
-
 return [...new Set([
 
   `${variable} = ${formatUniversalFraction(value - 1)}`,
