@@ -416,19 +416,17 @@ if (/^\([a-z]\s*[+-]\s*\d+\)\([a-z]\s*[+-]\s*\d+\)$/i.test(text)) {
     return `${variable1}^2${middleSign}${Math.abs(b)}${variable1}${constantSign}${Math.abs(c)}`;
   }
 
-  return [...new Set([
+return [...new Set([
 
-    buildFactor(oppositeSign1, n1, sign2, n2),
+  buildFactor(oppositeSign1, n1, sign2, n2),
 
-    buildFactor(sign1, n1, oppositeSign2, n2),
+  buildFactor(sign1, n1, oppositeSign2, n2),
 
-    buildFactor(oppositeSign1, n1, oppositeSign2, n2),
+  buildFactor(oppositeSign1, n1, oppositeSign2, n2),
 
-    buildFactor(sign2, n2, sign1, n1),
+  buildExpanded(expandedB, expandedC)
 
-    buildExpanded(expandedB, expandedC)
-
-  ])]
+])]
   .map(prettifyMathExpression)
   .filter(choice => choice !== prettifyMathExpression(text));
 }
