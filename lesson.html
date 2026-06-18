@@ -335,6 +335,26 @@ if(window.__activeRecoveryPractice){
     generatePracticeQuestion(true);
   },900);
 }
+ function recoveryAnswerMatches(input, correctAnswer){
+  const value = normalizeRecoveryAnswer(input);
+  const correct = normalizeRecoveryAnswer(correctAnswer);
+
+  if(value === correct) return true;
+  if(value.includes(correct)) return true;
+  if(correct.includes(value)) return true;
+
+  const aliases = {
+    "quadraticfunction": ["quadratic", "quadraticfunction"],
+    "linearfunction": ["linear", "linearfunction"],
+    "exponentialfunction": ["exponential", "exponentialfunction"],
+    "notafunction": ["notafunction", "notfunction"],
+    "2": ["2", "two", "degree2", "exponent2"]
+  };
+
+  const accepted = aliases[correct] || [];
+
+  return accepted.includes(value);
+} 
 function checkRecoveryAnswer(problemType,correctAnswer){
   console.log("RECOVERY ANSWER DEBUG",{
   userInput: document.getElementById("recoveryAnswerInput")?.value,
@@ -345,7 +365,7 @@ function checkRecoveryAnswer(problemType,correctAnswer){
 
   if(!input||!feedback)return;
 
-  const isCorrect=normalizeRecoveryAnswer(input.value)===normalizeRecoveryAnswer(correctAnswer);
+  const isCorrect=recoveryAnswerMatches(input.value, correctAnswer);
   const state=AlgebraRecoveryLessonEngine.recordRecoveryPractice(currentLesson.id,problemType,isCorrect);
 
   if(isCorrect){
