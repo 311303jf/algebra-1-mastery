@@ -90,18 +90,13 @@ const AlgebraAnswerEquivalenceEngine = (() => {
 
     if (!value || !correct) return false;
 
-    if (value === correct) return true;
-    if (value.includes(correct)) return true;
-    if (correct.includes(value)) return true;
+if (value === correct) return true;
 
     const accepted = getAcceptedForms(correctAnswer);
 
     if (accepted.includes(value)) return true;
 
-    return accepted.some(alias => {
-      return value.includes(alias) || alias.includes(value);
-    });
-  }
+ return accepted.includes(value);
 
   return {
     normalizeAnswer,
