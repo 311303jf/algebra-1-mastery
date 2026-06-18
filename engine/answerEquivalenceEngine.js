@@ -2,10 +2,6 @@
 ==================================================
  Algebra OS — Universal Answer Equivalence Engine
  Version: 3301
- Purpose:
- - Accept mathematically equivalent student responses.
- - Support Recovery Tutor V3300.
- - Reusable for future Math OS courses.
 ==================================================
 */
 
@@ -53,8 +49,7 @@ const AlgebraAnswerEquivalenceEngine = (() => {
       "allrealnumbers",
       "allreals",
       "everyrealnumber",
-      "infinitelymanysolutions",
-      "infinite solutions"
+      "infinitelymanysolutions"
     ],
 
     "2": [
@@ -90,13 +85,12 @@ const AlgebraAnswerEquivalenceEngine = (() => {
 
     if (!value || !correct) return false;
 
-if (value === correct) return true;
+    if (value === correct) return true;
 
     const accepted = getAcceptedForms(correctAnswer);
 
-    if (accepted.includes(value)) return true;
-
- return accepted.includes(value);
+    return accepted.includes(value);
+  }
 
   return {
     normalizeAnswer,
