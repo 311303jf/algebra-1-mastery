@@ -298,7 +298,31 @@ export const RECOVERY_SKILL_REGISTRY = {
     family: "quadratic_graphs",
     strategy: "read_factored_form",
     tutor: "quadratic_graph_teacher"
-  }
+  },
+
+    vertex_form_identify_vertex: {
+    family: "vertex_form",
+    strategy: "identify_vertex",
+    tutor: "vertex_form_teacher"
+  },
+
+  vertex_form_transformations: {
+    family: "vertex_form",
+    strategy: "analyze_transformations",
+    tutor: "vertex_form_teacher"
+  },
+
+  vertex_form_graph_features: {
+    family: "vertex_form",
+    strategy: "read_graph_features",
+    tutor: "vertex_form_teacher"
+  },
+
+  write_vertex_form_from_graph: {
+    family: "vertex_form",
+    strategy: "write_vertex_form",
+    tutor: "vertex_form_teacher"
+  },
 
 };
 
