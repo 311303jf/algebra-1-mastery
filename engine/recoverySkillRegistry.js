@@ -334,13 +334,107 @@ export function normalizeRecoverySkillKey(problemType) {
     .replace(/\s+/g, "_");
 }
 
-export function getRecoverySkillDefinition(problemType) {
+function inferRecoverySkillDefinition(problemType) {
   const key = normalizeRecoverySkillKey(problemType);
-  return RECOVERY_SKILL_REGISTRY[key] || {
-    family: "generic",
+
+  if (key.includes("vertex_form")) {
+    return {
+      family: "vertex_form",
+      strategy: "analyze_vertex_form",
+      tutor: "generic_skill"
+    };
+  }
+
+  if (key.includes("quadratic") || key.includes("parabola")) {
+    return {
+      family: "quadratic_functions",
+      strategy: "analyze_quadratic_features",
+      tutor: "quadratic_template"
+    };
+  }
+
+  if (key.includes("linear") && key.includes("exponential")) {
+    return {
+      family: "function_classification",
+      strategy: "compare_function_families",
+      tutor: "generic_skill"
+    };
+  }
+
+  if (key.includes("exponential") || key.includes("growth") || key.includes("decay")) {
+    return {
+      family: "exponential_functions",
+      strategy: "identify_growth_or_decay",
+      tutor: "exponent_template"
+    };
+  }
+
+  if (key.includes("scientific")) {
+    return {
+      family: "scientific_notation",
+      strategy: "convert_and_compare_powers_of_ten",
+      tutor: "exponent_template"
+    };
+  }
+
+  if (key.includes("exponent") || key.includes("power")) {
+    return {
+      family: "exponents",
+      strategy: "identify_exponent_rule",
+      tutor: "exponent_template"
+    };
+  }
+
+  if (key.includes("factor")) {
+    return {
+      family: "factoring",
+      strategy: "choose_factoring_strategy",
+      tutor: "factoring_template"
+    };
+  }
+
+  if (key.includes("polynomial") || key.includes("monomial") || key.includes("binomial") || key.includes("trinomial")) {
+    return {
+      family: "polynomials",
+      strategy: "analyze_polynomial_structure",
+      tutor: "generic_skill"
+    };
+  }
+
+  if (key.includes("system")) {
+    return {
+      family: "systems_of_equations",
+      strategy: "choose_solving_method",
+      tutor: "generic_skill"
+    };
+  }
+
+  if (key.includes("inequality")) {
+    return {
+      family: "linear_inequality",
+      strategy: "inverse_operation_with_symbol_rule",
+      tutor: "generic_skill"
+    };
+  }
+
+  if (key.includes("absolute")) {
+    return {
+      family: "absolute_value",
+      strategy: "split_into_cases",
+      tutor: "generic_skill"
+    };
+  }
+
+  return {
+    family: "general_math",
     strategy: "identify_skill",
     tutor: "generic_skill"
   };
+}
+
+export function getRecoverySkillDefinition(problemType) {
+  const key = normalizeRecoverySkillKey(problemType);
+  return RECOVERY_SKILL_REGISTRY[key] || inferRecoverySkillDefinition(key);
 }
 
 export function getRecoveryTutorType(problemType) {
