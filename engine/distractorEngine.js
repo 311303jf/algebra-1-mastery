@@ -41,7 +41,37 @@ function detectAnswerFamily(answer) {
     return "classification";
   }
 
-  // Numeric
+   // Vertex / transformation descriptions
+  if (
+    /units?\s+(left|right)/i.test(text) ||
+    /units?\s+(up|down)/i.test(text) ||
+    /vertical\s+shift/i.test(text) ||
+    /reflected\s+over\s+the\s+x-axis/i.test(text) ||
+    /opens\s+(upward|downward)/i.test(text)
+  ) {
+    return "vertex_transformation";
+  }
+
+  // Axis of symmetry
+  if (/^[xy]\s*=\s*-?\d+(\.\d+)?$/i.test(text)) {
+    return "axis_of_symmetry";
+  }
+
+  // Quadratic graph features
+  if (
+    [
+      "Vertex",
+      "Axis of symmetry",
+      "y-intercept",
+      "x-intercept",
+      "x-intercepts",
+      "y intercept",
+      "x intercept"
+    ].includes(text)
+  ) {
+    return "quadratic_feature";
+  } 
+ // Numeric
   if (!isNaN(Number(text))) {
     return "number";
   }
@@ -56,6 +86,22 @@ function generateUniversalDistractors(answer) {
   const text = String(answer || "").trim();
 
   switch (family) {
+    case "vertex_transformation": {
+  return generateVertexTransformationDistractors(text);
+}
+
+case "axis_of_symmetry": {
+  return generateAxisOfSymmetryDistractors(text);
+}
+
+case "quadratic_feature": {
+  return [
+    "Vertex",
+    "Axis of symmetry",
+    "y-intercept",
+    "x-intercept"
+  ].filter(choice => choice !== text);
+}
 case "point": {
   const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
 
