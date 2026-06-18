@@ -14,6 +14,20 @@ import {
 export function buildTemplateRecoveryLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null) {
   const tutorType = skillDefinition.tutor || "generic_skill";
   const parsed = parseRecoveryQuestion(problemType, currentQuestion, skillDefinition);
+    if (
+    skillDefinition.family === "vertex_form" ||
+    skillDefinition.family === "quadratic_graphs" ||
+    skillDefinition.family === "quadratic_functions" ||
+    skillDefinition.family === "function_classification"
+  ) {
+    return buildQuadraticFamilyTeacherV3300(
+      problemType,
+      skillDefinition,
+      metadata,
+      currentQuestion,
+      parsed
+    );
+  }
 
   if (skillDefinition.tutor === "linear_equation_template") {
   return buildLinearEquationTemplateLesson(
