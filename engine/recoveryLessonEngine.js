@@ -35,7 +35,7 @@
 import {
   getRecoverySkillDefinition,
   getRecoveryTutorType
-} from "./recoverySkillRegistry.js?v=3300";
+} from "./recoverySkillRegistry.js?v=3301";
 
 import {
   buildTemplateRecoveryLesson
