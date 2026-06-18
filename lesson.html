@@ -377,6 +377,12 @@ const aliases = {
 };
 
   const accepted = aliases[correct] || [];
+   if (accepted.includes(value)) return true;
+
+for (const alias of accepted) {
+  if (value.includes(alias)) return true;
+  if (alias.includes(value)) return true;
+}
 
   return accepted.includes(value);
 } 
