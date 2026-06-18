@@ -137,7 +137,21 @@ function restartInteractiveTutor(problemType){
 
   setTimeout(()=>renderInteractiveTutorStep(problemType),100);
 }
-function renderInteractiveTutorStep(problemType){if(!currentLesson||!window.AlgebraRecoveryLessonEngine)return;const lessonData=AlgebraRecoveryLessonEngine.generateRecoveryLesson(problemType,getQuestionMetadataForRecovery(currentQuestion),currentQuestion);const state=AlgebraRecoveryLessonEngine.loadTutorState(currentLesson.id,problemType);const box=document.getElementById("interactiveTutorBox");if(!box)return;if(state.tutorCompleted||state.tutorStep>=lessonData.tutorDialogue.length){box.innerHTML=`<div class="tutor-card" style="border-color:#bbf7d0;background:#f0fdf4;color:#166534;">✅ Tutor complete. Now complete 2 recovery practice questions.<div class="intervention-actions"><button class="mini-btn" onclick="window.restartInteractiveTutor('${problemType}')">Restart Tutor</button></div></div>`;return;}const step=lessonData.tutorDialogue[state.tutorStep];const choices=Array.isArray(step.choices)&&step.choices.length?step.choices:["Addition","Subtraction","Multiplication","Division"];box.innerHTML=`<div class="tutor-card"><div><strong>Tutor:</strong> ${step.tutor}</div><div class="tutor-choice-grid">${choices.map(choice=>`<button type="button" class="tutor-choice-btn" onclick="selectTutorChoice(this,'${String(choice).replaceAll("'","\\\\'")}')">${choice}</button>`).join("")}</div><input id="tutorAnswerInput" type="hidden"><div class="intervention-actions"><button class="mini-btn primary" onclick="checkTutorAnswer('${problemType}')">Check with Tutor</button></div><div id="tutorFeedback" style="margin-top:8px;font-size:13px;font-weight:900;"></div></div>`;}
+  function shuffleChoices(list){
+  const array = Array.isArray(list) ? [...list] : [];
+
+  for(let i = array.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+
+  return array;
+}
+function renderInteractiveTutorStep(problemType){if(!currentLesson||!window.AlgebraRecoveryLessonEngine)return;const lessonData=AlgebraRecoveryLessonEngine.generateRecoveryLesson(problemType,getQuestionMetadataForRecovery(currentQuestion),currentQuestion);const state=AlgebraRecoveryLessonEngine.loadTutorState(currentLesson.id,problemType);const box=document.getElementById("interactiveTutorBox");if(!box)return;if(state.tutorCompleted||state.tutorStep>=lessonData.tutorDialogue.length){box.innerHTML=`<div class="tutor-card" style="border-color:#bbf7d0;background:#f0fdf4;color:#166534;">✅ Tutor complete. Now complete 2 recovery practice questions.<div class="intervention-actions"><button class="mini-btn" onclick="window.restartInteractiveTutor('${problemType}')">Restart Tutor</button></div></div>`;return;}const step=lessonData.tutorDialogue[state.tutorStep];const choices=shuffleChoices(
+  Array.isArray(step.choices)&&step.choices.length
+    ? step.choices
+    : ["Addition","Subtraction","Multiplication","Division"]
+);box.innerHTML=`<div class="tutor-card"><div><strong>Tutor:</strong> ${step.tutor}</div><div class="tutor-choice-grid">${choices.map(choice=>`<button type="button" class="tutor-choice-btn" onclick="selectTutorChoice(this,'${String(choice).replaceAll("'","\\\\'")}')">${choice}</button>`).join("")}</div><input id="tutorAnswerInput" type="hidden"><div class="intervention-actions"><button class="mini-btn primary" onclick="checkTutorAnswer('${problemType}')">Check with Tutor</button></div><div id="tutorFeedback" style="margin-top:8px;font-size:13px;font-weight:900;"></div></div>`;}
 function selectTutorChoice(button,value){document.querySelectorAll(".tutor-choice-btn").forEach(btn=>{btn.classList.remove("selected");btn.setAttribute('aria-pressed','false');});button.classList.add("selected");button.setAttribute('aria-pressed','true');const input=document.getElementById("tutorAnswerInput");if(input)input.value=value;}
 function retryTutorStep(problemType){
   document.querySelectorAll(".tutor-choice-btn").forEach(btn=>{
