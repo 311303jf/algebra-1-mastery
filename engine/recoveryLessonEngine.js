@@ -131,9 +131,19 @@ function recordTutorAnswer(lessonId, problemType, isCorrect, totalSteps = 1) {
 
 function recordRecoveryPractice(lessonId, problemType, isCorrect) {
   const state = loadRecoveryState(lessonId, problemType);
-  if (isCorrect) { state.recoveryCorrectStreak = Number(state.recoveryCorrectStreak || 0) + 1; }
-  else { state.recoveryCorrectStreak = 0; }
-  if (state.recoveryCorrectStreak >= 2) { state.completed = true; }
+
+  if (isCorrect) {
+    state.recoveryCorrectStreak =
+      Number(state.recoveryCorrectStreak || 0) + 1;
+  } else {
+    state.recoveryCorrectStreak =
+      Number(state.recoveryCorrectStreak || 0);
+  }
+
+  if (state.recoveryCorrectStreak >= 2) {
+    state.completed = true;
+  }
+
   saveRecoveryState(lessonId, problemType, state);
   return state;
 }
