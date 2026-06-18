@@ -336,6 +336,10 @@ if(window.__activeRecoveryPractice){
   },900);
 }
 function checkRecoveryAnswer(problemType,correctAnswer){
+  console.log("RECOVERY ANSWER DEBUG",{
+  userInput: document.getElementById("recoveryAnswerInput")?.value,
+  correctAnswer
+});
   const input=document.getElementById("recoveryAnswerInput");
   const feedback=document.getElementById("recoveryFeedback");
 
