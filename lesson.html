@@ -343,13 +343,38 @@ if(window.__activeRecoveryPractice){
   if(value.includes(correct)) return true;
   if(correct.includes(value)) return true;
 
-  const aliases = {
-    "quadraticfunction": ["quadratic", "quadraticfunction"],
-    "linearfunction": ["linear", "linearfunction"],
-    "exponentialfunction": ["exponential", "exponentialfunction"],
-    "notafunction": ["notafunction", "notfunction"],
-    "2": ["2", "two", "degree2", "exponent2"]
-  };
+const aliases = {
+
+  "quadraticfunction": [
+    "quadratic",
+    "quadraticfunction"
+  ],
+
+  "linearfunction": [
+    "linear",
+    "linearfunction"
+  ],
+
+  "exponentialfunction": [
+    "exponential",
+    "exponentialfunction"
+  ],
+
+  "notafunction": [
+    "notafunction",
+    "not function",
+    "notfunction"
+  ],
+
+  "2": [
+    "2",
+    "two",
+    "degree2",
+    "exponent2",
+    "highest exponent is 2"
+  ]
+
+};
 
   const accepted = aliases[correct] || [];
 
