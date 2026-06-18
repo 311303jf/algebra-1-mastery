@@ -1011,6 +1011,285 @@ function buildIdentifyQuadraticFunctionTeacherV3300(problemType, skillDefinition
   };
 }
 
+function buildQuadraticFamilyTeacherV3300(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
+  const family = skillDefinition.family || "quadratic_functions";
+  const strategy = skillDefinition.strategy || "analyze_quadratic_features";
+
+  if (family === "vertex_form") {
+    return {
+      title: `AI Math Teacher: ${formatSkillName(problemType)}`,
+      diagnostic: {
+        problemType,
+        family,
+        strategy,
+        tutorType: "quadratic_family_teacher_v3300",
+        parsed
+      },
+      conceptSummary: [
+        "Vertex form is written as y = a(x - h)² + k.",
+        "The vertex is (h, k).",
+        "Inside the parentheses, the sign changes: x - 3 gives h = 3.",
+        "The value outside the parentheses is k."
+      ],
+      misconception:
+        metadata?.misconception ||
+        "Students often report the inside value directly instead of changing its sign.",
+      tutorDialogue: [
+        {
+          id: "vertex_form_structure",
+          tutor:
+            `<div><strong>Let’s learn vertex form step by step.</strong></div>` +
+            `<div style="margin-top:8px;">Vertex form looks like:</div>` +
+            `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">y = a(x - h)² + k</div>` +
+            `<div style="margin-top:10px;">Which part gives the vertex?</div>`,
+          choices: [
+            "(h, k)",
+            "(a, h)",
+            "(a, k)",
+            "The coefficient only"
+          ],
+          expected: ["(h, k)"],
+          explanation: "Correct. In vertex form, the vertex is (h, k).",
+          theory: "The h value controls left/right movement. The k value controls up/down movement."
+        },
+        {
+          id: "inside_sign_change",
+          tutor:
+            `<div><strong>Look at this function:</strong></div>` +
+            `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">y = (x - 4)² + 7</div>` +
+            `<div style="margin-top:10px;">What is the vertex?</div>`,
+          choices: [
+            "(4, 7)",
+            "(-4, 7)",
+            "(4, -7)",
+            "(-4, -7)"
+          ],
+          expected: ["(4, 7)"],
+          explanation: "Correct. x - 4 means h = 4, and +7 means k = 7.",
+          theory: "The sign inside parentheses changes when finding h."
+        },
+        {
+          id: "micro_practice_vertex",
+          tutor:
+            `<div><strong>Try one.</strong></div>` +
+            `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">y = 2(x + 3)² - 5</div>` +
+            `<div style="margin-top:10px;">What is the vertex?</div>`,
+          choices: [
+            "(-3, -5)",
+            "(3, -5)",
+            "(-3, 5)",
+            "(2, -5)"
+          ],
+          expected: ["(-3, -5)"],
+          explanation: "Correct. x + 3 means h = -3, and -5 means k = -5.",
+          theory: "Rewrite x + 3 as x - (-3). That means h = -3."
+        }
+      ],
+      workedExample: [
+        "Start with y = a(x - h)² + k.",
+        "Identify h from inside the parentheses.",
+        "Change the sign of the inside value.",
+        "Identify k from outside the parentheses.",
+        "Write the vertex as (h, k)."
+      ],
+      video: null,
+      recoveryPractice: [
+        {
+          prompt: "In y = (x - 2)² + 6, what is the vertex?",
+          answer: "(2, 6)",
+          choices: ["(2, 6)", "(-2, 6)", "(2, -6)", "(-2, -6)"]
+        },
+        {
+          prompt: "In y = 3(x + 5)² - 1, what is the vertex?",
+          answer: "(-5, -1)",
+          choices: ["(-5, -1)", "(5, -1)", "(-5, 1)", "(3, -1)"]
+        }
+      ],
+      source: "quadratic_family_teacher_v3300"
+    };
+  }
+
+  if (family === "quadratic_graphs") {
+    return {
+      title: `AI Math Teacher: ${formatSkillName(problemType)}`,
+      diagnostic: {
+        problemType,
+        family,
+        strategy,
+        tutorType: "quadratic_family_teacher_v3300",
+        parsed
+      },
+      conceptSummary: [
+        "A quadratic graph is a parabola.",
+        "The vertex is the turning point.",
+        "The axis of symmetry is the vertical line through the vertex.",
+        "The y-intercept is where the graph crosses the y-axis."
+      ],
+      misconception:
+        metadata?.misconception ||
+        "Students often confuse the vertex, intercepts, and axis of symmetry.",
+      tutorDialogue: [
+        {
+          id: "parabola_feature",
+          tutor:
+            `<div><strong>Quadratic graphs have special features.</strong></div>` +
+            `<div style="margin-top:8px;">The graph of a quadratic function is called a parabola.</div>` +
+            `<div style="margin-top:10px;">What is the turning point called?</div>`,
+          choices: [
+            "Vertex",
+            "y-intercept",
+            "Slope",
+            "Rate of change"
+          ],
+          expected: ["Vertex"],
+          explanation: "Correct. The turning point of a parabola is the vertex.",
+          theory: "A parabola turns around at its vertex."
+        },
+        {
+          id: "axis_symmetry",
+          tutor:
+            `<div><strong>Now think about symmetry.</strong></div>` +
+            `<div style="margin-top:8px;">A parabola can be folded in half through a vertical line.</div>` +
+            `<div style="margin-top:10px;">What is that vertical line called?</div>`,
+          choices: [
+            "Axis of symmetry",
+            "y-intercept",
+            "x-intercept",
+            "Initial value"
+          ],
+          expected: ["Axis of symmetry"],
+          explanation: "Correct. The axis of symmetry cuts the parabola into two matching halves.",
+          theory: "The axis of symmetry passes through the vertex."
+        },
+        {
+          id: "micro_practice_graph",
+          tutor:
+            `<div><strong>Try one.</strong></div>` +
+            `<div style="margin-top:8px;">If the vertex is (3, -2), what is the axis of symmetry?</div>`,
+          choices: [
+            "x = 3",
+            "y = 3",
+            "x = -2",
+            "y = -2"
+          ],
+          expected: ["x = 3"],
+          explanation: "Correct. The axis of symmetry uses the x-coordinate of the vertex.",
+          theory: "For vertex (h, k), the axis of symmetry is x = h."
+        }
+      ],
+      workedExample: [
+        "Identify the vertex first.",
+        "Use the x-coordinate of the vertex for the axis of symmetry.",
+        "Find the y-intercept where x = 0.",
+        "Find x-intercepts where y = 0, if they exist."
+      ],
+      video: null,
+      recoveryPractice: [
+        {
+          prompt: "If a parabola has vertex (4, 1), what is the axis of symmetry?",
+          answer: "x = 4",
+          choices: ["x = 4", "y = 4", "x = 1", "y = 1"]
+        },
+        {
+          prompt: "What is the turning point of a parabola called?",
+          answer: "Vertex",
+          choices: ["Vertex", "Slope", "Initial value", "Rate of change"]
+        }
+      ],
+      source: "quadratic_family_teacher_v3300"
+    };
+  }
+
+  if (family === "function_classification") {
+    return {
+      title: `AI Math Teacher: ${formatSkillName(problemType)}`,
+      diagnostic: {
+        problemType,
+        family,
+        strategy,
+        tutorType: "quadratic_family_teacher_v3300",
+        parsed
+      },
+      conceptSummary: [
+        "Linear functions have a constant first difference.",
+        "Quadratic functions have a constant second difference.",
+        "Exponential functions multiply by the same factor.",
+        "Different representations require different checks."
+      ],
+      misconception:
+        metadata?.misconception ||
+        "Students often classify by appearance instead of checking the pattern.",
+      tutorDialogue: [
+        {
+          id: "classification_rules",
+          tutor:
+            `<div><strong>Let’s compare function families.</strong></div>` +
+            `<ul style="margin-top:8px;">` +
+            `<li>Linear: add or subtract the same amount.</li>` +
+            `<li>Quadratic: second differences are constant.</li>` +
+            `<li>Exponential: multiply by the same factor.</li>` +
+            `</ul>` +
+            `<div style="margin-top:10px;">Which family has constant second differences?</div>`,
+          choices: [
+            "Quadratic function",
+            "Linear function",
+            "Exponential function",
+            "Not a function"
+          ],
+          expected: ["Quadratic function"],
+          explanation: "Correct. Constant second differences indicate a quadratic function.",
+          theory: "Tables are classified by patterns in the outputs."
+        },
+        {
+          id: "micro_practice_classification",
+          tutor:
+            `<div><strong>Try one.</strong></div>` +
+            `<div style="margin-top:8px;">Outputs: 2, 5, 10, 17</div>` +
+            `<div style="margin-top:8px;">First differences: 3, 5, 7</div>` +
+            `<div style="margin-top:8px;">Second differences: 2, 2</div>` +
+            `<div style="margin-top:10px;">What type of function is this?</div>`,
+          choices: [
+            "Quadratic function",
+            "Linear function",
+            "Exponential function",
+            "Not a function"
+          ],
+          expected: ["Quadratic function"],
+          explanation: "Correct. The second differences are constant.",
+          theory: "When second differences are equal, the relationship is quadratic."
+        }
+      ],
+      workedExample: [
+        "Check whether the outputs add by the same amount.",
+        "If first differences are constant, the function is linear.",
+        "If second differences are constant, the function is quadratic.",
+        "If outputs multiply by the same factor, the function is exponential."
+      ],
+      video: null,
+      recoveryPractice: [
+        {
+          prompt: "Which family has constant second differences?",
+          answer: "Quadratic function",
+          choices: ["Quadratic function", "Linear function", "Exponential function", "Not a function"]
+        },
+        {
+          prompt: "Which family multiplies by the same factor each time?",
+          answer: "Exponential function",
+          choices: ["Exponential function", "Linear function", "Quadratic function", "Not a function"]
+        }
+      ],
+      source: "quadratic_family_teacher_v3300"
+    };
+  }
+
+  return buildIdentifyQuadraticFunctionTeacherV3300(
+    problemType,
+    skillDefinition,
+    metadata,
+    currentQuestion,
+    parsed
+  );
+}
 function formatSkillName(value) {
   return String(value || "skill")
     .replace(/_/g, " ")
