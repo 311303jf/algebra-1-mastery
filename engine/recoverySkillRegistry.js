@@ -232,6 +232,72 @@ export const RECOVERY_SKILL_REGISTRY = {
     family: "quadratics",
     strategy: "quadratic_formula",
     tutor: "quadratic_template"
+  },
+
+  identify_quadratic_function: {
+    family: "quadratic_functions",
+    strategy: "identify_highest_exponent",
+    tutor: "quadratic_function_teacher"
+  },
+
+  quadratic_table_pattern: {
+    family: "quadratic_functions",
+    strategy: "identify_second_differences",
+    tutor: "quadratic_function_teacher"
+  },
+
+  quadratic_graph_shape: {
+    family: "quadratic_functions",
+    strategy: "identify_parabola_shape",
+    tutor: "quadratic_function_teacher"
+  },
+
+  linear_vs_quadratic_vs_exponential: {
+    family: "function_classification",
+    strategy: "compare_function_families",
+    tutor: "function_classification_teacher"
+  },
+
+  quadratic_vertex: {
+    family: "quadratic_graphs",
+    strategy: "identify_vertex",
+    tutor: "quadratic_graph_teacher"
+  },
+
+  axis_of_symmetry: {
+    family: "quadratic_graphs",
+    strategy: "identify_axis_of_symmetry",
+    tutor: "quadratic_graph_teacher"
+  },
+
+  quadratic_y_intercept: {
+    family: "quadratic_graphs",
+    strategy: "identify_y_intercept",
+    tutor: "quadratic_graph_teacher"
+  },
+
+  quadratic_x_intercepts: {
+    family: "quadratic_graphs",
+    strategy: "identify_x_intercepts",
+    tutor: "quadratic_graph_teacher"
+  },
+
+  vertex_form_features: {
+    family: "quadratic_graphs",
+    strategy: "read_vertex_form",
+    tutor: "quadratic_graph_teacher"
+  },
+
+  standard_form_features: {
+    family: "quadratic_graphs",
+    strategy: "read_standard_form",
+    tutor: "quadratic_graph_teacher"
+  },
+
+  factored_form_features: {
+    family: "quadratic_graphs",
+    strategy: "read_factored_form",
+    tutor: "quadratic_graph_teacher"
   }
 
 };
