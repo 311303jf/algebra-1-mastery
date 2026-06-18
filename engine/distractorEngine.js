@@ -495,6 +495,74 @@ return [...new Set([
       return [];
   }
 }
+function generateAxisOfSymmetryDistractors(text) {
+  const match = String(text || "").match(/^([xy])\s*=\s*(-?\d+(?:\.\d+)?)$/i);
+
+  if (!match) return [];
+
+  const variable = match[1].toLowerCase();
+  const value = Number(match[2]);
+  const otherVariable = variable === "x" ? "y" : "x";
+
+  return [
+    `${variable} = ${formatUniversalNumber(-value)}`,
+    `${otherVariable} = ${formatUniversalNumber(value)}`,
+    `${otherVariable} = ${formatUniversalNumber(-value)}`,
+    `${variable} = ${formatUniversalNumber(value + 1)}`,
+    `${variable} = ${formatUniversalNumber(value - 1)}`
+  ].filter(choice => choice.replace(/\s+/g, "") !== text.replace(/\s+/g, ""));
+}
+
+function generateVertexTransformationDistractors(text) {
+  const source = String(text || "").trim();
+
+  const horizontalMatch = source.match(/(\d+)\s+units?\s+(left|right)/i);
+  const verticalMatch = source.match(/(\d+)\s+units?\s+(up|down)/i);
+
+  const hasNoVerticalShift = /no\s+vertical\s+shift/i.test(source);
+  const reflected = /reflected\s+over\s+the\s+x-axis/i.test(source);
+  const opensUpward = /opens\s+upward/i.test(source);
+  const opensDownward = /opens\s+downward/i.test(source);
+
+  const horizontalAmount = horizontalMatch ? Number(horizontalMatch[1]) : 0;
+  const horizontalDirection = horizontalMatch ? horizontalMatch[2].toLowerCase() : "right";
+
+  const verticalAmount = verticalMatch ? Number(verticalMatch[1]) : 0;
+  const verticalDirection = verticalMatch ? verticalMatch[2].toLowerCase() : "up";
+
+  const oppositeHorizontal = horizontalDirection === "right" ? "left" : "right";
+  const oppositeVertical = verticalDirection === "up" ? "down" : "up";
+
+  const openingPhrase =
+    reflected || opensDownward
+      ? "reflected over the x-axis"
+      : "opens upward";
+
+  const oppositeOpeningPhrase =
+    reflected || opensDownward
+      ? "opens upward"
+      : "reflected over the x-axis";
+
+  const verticalPhrase = hasNoVerticalShift
+    ? "no vertical shift"
+    : `${verticalAmount} units ${verticalDirection}`;
+
+  const oppositeVerticalPhrase = hasNoVerticalShift
+    ? "2 units up"
+    : `${verticalAmount} units ${oppositeVertical}`;
+
+  const candidates = [
+    `${horizontalAmount} units ${oppositeHorizontal}, ${verticalPhrase}, ${openingPhrase}`,
+    `${horizontalAmount} units ${horizontalDirection}, ${oppositeVerticalPhrase}, ${openingPhrase}`,
+    `${horizontalAmount} units ${horizontalDirection}, ${verticalPhrase}, ${oppositeOpeningPhrase}`,
+    `${horizontalAmount} units ${oppositeHorizontal}, ${oppositeVerticalPhrase}, ${oppositeOpeningPhrase}`,
+    `${horizontalAmount + 1} units ${horizontalDirection}, ${verticalPhrase}, ${openingPhrase}`,
+    `${Math.max(1, horizontalAmount - 1)} units ${horizontalDirection}, ${verticalPhrase}, ${openingPhrase}`
+  ];
+
+  return [...new Set(candidates)]
+    .filter(choice => choice.toLowerCase() !== source.toLowerCase());
+}
 
 function formatUniversalNumber(value) {
   const n = Number(value);
@@ -615,7 +683,7 @@ function runDistractorCertification() {
   console.clear();
 
   console.log("================================");
-  console.log("DISTRACTOR ENGINE CERTIFICATION V3204");
+  console.log("DISTRACTOR ENGINE CERTIFICATION V3205");
   console.log("================================");
 
   const testCases = [
