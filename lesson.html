@@ -458,7 +458,6 @@ window.checkAnswer=checkAnswer;
 async function startLesson(){const curriculum=await loadCurriculum();const lessonId=getLessonIdFromUrl();const lesson=getLessonById(curriculum,lessonId);if(!lesson){document.getElementById("lessonTitle").textContent="Lesson not found";document.getElementById("lessonObjective").textContent="Check the lesson ID in the URL.";return;}console.log("Dynamic lesson loaded:",lesson);renderLesson(lesson);}startLesson();
 
 
-
 window.renderRecoveryLesson = renderRecoveryLesson;
 window.generateRecoveryPractice = generateRecoveryPractice;
 window.checkRecoveryAnswer = checkRecoveryAnswer;
@@ -466,8 +465,10 @@ window.startInteractiveTutor = startInteractiveTutor;
 window.renderInteractiveTutorStep = renderInteractiveTutorStep;
 window.restartInteractiveTutor = restartInteractiveTutor;
 window.selectTutorChoice = selectTutorChoice;
+  window.selectRecoveryChoice = selectRecoveryChoice;
 window.checkTutorAnswer = checkTutorAnswer;
 window.retryTutorStep = retryTutorStep;
+  
 
 </script>
 <script>
