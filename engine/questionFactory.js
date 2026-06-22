@@ -5228,6 +5228,8 @@ function certifyDistractorFamily(answer, candidates, problemType) {
     "vertex_form_equation",
     "quadratic_solution",
     "binomial_square_factor",
+     "difference_of_squares_factor",
+"binomial_square_factor",
     "factored_form_equation",
     "standard_form_equation",
     "quadratic_equation",
@@ -5421,6 +5423,8 @@ const finalizeChoices = (correctAnswer, candidates) => {
       "equation_solution",
       "inequality",
       "vertex_transformation",
+       "difference_of_squares_factor",
+"binomial_square_factor",
       "axis_of_symmetry",
       "quadratic_feature",
       "vertex_form_equation",
@@ -5716,6 +5720,49 @@ if (
 function generateExponentialFunctionAnswerChoices(answer, problemType, finalizeChoices) {
   const text = String(answer || "").trim();
   const type = String(problemType || "").toLowerCase();
+     if (
+    type === "factor_difference_of_squares" ||
+    type === "mixed_special_factoring"
+  ) {
+    const match = text.match(
+      /^\(\s*x\s*\+\s*(\d+)\s*\)\s*\(\s*x\s*-\s*\1\s*\)$/i
+    );
+
+    if (match) {
+      const n = Number(match[1]);
+
+      return finalizeChoices(text, [
+        `(x + ${n})(x + ${n})`,
+        `(x - ${n})(x - ${n})`,
+        `(x + ${n + 1})(x - ${n + 1})`,
+        `(x + ${Math.max(1, n - 1)})(x - ${Math.max(1, n - 1)})`,
+        `(x + ${n + 1})(x - ${n})`
+      ]);
+    }
+  }
+
+  if (
+    type === "factor_perfect_square_trinomial" ||
+    type === "mixed_special_factoring"
+  ) {
+    const match = text.match(
+      /^\(\s*x\s*([+-])\s*(\d+)\s*\)(²|\^2)$/i
+    );
+
+    if (match) {
+      const sign = match[1];
+      const n = Number(match[2]);
+      const opposite = sign === "+" ? "-" : "+";
+
+      return finalizeChoices(text, [
+        `(x ${opposite} ${n})²`,
+        `(x ${sign} ${n + 1})²`,
+        `(x ${sign} ${Math.max(1, n - 1)})²`,
+        `(x ${sign} ${n})(x ${opposite} ${n})`,
+        `(x ${opposite} ${n})(x ${opposite} ${n})`
+      ]);
+    }
+  }
 
   if (text === "Exponential growth" || text === "Exponential decay") {
     return finalizeChoices(text, [
