@@ -141,9 +141,7 @@ case "quadratic_solution":{
 case "binomial_square_factor": {
   return generateBinomialSquareFactorDistractors(text);
 }
-    case "binomial_square_factor": {
-  return generateBinomialSquareFactorDistractors(text);
-}
+   
     
     case "factored_form_equation": {
       return generateFactoredFormEquationDistractors(text);
@@ -828,30 +826,6 @@ function generateDifferenceOfSquaresFactorDistractors(text) {
   );
 }
 
-function generateBinomialSquareFactorDistractors(text) {
-  const source = String(text || "").trim().replace(/²/g, "^2");
-
-  const match = source.match(
-    /^\(\s*([a-z])\s*([+-])\s*(\d+)\s*\)\s*\^2$/i
-  );
-
-  if (!match) return [];
-
-  const variable = match[1];
-  const sign = match[2];
-  const n = Number(match[3]);
-  const opposite = sign === "+" ? "-" : "+";
-
-  return [
-    `(${variable} ${opposite} ${n})^2`,
-    `(${variable} ${sign} ${n + 1})^2`,
-    `(${variable} ${sign} ${Math.max(1, n - 1)})^2`,
-    `(${variable} ${sign} ${n})(${variable} ${opposite} ${n})`,
-    `(${variable} ${opposite} ${n})(${variable} ${opposite} ${n})`
-  ].filter(choice =>
-    normalizeDistractorChoice(choice) !== normalizeDistractorChoice(source)
-  );
-}
 
 function generateAxisOfSymmetryDistractors(text) {
   const match = String(text || "").match(/^([xy])\s*=\s*(-?\d+(?:\.\d+)?)$/i);
