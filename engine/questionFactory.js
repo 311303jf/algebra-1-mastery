@@ -5178,7 +5178,17 @@ function certifyDistractorFamily(answer, candidates, problemType) {
     return list;
   }
    
-
+  if (
+    type === "identify_special_factoring_pattern" ||
+    type === "special_product_identify"
+  ) {
+    return finalizeChoices(answer, [
+      "Difference of squares",
+      "Perfect square trinomial",
+      "Greatest common factor",
+      "Trinomial factoring"
+    ]);
+  }
   const universalEngine =
     typeof window !== "undefined"
       ? window.AlgebraDistractorEngine
@@ -5405,11 +5415,14 @@ const finalizeChoices = (correctAnswer, candidates) => {
     // Some skills intentionally need mixed-family choices.
   // Do NOT let the Universal Distractor Engine intercept these.
   const bypassUniversalEngine =
-    type === "identify_quadratic_function" ||
-    type === "linear_vs_quadratic_vs_exponential" ||
-    type.includes("classify") ||
-    type.includes("identify_growth_decay") ||
-    type.includes("identify_exponential_function");
+  type === "identify_quadratic_function" ||
+  type === "linear_vs_quadratic_vs_exponential" ||
+  type === "identify_special_factoring_pattern" ||
+  type === "special_product_identify" ||
+  type.includes("classify") ||
+  type.includes("identify_growth_decay") ||
+  type.includes("identify_exponential_function");
+
    if (
     !bypassUniversalEngine &&
     universalEngine &&
