@@ -28,6 +28,11 @@ function detectAnswerFamily(answer) {
   if (/^-?\d*(?:\.\d+)?x(\^2|²)(\s*[+-]\s*\d*(?:\.\d+)?x)?(\s*[+-]\s*\d+(?:\.\d+)?)?\s*=\s*0$/i.test(text)) {
     return "quadratic_equation";
   } 
+  // Binomial square factored form: (x + 5)² or (x + 5)^2
+  if (/^\(\s*[a-z]\s*[+-]\s*\d+\s*\)\s*(\^2|²)$/i.test(text)) {
+    return "binomial_square_factor";
+  }
+ 
  // Coordinate point
   if (/^\(\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*\)$/.test(text)) {
     return "point";
@@ -117,6 +122,9 @@ function generateUniversalDistractors(answer) {
     }
 case "quadratic_solution":{
   return generateQuadraticSolutionDistractors(text);
+}
+    case "binomial_square_factor": {
+  return generateBinomialSquareFactorDistractors(text);
 }
     
     case "factored_form_equation": {
@@ -751,6 +759,33 @@ function generateQuadraticSolutionDistractors(text) {
     `x = ${a + 1}, x = ${b - 1}`
 
   ];
+}
+function generateBinomialSquareFactorDistractors(text) {
+  const source = String(text || "").trim().replace(/²/g, "^2");
+
+  const match = source.match(
+    /^\(\s*([a-z])\s*([+-])\s*(\d+)\s*\)\s*\^2$/i
+  );
+
+  if (!match) return [];
+
+  const variable = match[1];
+  const sign = match[2];
+  const value = Number(match[3]);
+
+  const oppositeSign = sign === "+" ? "-" : "+";
+
+  const candidates = [
+    `(${variable} ${oppositeSign} ${value})^2`,
+    `(${variable} ${sign} ${value + 1})^2`,
+    `(${variable} ${sign} ${Math.max(1, value - 1)})^2`,
+    `(${variable} ${sign} ${value})(${variable} ${oppositeSign} ${value})`,
+    `(${variable} ${oppositeSign} ${value})(${variable} ${oppositeSign} ${value})`
+  ];
+
+  return candidates.filter(choice =>
+    normalizeDistractorChoice(choice) !== normalizeDistractorChoice(source)
+  );
 }
 
 function generateAxisOfSymmetryDistractors(text) {
