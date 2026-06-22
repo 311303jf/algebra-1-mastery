@@ -70,7 +70,13 @@ function detectAnswerFamily(answer) {
   ) {
     return "vertex_transformation";
   }
-
+  // Quadratic solutions
+  // Example: x = -4, x = 7
+  if (
+    /^x\s*=\s*-?\d+(\.\d+)?\s*,\s*x\s*=\s*-?\d+(\.\d+)?$/i.test(text)
+  ) {
+    return "quadratic_solution";
+  }
   // Axis of symmetry
   if (/^[xy]\s*=\s*-?\d+(\.\d+)?$/i.test(text)) {
     return "axis_of_symmetry";
@@ -108,7 +114,10 @@ function generateUniversalDistractors(answer) {
         case "vertex_form_equation": {
       return generateVertexFormEquationDistractors(text);
     }
-
+case "quadratic_solution":{
+  return generateQuadraticSolutionDistractors(text);
+}
+    
     case "factored_form_equation": {
       return generateFactoredFormEquationDistractors(text);
     }
@@ -717,6 +726,32 @@ function normalizeDistractorChoice(value) {
     .replace(/\s+/g, "")
     .trim();
 }
+
+function generateQuadraticSolutionDistractors(text) {
+
+  const nums =
+    text.match(/-?\d+(\.\d+)?/g)?.map(Number) || [];
+
+  if (nums.length !== 2) return [];
+
+  const a = nums[0];
+  const b = nums[1];
+
+  return [
+
+    `x = ${a}, x = ${-b}`,
+
+    `x = ${-a}, x = ${b}`,
+
+    `x = ${b}, x = ${a}`,
+
+    `x = ${a - 1}, x = ${b + 1}`,
+
+    `x = ${a + 1}, x = ${b - 1}`
+
+  ];
+}
+
 function generateAxisOfSymmetryDistractors(text) {
   const match = String(text || "").match(/^([xy])\s*=\s*(-?\d+(?:\.\d+)?)$/i);
 
