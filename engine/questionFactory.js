@@ -5379,7 +5379,16 @@ const finalizeChoices = (correctAnswer, candidates) => {
       "system_solution_point"
     ].includes(family);
 
-  if (
+    // Some skills intentionally need mixed-family choices.
+  // Do NOT let the Universal Distractor Engine intercept these.
+  const bypassUniversalEngine =
+    type === "identify_quadratic_function" ||
+    type === "linear_vs_quadratic_vs_exponential" ||
+    type.includes("classify") ||
+    type.includes("identify_growth_decay") ||
+    type.includes("identify_exponential_function");
+   if (
+    !bypassUniversalEngine &&
     universalEngine &&
     typeof universalEngine.generateUniversalDistractors === "function" &&
     (
