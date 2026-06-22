@@ -69,8 +69,11 @@ if (skillDefinition.tutor === "variables_both_sides_template") {
   );
 }
 
-if (skillDefinition.tutor === "factoring_template") {
-  return buildFactoringTemplateLesson(
+if (
+  skillDefinition.family === "factoring" ||
+  skillDefinition.tutor === "factoring_template"
+) {
+  return buildFactoringFamilyTeacherV3301(
     problemType,
     skillDefinition,
     metadata,
@@ -513,6 +516,183 @@ function buildExponentTemplateLesson(problemType, skillDefinition = {}, metadata
       }
     ],
     source: "recoveryTemplateEngine_v2800"
+  };
+}
+function buildFactoringFamilyTeacherV3301(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
+  const strategy = skillDefinition.strategy || "factor_expression";
+
+  const isTrinomial =
+    problemType === "factor_trinomial_a1" ||
+    problemType === "factor_trinomial_positive_c" ||
+    problemType === "factor_trinomial_negative_c" ||
+    strategy === "find_two_numbers";
+
+  if (isTrinomial) {
+    return buildTrinomialTeacherV3301(
+      problemType,
+      skillDefinition,
+      metadata,
+      currentQuestion,
+      parsed
+    );
+  }
+
+  return buildFactoringTemplateLesson(
+    problemType,
+    skillDefinition,
+    metadata,
+    currentQuestion,
+    parsed
+  );
+}
+
+function buildTrinomialTeacherV3301(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null, parsed = null) {
+  const problemText = currentQuestion?.prompt || parsed?.originalText || "Factor x² + 5x + 6";
+  const answerText = currentQuestion?.answer || "(x + 2)(x + 3)";
+
+  return {
+    title: "AI Math Teacher: Factoring Trinomials",
+    diagnostic: {
+      problemType,
+      family: "factoring",
+      strategy: "find_two_numbers",
+      tutorType: "trinomial_teacher_v3301",
+      parsed
+    },
+    conceptSummary: [
+      "Factoring rewrites a trinomial as a product of two binomials.",
+      "For x² + bx + c, find two numbers that multiply to c and add to b.",
+      "Those two numbers become the constants inside the binomial factors.",
+      "Always check by multiplying the factors back."
+    ],
+    misconception:
+      metadata?.misconception ||
+      "Students often find two numbers that multiply to c but forget they must also add to b.",
+    tutorDialogue: [
+      {
+        id: "identify_trinomial_structure",
+        tutor:
+          `<div><strong>Let’s learn factoring trinomials step by step.</strong></div>` +
+          `<div style="margin-top:8px;">A trinomial like this has the form:</div>` +
+          `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">x² + bx + c</div>` +
+          `<div style="margin-top:10px;">What are we trying to rewrite it as?</div>`,
+        choices: [
+          "A product of two binomials",
+          "A single number",
+          "A linear equation",
+          "A graph"
+        ],
+        expected: ["A product of two binomials"],
+        explanation:
+          "Correct. Factoring rewrites the trinomial as a product of two binomials.",
+        theory:
+          "Factoring is the reverse of multiplying. We are undoing the trinomial back into binomial factors."
+      },
+      {
+        id: "multiply_and_add_rule",
+        tutor:
+          `<div><strong>Key rule:</strong></div>` +
+          `<div style="margin-top:8px;font-size:20px;font-weight:1000;color:#1e3a8a;">x² + bx + c</div>` +
+          `<div style="margin-top:10px;">For this type of trinomial, what must the two numbers do?</div>`,
+        choices: [
+          "Multiply to c and add to b",
+          "Add to c and multiply to b",
+          "Multiply to b only",
+          "Add to x²"
+        ],
+        expected: ["Multiply to c and add to b"],
+        explanation:
+          "Correct. The two numbers must multiply to c and add to b.",
+        theory:
+          "The constant term comes from multiplying the two factor numbers. The middle coefficient comes from adding them."
+      },
+      {
+        id: "worked_example_pair",
+        tutor:
+          `<div><strong>Example:</strong></div>` +
+          `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">x² + 5x + 6</div>` +
+          `<div style="margin-top:10px;">Which pair multiplies to 6 and adds to 5?</div>`,
+        choices: [
+          "2 and 3",
+          "1 and 6",
+          "4 and 2",
+          "5 and 1"
+        ],
+        expected: ["2 and 3"],
+        explanation:
+          "Correct. 2 × 3 = 6 and 2 + 3 = 5.",
+        theory:
+          "Both conditions must be true. A pair that only multiplies correctly is not enough."
+      },
+      {
+        id: "build_factors",
+        tutor:
+          `<div><strong>Now build the factors.</strong></div>` +
+          `<div style="margin-top:8px;">Since the numbers are 2 and 3:</div>` +
+          `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">x² + 5x + 6 = (x + 2)(x + 3)</div>` +
+          `<div style="margin-top:10px;">How do we check the answer?</div>`,
+        choices: [
+          "Multiply the factors back",
+          "Choose the shortest expression",
+          "Change both signs",
+          "Ignore the middle term"
+        ],
+        expected: ["Multiply the factors back"],
+        explanation:
+          "Correct. Multiply the factors to make sure they return the original trinomial.",
+        theory:
+          "Factoring and multiplying are inverse processes. Multiplying back verifies the factorization."
+      },
+      {
+        id: "micro_practice_trinomial",
+        tutor:
+          `<div><strong>Try one.</strong></div>` +
+          `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">x² + 7x + 10</div>` +
+          `<div style="margin-top:10px;">Which factored form is correct?</div>`,
+        choices: [
+          "(x + 5)(x + 2)",
+          "(x + 10)(x + 1)",
+          "(x - 5)(x - 2)",
+          "(x + 7)(x + 10)"
+        ],
+        expected: ["(x + 5)(x + 2)"],
+        explanation:
+          "Correct. 5 × 2 = 10 and 5 + 2 = 7.",
+        theory:
+          "For x² + 7x + 10, the pair must multiply to 10 and add to 7."
+      }
+    ],
+    workedExample: [
+      "Start with x² + bx + c.",
+      "Find two numbers that multiply to c.",
+      "Check which pair also adds to b.",
+      "Write the factors as (x + m)(x + n).",
+      "Multiply back to check."
+    ],
+    video: null,
+    recoveryPractice: [
+      {
+        prompt: "Factor x² + 8x + 15.",
+        answer: "(x + 3)(x + 5)",
+        choices: [
+          "(x + 3)(x + 5)",
+          "(x + 1)(x + 15)",
+          "(x - 3)(x - 5)",
+          "(x + 8)(x + 15)"
+        ]
+      },
+      {
+        prompt: "For x² + 9x + 20, which numbers multiply to 20 and add to 9?",
+        answer: "4 and 5",
+        choices: [
+          "4 and 5",
+          "2 and 10",
+          "1 and 20",
+          "3 and 6"
+        ]
+      }
+    ],
+    source: "trinomial_teacher_v3301"
   };
 }
 
