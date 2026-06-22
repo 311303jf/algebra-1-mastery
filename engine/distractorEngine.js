@@ -1,7 +1,7 @@
 /*
 ==================================================
  Algebra OS — Universal Distractor Engine
- Version: 3205
+ Version: 3206
 ==================================================
 */
 
@@ -9,7 +9,26 @@ function detectAnswerFamily(answer) {
 
   const text = String(answer || "").trim();
 
-  // Coordinate point
+   // Vertex form equation: y = a(x - h)^2 + k
+  if (/^y\s*=\s*-?\d*(?:\.\d+)?\s*\(\s*x\s*[+-]\s*\d+(?:\.\d+)?\s*\)\s*(\^2|²)\s*[+-]\s*\d+(?:\.\d+)?$/i.test(text)) {
+    return "vertex_form_equation";
+  }
+
+  // Factored form equation: y = a(x - r1)(x - r2)
+  if (/^y\s*=\s*-?\d*(?:\.\d+)?\s*\(\s*x\s*[+-]\s*\d+(?:\.\d+)?\s*\)\s*\(\s*x\s*[+-]\s*\d+(?:\.\d+)?\s*\)$/i.test(text)) {
+    return "factored_form_equation";
+  }
+
+  // Standard form equation: y = ax^2 + bx + c
+  if (/^y\s*=\s*-?\d*(?:\.\d+)?x(\^2|²)(\s*[+-]\s*\d*(?:\.\d+)?x)?(\s*[+-]\s*\d+(?:\.\d+)?)?$/i.test(text)) {
+    return "standard_form_equation";
+  }
+
+  // Quadratic equation: ax^2 + bx + c = 0
+  if (/^-?\d*(?:\.\d+)?x(\^2|²)(\s*[+-]\s*\d*(?:\.\d+)?x)?(\s*[+-]\s*\d+(?:\.\d+)?)?\s*=\s*0$/i.test(text)) {
+    return "quadratic_equation";
+  } 
+ // Coordinate point
   if (/^\(\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*\)$/.test(text)) {
     return "point";
   }
@@ -86,6 +105,21 @@ function generateUniversalDistractors(answer) {
   const text = String(answer || "").trim();
 
   switch (family) {
+        case "vertex_form_equation": {
+      return generateVertexFormEquationDistractors(text);
+    }
+
+    case "factored_form_equation": {
+      return generateFactoredFormEquationDistractors(text);
+    }
+
+    case "standard_form_equation": {
+      return generateStandardFormEquationDistractors(text);
+    }
+
+    case "quadratic_equation": {
+      return generateQuadraticEquationDistractors(text);
+    }
     case "vertex_transformation": {
   return generateVertexTransformationDistractors(text);
 }
@@ -494,6 +528,56 @@ return [...new Set([
     default:
       return [];
   }
+}
+function generateVertexFormEquationDistractors(text) {
+  const source = String(text || "").trim().replace(/²/g, "^2");
+
+  const match = source.match(
+    /^y\s*=\s*(-?\d*)\s*\(\s*x\s*([+-])\s*(\d+(?:\.\d+)?)\s*\)\s*\^2\s*([+-])\s*(\d+(?:\.\d+)?)$/i
+  );
+
+  if (!match) return [];
+
+  let a = match[1];
+  if (a === "" || a === "+") a = "1";
+  if (a === "-") a = "-1";
+
+  const aValue = Number(a);
+  const hSign = match[2];
+  const hNumber = Number(match[3]);
+  const kSign = match[4];
+  const kNumber = Number(match[5]);
+
+  const hValue = hSign === "-" ? hNumber : -hNumber;
+  const kValue = kSign === "+" ? kNumber : -kNumber;
+
+  function build(a, h, k) {
+    const inside = h >= 0 ? `x - ${Math.abs(h)}` : `x + ${Math.abs(h)}`;
+    const outside = k >= 0 ? `+ ${Math.abs(k)}` : `- ${Math.abs(k)}`;
+    return `y = ${a}( ${inside} )^2 ${outside}`.replace("( ", "(").replace(" )", ")");
+  }
+
+  return [
+    build(aValue, -hValue, kValue),
+    build(-aValue, hValue, kValue),
+    build(aValue, kValue, hValue),
+    build(aValue, hValue, -kValue),
+    build(-aValue, -hValue, -kValue)
+  ].filter(choice =>
+    choice.replace(/\s+/g, "") !== source.replace(/\s+/g, "")
+  );
+}
+
+function generateFactoredFormEquationDistractors(text) {
+  return [];
+}
+
+function generateStandardFormEquationDistractors(text) {
+  return [];
+}
+
+function generateQuadraticEquationDistractors(text) {
+  return [];
 }
 function generateAxisOfSymmetryDistractors(text) {
   const match = String(text || "").match(/^([xy])\s*=\s*(-?\d+(?:\.\d+)?)$/i);
