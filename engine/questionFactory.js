@@ -5376,6 +5376,7 @@ const finalizeChoices = (correctAnswer, candidates) => {
       "factored_form_equation",
       "standard_form_equation",
       "quadratic_equation",
+       "quadratic_solution",
       "polynomial_expression",
       "system_solution_point"
     ].includes(family);
