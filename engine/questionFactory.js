@@ -5277,15 +5277,29 @@ function generateChoices(answer, problemType) {
       type.includes("distributive_polynomial")
     );
 
+   const allowUniversalFamily =
+    [
+      "point",
+      "number",
+      "classification",
+      "equation_solution",
+      "inequality",
+      "vertex_transformation",
+      "axis_of_symmetry",
+      "quadratic_feature",
+      "vertex_form_equation",
+      "factored_form_equation",
+      "standard_form_equation",
+      "quadratic_equation",
+      "polynomial_expression",
+      "system_solution_point"
+    ].includes(family);
+
   if (
     universalEngine &&
     typeof universalEngine.generateUniversalDistractors === "function" &&
     (
-      family === "point" ||
-      family === "number" ||
-      family === "classification" ||
-      family === "equation_solution" ||
-      family === "inequality" ||
+      allowUniversalFamily ||
       allowUniversalExpression
     )
   ) {
