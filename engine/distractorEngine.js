@@ -33,7 +33,14 @@ function detectAnswerFamily(answer) {
     return "point";
   }
 
-  // Equation solution
+   // Quadratic solutions
+  // Example: x = -4, x = 7
+  if (
+    /^x\s*=\s*-?\d+(\.\d+)?\s*,\s*x\s*=\s*-?\d+(\.\d+)?$/i.test(text)
+  ) {
+    return "quadratic_solution";
+  }
+ // Equation solution
   if (
   /^[a-z]\s*=/i.test(text) ||
   text === "No Solution" ||
@@ -70,13 +77,7 @@ function detectAnswerFamily(answer) {
   ) {
     return "vertex_transformation";
   }
-  // Quadratic solutions
-  // Example: x = -4, x = 7
-  if (
-    /^x\s*=\s*-?\d+(\.\d+)?\s*,\s*x\s*=\s*-?\d+(\.\d+)?$/i.test(text)
-  ) {
-    return "quadratic_solution";
-  }
+
   // Axis of symmetry
   if (/^[xy]\s*=\s*-?\d+(\.\d+)?$/i.test(text)) {
     return "axis_of_symmetry";
