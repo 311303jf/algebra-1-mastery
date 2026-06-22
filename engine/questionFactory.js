@@ -5196,6 +5196,7 @@ function certifyDistractorFamily(answer, candidates, problemType) {
   const strictFamilies = [
     "vertex_form_equation",
      "quadratic_solution",
+     "binomial_square_factor",
     "factored_form_equation",
     "standard_form_equation",
     "quadratic_equation",
@@ -5395,6 +5396,7 @@ const finalizeChoices = (correctAnswer, candidates) => {
       "factored_form_equation",
       "standard_form_equation",
       "quadratic_equation",
+       "binomial_square_factor",
        "quadratic_solution",
       "polynomial_expression",
       "system_solution_point"
