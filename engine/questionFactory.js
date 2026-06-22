@@ -5142,6 +5142,65 @@ function addUniqueByEquivalence(list, choice) {
   }
 }
 
+function certifyDistractorFamily(answer, candidates, problemType) {
+  const list = Array.isArray(candidates) ? candidates : [];
+
+  const universalEngine =
+    typeof window !== "undefined"
+      ? window.AlgebraDistractorEngine
+      : null;
+
+  if (
+    !universalEngine ||
+    typeof universalEngine.detectAnswerFamily !== "function"
+  ) {
+    return list;
+  }
+
+  const answerFamily = universalEngine.detectAnswerFamily(answer);
+
+  const strictFamilies = [
+    "vertex_form_equation",
+    "factored_form_equation",
+    "standard_form_equation",
+    "quadratic_equation",
+    "polynomial_expression",
+    "system_solution_point",
+    "axis_of_symmetry",
+    "quadratic_feature",
+    "vertex_transformation"
+  ];
+
+  if (!strictFamilies.includes(answerFamily)) {
+    return list;
+  }
+
+  return list.filter(choice =>
+    universalEngine.detectAnswerFamily(choice) === answerFamily
+  );
+}
+
+function buildSameFamilyFallbackChoice(answer, problemType) {
+  const universalEngine =
+    typeof window !== "undefined"
+      ? window.AlgebraDistractorEngine
+      : null;
+
+  if (
+    universalEngine &&
+    typeof universalEngine.generateUniversalDistractors === "function"
+  ) {
+    const distractors = universalEngine.generateUniversalDistractors(answer, {
+      problemType
+    });
+
+    if (Array.isArray(distractors) && distractors.length > 0) {
+      return pickRandom(distractors);
+    }
+  }
+
+  return String(answer);
+}
 function areChoicesFamilyConsistent(answer, problemType, choices) {
   const type = String(problemType || "").toLowerCase();
   const text = String(answer || "").trim();
@@ -5204,53 +5263,63 @@ function generateChoices(answer, problemType) {
     addUniqueByEquivalence(list, choice);
   };
 
-  const finalizeChoices = (correctAnswer, candidates) => {
-    const choices = [];
-    addUnique(choices, correctAnswer);
+const finalizeChoices = (correctAnswer, candidates) => {
+  const choices = [];
+  addUnique(choices, correctAnswer);
 
-    candidates.forEach(choice => {
-      if (choices.length < 4) addUnique(choices, choice);
-    });
+  const safeCandidates = certifyDistractorFamily(
+    correctAnswer,
+    candidates,
+    problemType
+  );
 
-     let safety = 0;
-    while (choices.length < 4 && safety < 200) {
-      safety++;
+  safeCandidates.forEach(choice => {
+    if (choices.length < 4) addUnique(choices, choice);
+  });
 
-      if (type.includes("compound_inequalit")) {
-        addUnique(
-          choices,
-          pickRandom([
-            "x < -2 OR x > 2",
-            "-4 < x < 6",
-            "x ≤ -3 OR x ≥ 5",
-            "0 ≤ x ≤ 10",
-            "No Solution",
-            "All Real Numbers"
-          ])
-        );
-      } else if (type.includes("inequalit")) {
-        addUnique(
-          choices,
-          `x ${pickRandom([">", "<", "≥", "≤"])} ${randInt(-12, 12)}`
-        );
-      } else if (type.includes("scatter")) {
-        addUnique(
-          choices,
-          pickRandom([
-            "positive association",
-            "negative association",
-            "no association",
-            "linear association",
-            "nonlinear association"
-          ])
-        );
-      } else {
-        addUnique(choices, `x = ${randInt(-12, 12)}`);
-      }
+  let safety = 0;
+
+  while (choices.length < 4 && safety < 200) {
+    safety++;
+
+    let fallbackChoice;
+
+    if (type.includes("compound_inequalit")) {
+      fallbackChoice = pickRandom([
+        "x < -2 OR x > 2",
+        "-4 < x < 6",
+        "x ≤ -3 OR x ≥ 5",
+        "0 ≤ x ≤ 10",
+        "No Solution",
+        "All Real Numbers"
+      ]);
+    } else if (type.includes("inequalit")) {
+      fallbackChoice = `x ${pickRandom([">", "<", "≥", "≤"])} ${randInt(-12, 12)}`;
+    } else if (type.includes("scatter")) {
+      fallbackChoice = pickRandom([
+        "positive association",
+        "negative association",
+        "no association",
+        "linear association",
+        "nonlinear association"
+      ]);
+    } else {
+      fallbackChoice = buildSameFamilyFallbackChoice(correctAnswer, problemType);
     }
 
-    return shuffle(choices.slice(0, 4));
-  };
+    const certifiedFallbacks = certifyDistractorFamily(
+      correctAnswer,
+      [fallbackChoice],
+      problemType
+    );
+
+    certifiedFallbacks.forEach(choice => {
+      if (choices.length < 4) addUnique(choices, choice);
+    });
+  }
+
+  return shuffle(choices.slice(0, 4));
+};
 
   const universalEngine =
     typeof window !== "undefined"
