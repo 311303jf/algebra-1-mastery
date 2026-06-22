@@ -22,10 +22,37 @@
    PUBLIC API
    ============================================================ */
 
+
+
 // Internal round-robin state.
 // Purpose: prevent random generation from over-serving one skill while ignoring another.
 // This is critical for QA coverage audits and for real student practice.
 const LESSON_COVERAGE_STATE = new Map();
+
+const LESSON_RECENT_PROMPTS = new Map();
+const MAX_RECENT_PROMPTS_PER_LESSON = 12;
+
+function getRecentPromptKey(lesson) {
+  return getLessonCoverageKey(lesson);
+}
+
+function hasRecentPrompt(lesson, prompt) {
+  const key = getRecentPromptKey(lesson);
+  const recent = LESSON_RECENT_PROMPTS.get(key) || [];
+  return recent.includes(String(prompt || "").trim());
+}
+
+function rememberRecentPrompt(lesson, prompt) {
+  const key = getRecentPromptKey(lesson);
+  const recent = LESSON_RECENT_PROMPTS.get(key) || [];
+  recent.push(String(prompt || "").trim());
+
+  while (recent.length > MAX_RECENT_PROMPTS_PER_LESSON) {
+    recent.shift();
+  }
+
+  LESSON_RECENT_PROMPTS.set(key, recent);
+}
 
 function getLessonCoverageKey(lesson) {
   return String(
@@ -151,9 +178,14 @@ export function generateQuestionForLesson(lesson, options = {}) {
       ? window.AlgebraQuestionQualityGate.assertValidQuestion(question, lesson)
       : isQualityQuestion(question);
 
-    if (passesGate && isQuestionAlignedToLesson(question, lesson)) {
-      return question;
-    }
+if (
+  passesGate &&
+  isQuestionAlignedToLesson(question, lesson) &&
+  !hasRecentPrompt(lesson, question.prompt)
+) {
+  rememberRecentPrompt(lesson, question.prompt);
+  return question;
+}
   }
 
   console.warn(
@@ -6216,6 +6248,23 @@ function generateCompoundInequalityAnswerChoices(answer, finalizeChoices) {
 function generateSystemsAnswerChoices(answer, problemType, finalizeChoices) {
   const text = String(answer || "").trim();
   const type = String(problemType || "").toLowerCase();
+     if (
+    type === "factor_difference_of_squares" ||
+    type === "mixed_special_factoring"
+  ) {
+    const match = text.match(/^\(\s*x\s*\+\s*(\d+)\s*\)\s*\(\s*x\s*-\s*\1\s*\)$/i);
+
+    if (match) {
+      const n = Number(match[1]);
+
+      return finalizeChoices(text, [
+        `(x + ${n})(x + ${n})`,
+        `(x - ${n})(x - ${n})`,
+        `(x + ${n + 1})(x - ${n + 1})`,
+        `(x + ${Math.max(1, n - 1)})(x - ${Math.max(1, n - 1)})`
+      ]);
+    }
+  }
 
   if (
     text === "One solution" ||
