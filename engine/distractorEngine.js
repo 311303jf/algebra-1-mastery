@@ -569,15 +569,153 @@ function generateVertexFormEquationDistractors(text) {
 }
 
 function generateFactoredFormEquationDistractors(text) {
-  return [];
+  const source = String(text || "").trim();
+
+  const match = source.match(
+    /^y\s*=\s*(-?\d*)\s*\(\s*x\s*([+-])\s*(\d+(?:\.\d+)?)\s*\)\s*\(\s*x\s*([+-])\s*(\d+(?:\.\d+)?)\s*\)$/i
+  );
+
+  if (!match) return [];
+
+  let a = match[1];
+  if (a === "" || a === "+") a = "1";
+  if (a === "-") a = "-1";
+
+  const aValue = Number(a);
+
+  const sign1 = match[2];
+  const n1 = Number(match[3]);
+  const sign2 = match[4];
+  const n2 = Number(match[5]);
+
+  function build(a, s1, v1, s2, v2) {
+    const aText =
+      a === 1 ? "" :
+      a === -1 ? "-" :
+      String(a);
+
+    return `y = ${aText}(x ${s1} ${v1})(x ${s2} ${v2})`;
+  }
+
+  const opposite1 = sign1 === "+" ? "-" : "+";
+  const opposite2 = sign2 === "+" ? "-" : "+";
+
+  return [
+    build(-aValue, sign1, n1, sign2, n2),
+    build(aValue, opposite1, n1, sign2, n2),
+    build(aValue, sign1, n1, opposite2, n2),
+    build(aValue, opposite1, n1, opposite2, n2),
+    build(aValue + 1, sign1, n1, sign2, n2)
+  ].filter(choice =>
+    normalizeDistractorChoice(choice) !== normalizeDistractorChoice(source)
+  );
 }
 
 function generateStandardFormEquationDistractors(text) {
-  return [];
+  const source = String(text || "").trim().replace(/²/g, "^2");
+
+  const match = source.match(
+    /^y\s*=\s*(-?\d*)x\^2(?:\s*([+-])\s*(\d*)x)?(?:\s*([+-])\s*(\d+))?$/i
+  );
+
+  if (!match) return [];
+
+  let a = match[1];
+  if (a === "" || a === "+") a = "1";
+  if (a === "-") a = "-1";
+
+  const aValue = Number(a);
+
+  const bSign = match[2] || "+";
+  const bRaw = match[3];
+  const cSign = match[4] || "+";
+  const cRaw = match[5];
+
+  const bAbs = bRaw === undefined ? 0 : bRaw === "" ? 1 : Number(bRaw);
+  const cAbs = cRaw === undefined ? 0 : Number(cRaw);
+
+  const bValue = bSign === "+" ? bAbs : -bAbs;
+  const cValue = cSign === "+" ? cAbs : -cAbs;
+
+  return [
+    buildStandardQuadraticEquation(-aValue, bValue, cValue),
+    buildStandardQuadraticEquation(aValue, -bValue, cValue),
+    buildStandardQuadraticEquation(aValue, bValue, -cValue),
+    buildStandardQuadraticEquation(aValue + 1, bValue, cValue),
+    buildStandardQuadraticEquation(aValue, bValue + 1, cValue)
+  ].filter(choice =>
+    normalizeDistractorChoice(choice) !== normalizeDistractorChoice(source)
+  );
 }
 
 function generateQuadraticEquationDistractors(text) {
-  return [];
+  const source = String(text || "").trim().replace(/²/g, "^2");
+
+  const match = source.match(
+    /^(-?\d*)x\^2(?:\s*([+-])\s*(\d*)x)?(?:\s*([+-])\s*(\d+))?\s*=\s*0$/i
+  );
+
+  if (!match) return [];
+
+  let a = match[1];
+  if (a === "" || a === "+") a = "1";
+  if (a === "-") a = "-1";
+
+  const aValue = Number(a);
+
+  const bSign = match[2] || "+";
+  const bRaw = match[3];
+  const cSign = match[4] || "+";
+  const cRaw = match[5];
+
+  const bAbs = bRaw === undefined ? 0 : bRaw === "" ? 1 : Number(bRaw);
+  const cAbs = cRaw === undefined ? 0 : Number(cRaw);
+
+  const bValue = bSign === "+" ? bAbs : -bAbs;
+  const cValue = cSign === "+" ? cAbs : -cAbs;
+
+  return [
+    buildStandardQuadraticExpression(-aValue, bValue, cValue) + " = 0",
+    buildStandardQuadraticExpression(aValue, -bValue, cValue) + " = 0",
+    buildStandardQuadraticExpression(aValue, bValue, -cValue) + " = 0",
+    buildStandardQuadraticExpression(aValue + 1, bValue, cValue) + " = 0",
+    buildStandardQuadraticExpression(aValue, bValue + 1, cValue) + " = 0"
+  ].filter(choice =>
+    normalizeDistractorChoice(choice) !== normalizeDistractorChoice(source)
+  );
+}
+
+function buildStandardQuadraticEquation(a, b, c) {
+  return "y = " + buildStandardQuadraticExpression(a, b, c);
+}
+
+function buildStandardQuadraticExpression(a, b, c) {
+  let result = "";
+
+  if (a === 1) result += "x^2";
+  else if (a === -1) result += "-x^2";
+  else result += `${a}x^2`;
+
+  if (b !== 0) {
+    const sign = b > 0 ? " + " : " - ";
+    const coefficient = Math.abs(b) === 1 ? "" : Math.abs(b);
+    result += `${sign}${coefficient}x`;
+  }
+
+  if (c !== 0) {
+    const sign = c > 0 ? " + " : " - ";
+    result += `${sign}${Math.abs(c)}`;
+  }
+
+  return result;
+}
+
+function normalizeDistractorChoice(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/²/g, "^2")
+    .replace(/\s+/g, "")
+    .trim();
 }
 function generateAxisOfSymmetryDistractors(text) {
   const match = String(text || "").match(/^([xy])\s*=\s*(-?\d+(?:\.\d+)?)$/i);
