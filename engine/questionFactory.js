@@ -5176,6 +5176,7 @@ function certifyDistractorFamily(answer, candidates, problemType) {
 
   const strictFamilies = [
     "vertex_form_equation",
+     "quadratic_solution",
     "factored_form_equation",
     "standard_form_equation",
     "quadratic_equation",
