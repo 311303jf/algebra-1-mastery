@@ -5144,6 +5144,21 @@ function addUniqueByEquivalence(list, choice) {
 
 function certifyDistractorFamily(answer, candidates, problemType) {
   const list = Array.isArray(candidates) ? candidates : [];
+  const type = String(problemType || "").toLowerCase();
+
+  // Classification skills intentionally mix families.
+  // Example 9.1 identify_quadratic_function:
+  // correct choice is quadratic, distractors must be linear/exponential/absolute value/constant.
+  if (
+    type === "identify_quadratic_function" ||
+    type === "linear_vs_quadratic_vs_exponential" ||
+    type.includes("classify") ||
+    type.includes("identify_growth_decay") ||
+    type.includes("identify_exponential_function")
+  ) {
+    return list;
+  }
+   
 
   const universalEngine =
     typeof window !== "undefined"
