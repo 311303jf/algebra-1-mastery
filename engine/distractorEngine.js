@@ -32,7 +32,18 @@ function detectAnswerFamily(answer) {
   if (/^\(\s*[a-z]\s*[+-]\s*\d+\s*\)\s*(\^2|²)$/i.test(text)) {
     return "binomial_square_factor";
   }
- 
+   // Difference of squares factored form: (x + n)(x - n)
+  if (/^\(\s*[a-z]\s*\+\s*\d+\s*\)\s*\(\s*[a-z]\s*-\s*\d+\s*\)$/i.test(text)) {
+    const nums = text.match(/\d+/g)?.map(Number) || [];
+    if (nums.length === 2 && nums[0] === nums[1]) {
+      return "difference_of_squares_factor";
+    }
+  }
+
+  // Binomial square factored form: (x + n)² or (x - n)²
+  if (/^\(\s*[a-z]\s*[+-]\s*\d+\s*\)\s*(\^2|²)$/i.test(text)) {
+    return "binomial_square_factor";
+  }
  // Coordinate point
   if (/^\(\s*-?\d+(\.\d+)?\s*,\s*-?\d+(\.\d+)?\s*\)$/.test(text)) {
     return "point";
@@ -122,6 +133,13 @@ function generateUniversalDistractors(answer) {
     }
 case "quadratic_solution":{
   return generateQuadraticSolutionDistractors(text);
+}
+    case "difference_of_squares_factor": {
+  return generateDifferenceOfSquaresFactorDistractors(text);
+}
+
+case "binomial_square_factor": {
+  return generateBinomialSquareFactorDistractors(text);
 }
     case "binomial_square_factor": {
   return generateBinomialSquareFactorDistractors(text);
@@ -784,6 +802,53 @@ function generateBinomialSquareFactorDistractors(text) {
   ];
 
   return candidates.filter(choice =>
+    normalizeDistractorChoice(choice) !== normalizeDistractorChoice(source)
+  );
+}
+function generateDifferenceOfSquaresFactorDistractors(text) {
+  const source = String(text || "").trim();
+
+  const match = source.match(
+    /^\(\s*([a-z])\s*\+\s*(\d+)\s*\)\s*\(\s*\1\s*-\s*\2\s*\)$/i
+  );
+
+  if (!match) return [];
+
+  const variable = match[1];
+  const n = Number(match[2]);
+
+  return [
+    `(${variable} + ${n})(${variable} + ${n})`,
+    `(${variable} - ${n})(${variable} - ${n})`,
+    `(${variable} + ${n + 1})(${variable} - ${n + 1})`,
+    `(${variable} + ${Math.max(1, n - 1)})(${variable} - ${Math.max(1, n - 1)})`,
+    `(${variable} + ${n + 1})(${variable} - ${n})`
+  ].filter(choice =>
+    normalizeDistractorChoice(choice) !== normalizeDistractorChoice(source)
+  );
+}
+
+function generateBinomialSquareFactorDistractors(text) {
+  const source = String(text || "").trim().replace(/²/g, "^2");
+
+  const match = source.match(
+    /^\(\s*([a-z])\s*([+-])\s*(\d+)\s*\)\s*\^2$/i
+  );
+
+  if (!match) return [];
+
+  const variable = match[1];
+  const sign = match[2];
+  const n = Number(match[3]);
+  const opposite = sign === "+" ? "-" : "+";
+
+  return [
+    `(${variable} ${opposite} ${n})^2`,
+    `(${variable} ${sign} ${n + 1})^2`,
+    `(${variable} ${sign} ${Math.max(1, n - 1)})^2`,
+    `(${variable} ${sign} ${n})(${variable} ${opposite} ${n})`,
+    `(${variable} ${opposite} ${n})(${variable} ${opposite} ${n})`
+  ].filter(choice =>
     normalizeDistractorChoice(choice) !== normalizeDistractorChoice(source)
   );
 }
