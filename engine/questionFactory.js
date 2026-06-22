@@ -5440,6 +5440,9 @@ const bypassUniversalEngine =
   type === "linear_vs_quadratic_vs_exponential" ||
   type === "identify_special_factoring_pattern" ||
   type === "special_product_identify" ||
+  type === "factor_difference_of_squares" ||
+  type === "mixed_special_factoring" ||
+  type === "factor_perfect_square_trinomial" ||
   type.includes("classify") ||
   type.includes("identify_growth_decay") ||
   type.includes("identify_exponential_function");
