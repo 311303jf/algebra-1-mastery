@@ -5094,8 +5094,27 @@ function buildTwoSolutionDistractors(a, b, mode = "roots") {
   ];
 }
 
+function normalizeFactoredProductForEquivalence(choice) {
+  const compact = String(choice || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/²/g, "^2");
+
+  const factors = compact.match(/\([^()]+\)/g);
+
+  if (!factors || factors.length < 2) return null;
+
+  if (factors.join("") !== compact) return null;
+
+  return "factored:" + factors
+    .map(factor => factor.replace(/[()]/g, ""))
+    .sort()
+    .join("*");
+}
 function normalizeAnswerChoiceForEquivalence(choice) {
   const text = String(choice || "").trim();
+     const factoredKey = normalizeFactoredProductForEquivalence(text);
+  if (factoredKey) return factoredKey;
 
   if (/^x\s*=/.test(text) && text.includes(",")) {
     const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
