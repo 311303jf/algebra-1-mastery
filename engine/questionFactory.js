@@ -5178,7 +5178,7 @@ function certifyDistractorFamily(answer, candidates, problemType) {
     return list;
   }
    
-  if (
+   if (
     type === "identify_special_factoring_pattern" ||
     type === "special_product_identify"
   ) {
