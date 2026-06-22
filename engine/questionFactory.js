@@ -5710,6 +5710,23 @@ function generateQuadraticAnswerChoices(answer, problemType, finalizeChoices) {
   const text = String(answer || "").trim();
   const type = String(problemType || "").toLowerCase();
 
+     if (type === "vertex_form_transformations") {
+    const universalEngine =
+      typeof window !== "undefined"
+        ? window.AlgebraDistractorEngine
+        : null;
+
+    if (
+      universalEngine &&
+      typeof universalEngine.generateUniversalDistractors === "function"
+    ) {
+      return finalizeChoices(
+        text,
+        universalEngine.generateUniversalDistractors(text, { problemType })
+      );
+    }
+  }
+
   // Critical semantic guard for 9.1:
   // An identify_quadratic_function item must have exactly ONE quadratic equation.
   // The distractors must be non-quadratic equations/functions.
