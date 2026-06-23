@@ -4,7 +4,7 @@ import {
 
 import {
   buildNarratedRecoveryLesson
-} from "./teacherNarratorEngine.js?v=3503";
+} from "./teacherNarratorEngine.js?v=3504";
 
 import {
   parseRecoveryQuestion
