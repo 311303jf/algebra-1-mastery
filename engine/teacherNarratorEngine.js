@@ -15,6 +15,10 @@ import {
   solveQuestion
 } from "./solverEngine.js?v=3501";
 
+import {
+  buildTeacherVisual
+} from "./teacherVisualEngine.js?v=3506";
+
 export function buildNarratedRecoveryLesson(
   problemType,
   skillDefinition = {},
@@ -144,10 +148,11 @@ function buildTutorDialogue(solved, choices) {
   dialogue.push({
     id: "teacher_attention",
     tutor:
-      `<div><strong>Teacher:</strong> I see where this can get confusing. Let's slow it down and use the exact problem:</div>` +
-      `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">${escapeHtml(solved.equationBefore)}</div>` +
-      `<div style="margin-top:10px;">${escapeHtml(steps[0]?.explanation || "")}</div>` +
-      `<div style="margin-top:10px;">${escapeHtml(solved.checkQuestion || "What should we notice first?")}</div>`,
+  `<div><strong>Teacher:</strong> I see where this can get confusing. Let's slow it down and use the exact problem:</div>` +
+  `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">${escapeHtml(solved.equationBefore)}</div>` +
+  `<div style="margin-top:10px;">${escapeHtml(steps[0]?.explanation || "")}</div>` +
+  buildTeacherVisual(solved, 0) +
+  `<div style="margin-top:10px;">${escapeHtml(solved.checkQuestion || "What should we notice first?")}</div>`,
     choices: choices.firstStep,
     expected: [solved.checkAnswer],
     explanation:
@@ -161,11 +166,13 @@ function buildTutorDialogue(solved, choices) {
 
     dialogue.push({
       id: `teacher_step_${i}`,
-      tutor:
-        `<div><strong>Teacher:</strong> Good. Now watch the next math move:</div>` +
-        `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">${escapeHtml(current.expression)}</div>` +
-        `<div style="margin-top:10px;">${escapeHtml(current.explanation)}</div>` +
-        `<div style="margin-top:10px;">What does this step do?</div>`,
+     tutor:
+  `<div><strong>Teacher:</strong> Good. Now watch the next math move:</div>` +
+  `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">${escapeHtml(current.expression)}</div>` +
+  `<div style="margin-top:10px;">${escapeHtml(current.explanation)}</div>` +
+  buildTeacherVisual(solved, i) +
+  `<div style="margin-top:10px;">What does this step do?</div>`,
+       
       choices: buildStepMeaningChoices(current, solved),
       expected: [bestStepMeaning(current, solved)],
       explanation:
