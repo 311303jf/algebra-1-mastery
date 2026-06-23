@@ -151,7 +151,7 @@ function buildTutorDialogue(solved, choices) {
   `<div><strong>Teacher:</strong> I see where this can get confusing. Let's slow it down and use the exact problem:</div>` +
   `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">${escapeHtml(solved.equationBefore)}</div>` +
   `<div style="margin-top:10px;">${escapeHtml(steps[0]?.explanation || "")}</div>` +
-  buildTeacherVisual(solved, 0) +
+  
   `<div style="margin-top:10px;">${escapeHtml(solved.checkQuestion || "What should we notice first?")}</div>`,
     choices: choices.firstStep,
     expected: [solved.checkAnswer],
