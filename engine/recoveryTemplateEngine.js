@@ -1,6 +1,11 @@
 import {
   buildRecoveryTeacher
 } from "./recoveryTeacherEngine.js?v=3403";
+
+import {
+  buildNarratedRecoveryLesson
+} from "./teacherNarratorEngine.js?v=3500";
+
 import {
   parseRecoveryQuestion
 } from "./recoveryParserEngine.js?v=2300";
@@ -17,6 +22,16 @@ import {
 export function buildTemplateRecoveryLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null) {
   const tutorType = skillDefinition.tutor || "generic_skill";
   const parsed = parseRecoveryQuestion(problemType, currentQuestion, skillDefinition);
+    const narratedLesson = buildNarratedRecoveryLesson(
+    problemType,
+    skillDefinition,
+    metadata,
+    currentQuestion
+  );
+
+  if (narratedLesson) {
+    return narratedLesson;
+  }
     const teacherLesson = buildRecoveryTeacher(
     problemType,
     skillDefinition,
