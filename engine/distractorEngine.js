@@ -28,10 +28,7 @@ function detectAnswerFamily(answer) {
   if (/^-?\d*(?:\.\d+)?x(\^2|²)(\s*[+-]\s*\d*(?:\.\d+)?x)?(\s*[+-]\s*\d+(?:\.\d+)?)?\s*=\s*0$/i.test(text)) {
     return "quadratic_equation";
   } 
-  // Binomial square factored form: (x + 5)² or (x + 5)^2
-  if (/^\(\s*[a-z]\s*[+-]\s*\d+\s*\)\s*(\^2|²)$/i.test(text)) {
-    return "binomial_square_factor";
-  }
+
    // Difference of squares factored form: (x + n)(x - n)
   if (/^\(\s*[a-z]\s*\+\s*\d+\s*\)\s*\(\s*[a-z]\s*-\s*\d+\s*\)$/i.test(text)) {
     const nums = text.match(/\d+/g)?.map(Number) || [];
