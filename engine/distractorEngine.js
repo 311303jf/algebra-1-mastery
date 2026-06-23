@@ -812,13 +812,24 @@ function generateDifferenceOfSquaresFactorDistractors(text) {
   const variable = match[1];
   const n = Number(match[2]);
 
-  return [
+   return [...new Set([
+
     `(${variable} + ${n})(${variable} + ${n})`,
+
     `(${variable} - ${n})(${variable} - ${n})`,
+
     `(${variable} + ${n + 1})(${variable} - ${n + 1})`,
+
     `(${variable} + ${Math.max(1, n - 1)})(${variable} - ${Math.max(1, n - 1)})`,
-    `(${variable} + ${n + 1})(${variable} - ${n})`
-  ].filter(choice =>
+
+    `(${variable} + ${n + 1})(${variable} - ${n})`,
+
+    `(${variable} + ${n})(${variable} - ${n + 1})`,
+
+    `(${variable} + ${n + 2})(${variable} - ${Math.max(1, n - 1)})`
+
+  ])]
+  .filter(choice =>
     normalizeDistractorChoice(choice) !== normalizeDistractorChoice(source)
   );
 }
