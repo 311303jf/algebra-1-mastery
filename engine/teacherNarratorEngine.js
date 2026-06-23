@@ -167,12 +167,11 @@ function buildTutorDialogue(solved, choices) {
 
     dialogue.push({
       id: `teacher_step_${i}`,
-     tutor:
+ tutor:
   `<div><strong>Teacher:</strong> Good. Now watch the next math move:</div>` +
   `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">${escapeHtml(current.expression)}</div>` +
-  <div style="margin-top:10px;">${escapeHtml(current.explanation)}</div>` +
-buildTransformationVisual(solved, i) +
-  
+  `<div style="margin-top:10px;">${escapeHtml(current.explanation)}</div>` +
+  buildTransformationVisual(solved, i) +
   `<div style="margin-top:10px;">What does this step do?</div>`,
        
       choices: buildStepMeaningChoices(current, solved),
