@@ -20,7 +20,13 @@ export function buildRecoveryTeacher(
   const profile = buildTeacherProfile(problemType, skillDefinition, currentQuestion, parsed);
 
   if (profile.teacherFamily === "LinearTeacher") {
-    return buildLinearTeacher(profile, metadata);
+    const oneStep = analyzeOneStepEquation(profile);
+
+    if (profile.subTeacher === "OneStepEquationTeacher" && oneStep) {
+      return buildDynamicOneStepTeacher(profile, metadata, oneStep);
+    }
+
+    return null;
   }
 
   if (profile.teacherFamily === "InequalityTeacher") {
@@ -47,7 +53,7 @@ export function buildRecoveryTeacher(
     return buildFunctionTeacher(profile, metadata);
   }
 
-  return buildUniversalTeacher(profile, metadata);
+  return null;
 }
 
 export function buildTeacherProfile(problemType, skillDefinition = {}, currentQuestion = null, parsed = null) {
