@@ -15,6 +15,9 @@ import {
   solveQuestion
 } from "./solverEngine.js?v=3501";
 
+import {
+  buildTransformationVisual
+} from "./mathTransformationVisualizer.js?v=3507";
 
 
 export function buildNarratedRecoveryLesson(
@@ -167,7 +170,8 @@ function buildTutorDialogue(solved, choices) {
      tutor:
   `<div><strong>Teacher:</strong> Good. Now watch the next math move:</div>` +
   `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">${escapeHtml(current.expression)}</div>` +
-  `<div style="margin-top:10px;">${escapeHtml(current.explanation)}</div>` +
+  <div style="margin-top:10px;">${escapeHtml(current.explanation)}</div>` +
+buildTransformationVisual(solved, i) +
   
   `<div style="margin-top:10px;">What does this step do?</div>`,
        
