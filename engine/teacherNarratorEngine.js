@@ -208,20 +208,18 @@ function buildWorkedExample(solved) {
 }
 
 function buildRecoveryPractice(solved) {
-  const prompt = buildMicroPracticePrompt(solved);
-  const answer = buildMicroPracticeAnswer(solved);
-  const choices = buildMicroPracticeChoices(solved);
 
+  // First similar problem
+  const first = {
+    prompt: buildMicroPracticePrompt(solved),
+    answer: buildMicroPracticeAnswer(solved),
+    choices: buildMicroPracticeChoices(solved)
+  };
+
+  // Second similar problem
   const second = buildSecondPractice(solved);
 
-  return [
-    {
-      prompt,
-      answer,
-      choices
-    },
-    second
-  ];
+  return [first, second];
 }
 
 /* =========================================================
@@ -366,11 +364,36 @@ function buildMicroPracticeChoices(solved) {
 }
 
 function buildSecondPractice(solved) {
+
+  if (solved.subskill === "one_step_addition") {
+    return {
+      prompt: "Solve: x + 8 = 20",
+      answer: "x = 12",
+      choices: ["x = 12", "x = 28", "x = 8", "x = 20"]
+    };
+  }
+
+  if (solved.subskill === "one_step_subtraction") {
+    return {
+      prompt: "Solve: x − 8 = 20",
+      answer: "x = 28",
+      choices: ["x = 28", "x = 12", "x = 8", "x = 20"]
+    };
+  }
+
   if (solved.subskill === "one_step_multiplication") {
     return {
       prompt: "Solve: 3x = 21",
       answer: "x = 7",
       choices: ["x = 7", "x = 18", "x = 24", "x = 3"]
+    };
+  }
+
+  if (solved.subskill === "one_step_division") {
+    return {
+      prompt: "Solve: x ÷ 4 = 7",
+      answer: "x = 28",
+      choices: ["x = 28", "x = 11", "x = 4", "x = 7"]
     };
   }
 
@@ -382,6 +405,23 @@ function buildSecondPractice(solved) {
     };
   }
 
+  if (solved.subskill === "distributive_property") {
+    return {
+      prompt: "Solve: 3(x + 2) = 18",
+      answer: "x = 4",
+      choices: ["x = 4", "x = 6", "x = 12", "x = 3"]
+    };
+  }
+
+  if (solved.subskill === "variables_both_sides") {
+    return {
+      prompt: "Solve: 2x + 5 = x + 12",
+      answer: "x = 7",
+      choices: ["x = 7", "x = 5", "x = 12", "x = 2"]
+    };
+  }
+
+  // Generic fallback
   return {
     prompt: buildMicroPracticePrompt(solved),
     answer: buildMicroPracticeAnswer(solved),
