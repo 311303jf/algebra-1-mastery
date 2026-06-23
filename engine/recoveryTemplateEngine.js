@@ -1,4 +1,7 @@
 import {
+  buildRecoveryTeacher
+} from "./recoveryTeacherEngine.js?v=3400";
+import {
   parseRecoveryQuestion
 } from "./recoveryParserEngine.js?v=2300";
 /*
@@ -14,6 +17,17 @@ import {
 export function buildTemplateRecoveryLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null) {
   const tutorType = skillDefinition.tutor || "generic_skill";
   const parsed = parseRecoveryQuestion(problemType, currentQuestion, skillDefinition);
+    const teacherLesson = buildRecoveryTeacher(
+    problemType,
+    skillDefinition,
+    metadata,
+    currentQuestion,
+    parsed
+  );
+
+  if (teacherLesson) {
+    return teacherLesson;
+  }
     if (
     skillDefinition.family === "vertex_form" ||
     skillDefinition.family === "quadratic_graphs" ||
