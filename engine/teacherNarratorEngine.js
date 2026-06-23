@@ -33,9 +33,11 @@ export function buildNarratedRecoveryLesson(
 
     return null;
   }
+  const alignedQuestion = getAlignedQuestionForNarrator(problemType, currentQuestion);
+
   const solved = solveQuestion({
-    ...(currentQuestion || {}),
-    problemType: currentQuestion?.problemType || problemType
+    ...(alignedQuestion || currentQuestion || {}),
+    problemType
   });
 
   if (!solved || solved.solved !== true || !Array.isArray(solved.steps) || solved.steps.length < 2) {
@@ -391,6 +393,17 @@ function buildSecondPractice(solved) {
    HELPERS
 ========================================================= */
 
+function getQuestionText(question) {
+  if (typeof question === "string") return question;
+
+  return (
+    question?.prompt ||
+    question?.question ||
+    question?.text ||
+    question?.equation ||
+    ""
+  );
+}
 function formatNumber(value) {
   if (Number.isInteger(value)) return String(value);
   return String(Number(value.toFixed(2)));
@@ -405,6 +418,49 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
+function getAlignedQuestionForNarrator(problemType, currentQuestion = null) {
+  const requested = normalizeKey(problemType);
+  const text = getQuestionText(currentQuestion);
+  const currentSolved = solveQuestion({
+    ...(currentQuestion || {}),
+    problemType: currentQuestion?.problemType || problemType
+  });
+
+  if (currentSolved?.solved && isSolvedStructureCompatible(problemType, currentSolved)) {
+    return currentQuestion;
+  }
+
+  if (requested.includes("multi_step") || requested.includes("combine_like")) {
+    return {
+      prompt: "Solve for x: 3x + 2x + 4 = 19",
+      answer: "x = 3",
+      problemType: requested.includes("combine_like")
+        ? "combine_like_terms_equation"
+        : "multi_step_equation",
+      source: "teacher_narrator_aligned_question"
+    };
+  }
+
+  if (requested.includes("distributive")) {
+    return {
+      prompt: "Solve for x: 2(x + 3) = 14",
+      answer: "x = 4",
+      problemType: "distributive_property_equation",
+      source: "teacher_narrator_aligned_question"
+    };
+  }
+
+  if (requested.includes("variables_both_sides")) {
+    return {
+      prompt: "Solve for x: 2x + 5 = x + 12",
+      answer: "x = 7",
+      problemType: "variables_both_sides",
+      source: "teacher_narrator_aligned_question"
+    };
+  }
+
+  return currentQuestion;
+}
 function normalizeKey(value) {
   return String(value || "")
     .trim()
