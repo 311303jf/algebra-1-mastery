@@ -188,99 +188,268 @@ export function buildTeacherProfile(problemType, skillDefinition = {}, currentQu
 ========================================================= */
 
 function buildLinearTeacher(profile, metadata) {
-  if (profile.subTeacher === "OneStepEquationTeacher") {
-    return makeTeacherLesson(profile, metadata, {
-      title: "AI Algebra Teacher: One-Step Equations",
-      conceptSummary: [
-        "A one-step equation has one operation attached to the variable.",
-        "To solve it, undo that operation using the inverse operation.",
-        "Whatever is done to one side of the equation must also be done to the other side."
-      ],
-      tutorDialogue: [
-        teacherStep(
-          "understand_equation_balance",
-          "An equation is like a balance scale. Both sides must stay equal. If we change one side, we must make the same change to the other side.",
-          "Why do we do the same operation to both sides?",
-          ["To keep the equation balanced", "To make the numbers bigger", "To change the variable", "To guess faster"],
-          "To keep the equation balanced",
-          "Correct. The equal sign means both sides must remain balanced."
-        ),
-        teacherStep(
-          "inverse_operations",
-          "Inverse operations undo each other. Addition is undone by subtraction. Multiplication is undone by division.",
-          "What operation undoes addition?",
-          ["Subtraction", "Addition", "Multiplication", "Division"],
-          "Subtraction",
-          "Correct. Subtraction undoes addition."
-        ),
-        teacherStep(
-          "micro_practice",
-          "Try this: x + 7 = 15. To isolate x, subtract 7 from both sides.",
-          "What is x?",
-          ["x = 8", "x = 22", "x = 7", "x = 15"],
-          "x = 8",
-          "Correct. 15 − 7 = 8, so x = 8."
-        )
-      ],
-      workedExample: [
-        "Example: x + 6 = 14",
-        "The operation attached to x is addition by 6.",
-        "Undo addition by subtracting 6 from both sides.",
-        "x + 6 − 6 = 14 − 6",
-        "x = 8"
-      ],
-      recoveryPractice: [
-        mc("Solve: x + 5 = 12", "x = 7", ["x = 7", "x = 17", "x = 5", "x = 12"]),
-        mc("Solve: 4x = 28", "x = 7", ["x = 7", "x = 24", "x = 32", "x = 4"])
-      ]
-    });
+  const oneStep = analyzeOneStepEquation(profile);
+
+  if (profile.subTeacher === "OneStepEquationTeacher" && oneStep) {
+    return buildDynamicOneStepTeacher(profile, metadata, oneStep);
   }
 
   return makeTeacherLesson(profile, metadata, {
     title: "AI Algebra Teacher: Linear Equations",
     conceptSummary: [
       "Linear equations are solved by simplifying first and then isolating the variable.",
-      "If there are like terms or parentheses, clean up the equation before solving.",
+      "The teacher must use the actual structure of the question, not a generic example.",
       "The goal is always to get the variable alone."
     ],
     tutorDialogue: [
       teacherStep(
         "simplify_first",
-        "Before solving a multi-step equation, look for anything that can be simplified: like terms or parentheses.",
-        "What should we do before isolating x in a multi-step equation?",
-        ["Simplify the equation", "Guess the answer", "Change the equal sign", "Ignore parentheses"],
-        "Simplify the equation",
-        "Correct. Simplifying first makes the equation easier to solve."
+        "Before solving a linear equation, look at the exact structure of the problem. Decide what is attached to the variable.",
+        "What should we understand first?",
+        ["What is attached to the variable", "The longest answer", "A random number", "The graph color"],
+        "What is attached to the variable",
+        "Correct. The support must match the exact question."
       ),
       teacherStep(
         "isolate_variable",
-        "After simplifying, move constants away from the variable term, then divide by the coefficient if needed.",
-        "After simplifying, what is the goal?",
-        ["Isolate the variable", "Make both sides larger", "Remove the equal sign", "Stop solving"],
+        "Once we know what is attached to the variable, we use the inverse operation to undo it.",
+        "What is the goal when solving?",
+        ["Isolate the variable", "Change the problem", "Guess quickly", "Ignore the equation"],
         "Isolate the variable",
-        "Correct. The final goal is to get the variable alone."
-      ),
-      teacherStep(
-        "micro_practice",
-        "Try this: 3x + 2x + 4 = 19. First combine 3x and 2x to get 5x + 4 = 19.",
-        "What equation comes after combining like terms?",
-        ["5x + 4 = 19", "6x = 19", "3x + 6 = 19", "5x = 19"],
-        "5x + 4 = 19",
-        "Correct. 3x + 2x = 5x."
+        "Correct. We want the variable alone."
       )
     ],
     workedExample: [
-      "Example: 2x + 3x + 5 = 20",
-      "Combine like terms: 5x + 5 = 20",
-      "Subtract 5 from both sides: 5x = 15",
-      "Divide both sides by 5.",
-      "x = 3"
+      "Read the exact equation.",
+      "Identify what is attached to the variable.",
+      "Use the inverse operation.",
+      "Apply it to both sides.",
+      "Simplify."
     ],
     recoveryPractice: [
-      mc("Solve: 2x + 3x + 4 = 19", "x = 3", ["x = 3", "x = 5", "x = 15", "x = 19"]),
-      mc("Solve: 2(x + 3) = 14", "x = 4", ["x = 4", "x = 7", "x = 11", "x = 2"])
+      mc("What should the tutor use to teach?", "The actual question structure", ["The actual question structure", "A random example", "Only the lesson number", "The longest answer"]),
+      mc("What is the goal of solving a linear equation?", "Isolate the variable", ["Isolate the variable", "Hide the variable", "Change the equal sign", "Pick any number"])
     ]
   });
+}
+
+function buildDynamicOneStepTeacher(profile, metadata, oneStep) {
+  const q = oneStep;
+  const title = `AI Algebra Teacher: One-Step ${q.operation} Equation`;
+
+  return makeTeacherLesson(profile, metadata, {
+    title,
+    conceptSummary: [
+      `This question is: ${q.equationBefore}`,
+      `${q.operationExplanation}`,
+      `To solve it, use the inverse operation: ${q.inverseOperation}.`
+    ],
+    misconception:
+      metadata?.misconception ||
+      q.misconception,
+    tutorDialogue: [
+      teacherStep(
+        "identify_attached_operation",
+        `Look at the actual question: ${q.equationBefore}. ${q.operationExplanation}`,
+        `What operation is attached to ${q.variable}?`,
+        ["Addition", "Subtraction", "Multiplication", "Division"],
+        q.operation,
+        `Correct. The operation attached to ${q.variable} is ${q.operation}.`
+      ),
+      teacherStep(
+        "choose_inverse_operation",
+        `${q.inverseExplanation} We use the inverse operation to get ${q.variable} alone.`,
+        `What operation should we use to isolate ${q.variable}?`,
+        ["Addition", "Subtraction", "Multiplication", "Division"],
+        q.inverseOperation,
+        `Correct. Use ${q.inverseOperation} on both sides.`
+      ),
+      teacherStep(
+        "solve_actual_question",
+        `Now solve the actual question: ${q.equationBefore}. ${q.workLine}`,
+        "What is the solution?",
+        q.solutionChoices,
+        q.equationAfter,
+        `Correct. ${q.finalExplanation}`
+      )
+    ],
+    workedExample: [
+      `Problem: ${q.equationBefore}`,
+      q.operationExplanation,
+      q.inverseExplanation,
+      q.workLine,
+      `Answer: ${q.equationAfter}`
+    ],
+    recoveryPractice: q.recoveryPractice
+  });
+}
+
+function analyzeOneStepEquation(profile) {
+  const text = getQuestionText(profile.currentQuestion) || profile.originalText || "";
+  const answer = profile.currentQuestion?.answer || profile.currentQuestion?.correctAnswer || "";
+  const equation = extractSimpleEquation(text);
+
+  if (!equation) return null;
+
+  const compact = equation
+    .replace(/\s+/g, "")
+    .replace(/−/g, "-")
+    .replace(/÷/g, "/")
+    .replace(/×/g, "*");
+
+  let match;
+
+  match = compact.match(/^([a-z])\+(-?\d+)=(-?\d+)$/i);
+  if (match) {
+    const variable = match[1];
+    const n = Number(match[2]);
+    const right = Number(match[3]);
+    const solution = right - n;
+
+    return buildOneStepAnalysis({
+      variable,
+      equationBefore: `${variable} + ${n} = ${right}`,
+      equationAfter: `${variable} = ${solution}`,
+      operation: "Addition",
+      inverseOperation: "Subtraction",
+      operationExplanation: `The number ${n} is being added to ${variable}.`,
+      inverseExplanation: `Subtraction undoes addition.`,
+      workLine: `${variable} + ${n} − ${n} = ${right} − ${n}`,
+      finalExplanation: `${right} − ${n} = ${solution}, so ${variable} = ${solution}.`,
+      misconception: "Students often add again instead of subtracting to undo addition.",
+      practice: [
+        mc(`Solve: ${variable} + 5 = 12`, `${variable} = 7`, [`${variable} = 7`, `${variable} = 17`, `${variable} = 5`, `${variable} = 12`]),
+        mc(`Solve: ${variable} + 8 = 20`, `${variable} = 12`, [`${variable} = 12`, `${variable} = 28`, `${variable} = 8`, `${variable} = 20`])
+      ]
+    });
+  }
+
+  match = compact.match(/^([a-z])-(-?\d+)=(-?\d+)$/i);
+  if (match) {
+    const variable = match[1];
+    const n = Number(match[2]);
+    const right = Number(match[3]);
+    const solution = right + n;
+
+    return buildOneStepAnalysis({
+      variable,
+      equationBefore: `${variable} − ${n} = ${right}`,
+      equationAfter: `${variable} = ${solution}`,
+      operation: "Subtraction",
+      inverseOperation: "Addition",
+      operationExplanation: `The number ${n} is being subtracted from ${variable}.`,
+      inverseExplanation: `Addition undoes subtraction.`,
+      workLine: `${variable} − ${n} + ${n} = ${right} + ${n}`,
+      finalExplanation: `${right} + ${n} = ${solution}, so ${variable} = ${solution}.`,
+      misconception: "Students often subtract again instead of adding to undo subtraction.",
+      practice: [
+        mc(`Solve: ${variable} − 5 = 12`, `${variable} = 17`, [`${variable} = 17`, `${variable} = 7`, `${variable} = 5`, `${variable} = 12`]),
+        mc(`Solve: ${variable} − 8 = 20`, `${variable} = 28`, [`${variable} = 28`, `${variable} = 12`, `${variable} = 8`, `${variable} = 20`])
+      ]
+    });
+  }
+
+  match = compact.match(/^(-?\d+)\*?([a-z])=(-?\d+)$/i);
+  if (match) {
+    const n = Number(match[1]);
+    const variable = match[2];
+    const right = Number(match[3]);
+    const solution = right / n;
+
+    return buildOneStepAnalysis({
+      variable,
+      equationBefore: `${n}${variable} = ${right}`,
+      equationAfter: `${variable} = ${formatSimpleNumber(solution)}`,
+      operation: "Multiplication",
+      inverseOperation: "Division",
+      operationExplanation: `The number ${n} is multiplying ${variable}.`,
+      inverseExplanation: `Division undoes multiplication.`,
+      workLine: `${n}${variable} ÷ ${n} = ${right} ÷ ${n}`,
+      finalExplanation: `${right} ÷ ${n} = ${formatSimpleNumber(solution)}, so ${variable} = ${formatSimpleNumber(solution)}.`,
+      misconception: "Students often multiply again instead of dividing to undo multiplication.",
+      practice: [
+        mc(`Solve: 5${variable} = 30`, `${variable} = 6`, [`${variable} = 6`, `${variable} = 25`, `${variable} = 35`, `${variable} = 5`]),
+        mc(`Solve: 3${variable} = 21`, `${variable} = 7`, [`${variable} = 7`, `${variable} = 18`, `${variable} = 24`, `${variable} = 3`])
+      ]
+    });
+  }
+
+  match = compact.match(/^([a-z])\/(-?\d+)=(-?\d+)$/i);
+  if (match) {
+    const variable = match[1];
+    const n = Number(match[2]);
+    const right = Number(match[3]);
+    const solution = right * n;
+
+    return buildOneStepAnalysis({
+      variable,
+      equationBefore: `${variable} ÷ ${n} = ${right}`,
+      equationAfter: `${variable} = ${formatSimpleNumber(solution)}`,
+      operation: "Division",
+      inverseOperation: "Multiplication",
+      operationExplanation: `${variable} is being divided by ${n}.`,
+      inverseExplanation: `Multiplication undoes division.`,
+      workLine: `${variable} ÷ ${n} × ${n} = ${right} × ${n}`,
+      finalExplanation: `${right} × ${n} = ${formatSimpleNumber(solution)}, so ${variable} = ${formatSimpleNumber(solution)}.`,
+      misconception: "Students often divide again instead of multiplying to undo division.",
+      practice: [
+        mc(`Solve: ${variable} ÷ 5 = 6`, `${variable} = 30`, [`${variable} = 30`, `${variable} = 11`, `${variable} = 1`, `${variable} = 5`]),
+        mc(`Solve: ${variable} ÷ 4 = 7`, `${variable} = 28`, [`${variable} = 28`, `${variable} = 11`, `${variable} = 3`, `${variable} = 4`])
+      ]
+    });
+  }
+
+  return null;
+}
+
+function buildOneStepAnalysis(data) {
+  return {
+    ...data,
+    solutionChoices: buildSimpleSolutionChoices(data.equationAfter),
+    recoveryPractice: data.practice
+  };
+}
+
+function buildSimpleSolutionChoices(correct) {
+  const match = String(correct || "").match(/^([a-z])\s*=\s*(-?\d+(?:\.\d+)?)$/i);
+  if (!match) return [correct, "x = 0", "x = 1", "No solution"];
+
+  const variable = match[1];
+  const value = Number(match[2]);
+
+  return [
+    `${variable} = ${formatSimpleNumber(value)}`,
+    `${variable} = ${formatSimpleNumber(value + 1)}`,
+    `${variable} = ${formatSimpleNumber(value - 1)}`,
+    `${variable} = ${formatSimpleNumber(-value)}`
+  ];
+}
+
+function extractSimpleEquation(text) {
+  const source = String(text || "")
+    .replace(/Solve\s+for\s+x\.?/i, "")
+    .replace(/Solve:/i, "")
+    .trim();
+
+  const patterns = [
+    /[a-z]\s*\+\s*-?\d+\s*=\s*-?\d+/i,
+    /[a-z]\s*[-−]\s*-?\d+\s*=\s*-?\d+/i,
+    /-?\d+\s*[a-z]\s*=\s*-?\d+/i,
+    /-?\d+\s*[×*]\s*[a-z]\s*=\s*-?\d+/i,
+    /[a-z]\s*[÷/]\s*-?\d+\s*=\s*-?\d+/i
+  ];
+
+  for (const pattern of patterns) {
+    const match = source.match(pattern);
+    if (match) return match[0].trim();
+  }
+
+  return "";
+}
+
+function formatSimpleNumber(value) {
+  if (Number.isInteger(value)) return String(value);
+  return String(Number(value.toFixed(2)));
 }
 
 function buildInequalityTeacher(profile, metadata) {
