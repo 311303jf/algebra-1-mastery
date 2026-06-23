@@ -1,0 +1,389 @@
+/*
+==================================================
+ Algebra OS — Teacher Narrator Engine
+ Version: 3500
+
+ Purpose:
+ - Convert solver steps into a real teacher-style Recovery Tutor.
+ - Teach the exact current question.
+ - Avoid generic diagnostic wording.
+ - Fall back safely when solver cannot solve.
+==================================================
+*/
+
+import {
+  solveQuestion
+} from "./solverEngine.js?v=3500";
+
+export function buildNarratedRecoveryLesson(
+  problemType,
+  skillDefinition = {},
+  metadata = {},
+  currentQuestion = null
+) {
+  const solved = solveQuestion({
+    ...(currentQuestion || {}),
+    problemType: currentQuestion?.problemType || problemType
+  });
+
+  if (!solved || solved.solved !== true || !Array.isArray(solved.steps) || solved.steps.length < 2) {
+    return null;
+  }
+
+  const choices = buildGuidedChoices(solved);
+
+  return {
+    title: buildTeacherTitle(solved),
+    diagnostic: {
+      problemType,
+      family: solved.family,
+      strategy: solved.strategy,
+      subskill: solved.subskill,
+      tutorType: "teacher_narrator_v3500",
+      equationBefore: solved.equationBefore,
+      equationAfter: solved.answer,
+      solverSteps: solved.steps
+    },
+    conceptSummary: buildConceptSummary(solved),
+    misconception:
+      metadata?.misconception ||
+      buildMisconception(solved),
+    tutorDialogue: buildTutorDialogue(solved, choices),
+    workedExample: buildWorkedExample(solved),
+    video: null,
+    recoveryPractice: buildRecoveryPractice(solved),
+    source: "teacherNarratorEngine_v3500"
+  };
+}
+
+/* =========================================================
+   TEACHER OUTPUT
+========================================================= */
+
+function buildTeacherTitle(solved) {
+  if (solved.subskill === "one_step_addition") return "AI Algebra Teacher: Addition Equation";
+  if (solved.subskill === "one_step_subtraction") return "AI Algebra Teacher: Subtraction Equation";
+  if (solved.subskill === "one_step_multiplication") return "AI Algebra Teacher: Multiplication Equation";
+  if (solved.subskill === "one_step_division") return "AI Algebra Teacher: Division Equation";
+  if (solved.subskill === "combine_like_terms") return "AI Algebra Teacher: Combine Like Terms";
+  if (solved.subskill === "distributive_property") return "AI Algebra Teacher: Distributive Property";
+  if (solved.subskill === "variables_both_sides") return "AI Algebra Teacher: Variables on Both Sides";
+  return "AI Algebra Teacher";
+}
+
+function buildConceptSummary(solved) {
+  const first = solved.steps[0];
+
+  return [
+    `Let's work on the exact problem you missed: ${solved.equationBefore}.`,
+    first?.explanation || "We will slow the problem down and understand the structure.",
+    "I will show the reason for each step, then you will try a similar check."
+  ];
+}
+
+function buildMisconception(solved) {
+  if (solved.subskill === "one_step_multiplication") {
+    return "A common mistake is multiplying again instead of dividing to undo multiplication.";
+  }
+
+  if (solved.subskill === "one_step_division") {
+    return "A common mistake is dividing again instead of multiplying to undo division.";
+  }
+
+  if (solved.subskill === "one_step_addition") {
+    return "A common mistake is adding again instead of subtracting to undo addition.";
+  }
+
+  if (solved.subskill === "one_step_subtraction") {
+    return "A common mistake is subtracting again instead of adding to undo subtraction.";
+  }
+
+  if (solved.subskill === "combine_like_terms") {
+    return "A common mistake is trying to solve before combining like terms.";
+  }
+
+  if (solved.subskill === "distributive_property") {
+    return "A common mistake is solving before distributing to remove parentheses.";
+  }
+
+  if (solved.subskill === "variables_both_sides") {
+    return "A common mistake is moving constants before collecting variable terms.";
+  }
+
+  return "A common mistake is trying to answer before understanding the structure of the problem.";
+}
+
+function buildTutorDialogue(solved, choices) {
+  const steps = solved.steps;
+
+  const dialogue = [];
+
+  dialogue.push({
+    id: "teacher_attention",
+    tutor:
+      `<div><strong>Teacher:</strong> I see where this can get confusing. Let's slow it down and use the exact problem:</div>` +
+      `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">${escapeHtml(solved.equationBefore)}</div>` +
+      `<div style="margin-top:10px;">${escapeHtml(steps[0]?.explanation || "")}</div>` +
+      `<div style="margin-top:10px;">${escapeHtml(solved.checkQuestion || "What should we notice first?")}</div>`,
+    choices: choices.firstStep,
+    expected: [solved.checkAnswer],
+    explanation:
+      `Correct. ${escapeHtml(steps[0]?.explanation || "You identified the structure of the problem.")}`,
+    theory:
+      steps[0]?.explanation || "A good first step comes from the structure of the problem."
+  });
+
+  for (let i = 1; i < steps.length; i++) {
+    const current = steps[i];
+
+    dialogue.push({
+      id: `teacher_step_${i}`,
+      tutor:
+        `<div><strong>Teacher:</strong> Good. Now watch the next math move:</div>` +
+        `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">${escapeHtml(current.expression)}</div>` +
+        `<div style="margin-top:10px;">${escapeHtml(current.explanation)}</div>` +
+        `<div style="margin-top:10px;">What does this step do?</div>`,
+      choices: buildStepMeaningChoices(current, solved),
+      expected: [bestStepMeaning(current, solved)],
+      explanation:
+        `Correct. ${escapeHtml(current.explanation)}`,
+      theory:
+        current.explanation
+    });
+  }
+
+  dialogue.push({
+    id: "micro_practice",
+    tutor:
+      `<div><strong>Teacher:</strong> Now you try a similar one.</div>` +
+      `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">${escapeHtml(buildMicroPracticePrompt(solved))}</div>` +
+      `<div style="margin-top:10px;">Use the same idea we just practiced.</div>`,
+    choices: buildMicroPracticeChoices(solved),
+    expected: [buildMicroPracticeAnswer(solved)],
+    explanation:
+      `Correct. You applied the same structure to a new problem.`,
+    theory:
+      "Micro-practice checks whether the student can transfer the idea immediately."
+  });
+
+  return dialogue;
+}
+
+function buildWorkedExample(solved) {
+  const lines = [];
+
+  lines.push(`Problem: ${solved.equationBefore}`);
+
+  solved.steps.forEach((step, index) => {
+    lines.push(`Step ${index + 1}: ${step.expression}`);
+    lines.push(`Why: ${step.explanation}`);
+  });
+
+  lines.push(`Final Answer: ${solved.answer}`);
+
+  return lines;
+}
+
+function buildRecoveryPractice(solved) {
+  const prompt = buildMicroPracticePrompt(solved);
+  const answer = buildMicroPracticeAnswer(solved);
+  const choices = buildMicroPracticeChoices(solved);
+
+  const second = buildSecondPractice(solved);
+
+  return [
+    {
+      prompt,
+      answer,
+      choices
+    },
+    second
+  ];
+}
+
+/* =========================================================
+   CHOICES
+========================================================= */
+
+function buildGuidedChoices(solved) {
+  if (solved.subskill === "one_step_addition") {
+    return {
+      firstStep: ["Subtraction", "Addition", "Multiplication", "Division"]
+    };
+  }
+
+  if (solved.subskill === "one_step_subtraction") {
+    return {
+      firstStep: ["Addition", "Subtraction", "Multiplication", "Division"]
+    };
+  }
+
+  if (solved.subskill === "one_step_multiplication") {
+    return {
+      firstStep: ["Division", "Multiplication", "Addition", "Subtraction"]
+    };
+  }
+
+  if (solved.subskill === "one_step_division") {
+    return {
+      firstStep: ["Multiplication", "Division", "Addition", "Subtraction"]
+    };
+  }
+
+  if (solved.subskill === "combine_like_terms") {
+    return {
+      firstStep: ["Combine like terms", "Divide immediately", "Guess x", "Change the equal sign"]
+    };
+  }
+
+  if (solved.subskill === "distributive_property") {
+    return {
+      firstStep: ["Use the distributive property", "Divide immediately", "Guess x", "Ignore parentheses"]
+    };
+  }
+
+  if (solved.subskill === "variables_both_sides") {
+    return {
+      firstStep: ["Move variable terms", "Move constants first", "Divide immediately", "Change the equal sign"]
+    };
+  }
+
+  return {
+    firstStep: ["Use the structure of the problem", "Guess", "Skip", "Choose the longest answer"]
+  };
+}
+
+function buildStepMeaningChoices(step, solved) {
+  const correct = bestStepMeaning(step, solved);
+
+  const distractors = [
+    "It guesses the answer",
+    "It changes the problem",
+    "It ignores the variable",
+    "It removes the equal sign",
+    "It chooses the longest option"
+  ];
+
+  return uniqueFour([correct, ...distractors]);
+}
+
+function bestStepMeaning(step, solved) {
+  if (step.id === "undo") return "It uses the inverse operation";
+  if (step.id === "simplify") return "It simplifies the result";
+  if (step.id === "combine") return "It combines like terms";
+  if (step.id === "distribute") return "It removes parentheses";
+  if (step.id === "move_constant") return "It moves the constant away from the variable";
+  if (step.id === "move_variables") return "It collects variable terms on one side";
+  if (step.id === "divide") return "It isolates the variable";
+  return "It follows the next correct algebra step";
+}
+
+function uniqueFour(list) {
+  const out = [];
+  const used = new Set();
+
+  for (const item of list) {
+    const key = String(item).toLowerCase().trim();
+    if (!key || used.has(key)) continue;
+    used.add(key);
+    out.push(item);
+    if (out.length === 4) break;
+  }
+
+  while (out.length < 4) {
+    out.push(`Choice ${out.length + 1}`);
+  }
+
+  return out;
+}
+
+/* =========================================================
+   MICRO PRACTICE
+========================================================= */
+
+function buildMicroPracticePrompt(solved) {
+  if (solved.subskill === "one_step_addition") return "Solve: x + 5 = 12";
+  if (solved.subskill === "one_step_subtraction") return "Solve: x − 5 = 12";
+  if (solved.subskill === "one_step_multiplication") return "Solve: 5x = 30";
+  if (solved.subskill === "one_step_division") return "Solve: x ÷ 5 = 6";
+  if (solved.subskill === "combine_like_terms") return "Solve: 2x + 3x + 4 = 19";
+  if (solved.subskill === "distributive_property") return "Solve: 2(x + 3) = 14";
+  if (solved.subskill === "variables_both_sides") return "Solve: 2x + 5 = x + 12";
+  return "What is the next correct step?";
+}
+
+function buildMicroPracticeAnswer(solved) {
+  if (solved.subskill === "one_step_addition") return "x = 7";
+  if (solved.subskill === "one_step_subtraction") return "x = 17";
+  if (solved.subskill === "one_step_multiplication") return "x = 6";
+  if (solved.subskill === "one_step_division") return "x = 30";
+  if (solved.subskill === "combine_like_terms") return "x = 3";
+  if (solved.subskill === "distributive_property") return "x = 4";
+  if (solved.subskill === "variables_both_sides") return "x = 7";
+  return "Use the next correct step";
+}
+
+function buildMicroPracticeChoices(solved) {
+  const answer = buildMicroPracticeAnswer(solved);
+  const match = String(answer).match(/^([a-z])\s*=\s*(-?\d+(?:\.\d+)?)$/i);
+
+  if (!match) {
+    return [answer, "Guess", "Skip", "Change the problem"];
+  }
+
+  const variable = match[1];
+  const value = Number(match[2]);
+
+  return [
+    `${variable} = ${formatNumber(value)}`,
+    `${variable} = ${formatNumber(value + 1)}`,
+    `${variable} = ${formatNumber(value - 1)}`,
+    `${variable} = ${formatNumber(-value)}`
+  ];
+}
+
+function buildSecondPractice(solved) {
+  if (solved.subskill === "one_step_multiplication") {
+    return {
+      prompt: "Solve: 3x = 21",
+      answer: "x = 7",
+      choices: ["x = 7", "x = 18", "x = 24", "x = 3"]
+    };
+  }
+
+  if (solved.subskill === "combine_like_terms") {
+    return {
+      prompt: "Solve: 4x + x + 6 = 21",
+      answer: "x = 3",
+      choices: ["x = 3", "x = 5", "x = 15", "x = 21"]
+    };
+  }
+
+  return {
+    prompt: buildMicroPracticePrompt(solved),
+    answer: buildMicroPracticeAnswer(solved),
+    choices: buildMicroPracticeChoices(solved)
+  };
+}
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function formatNumber(value) {
+  if (Number.isInteger(value)) return String(value);
+  return String(Number(value.toFixed(2)));
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+window.AlgebraTeacherNarratorEngine = {
+  buildNarratedRecoveryLesson
+};
