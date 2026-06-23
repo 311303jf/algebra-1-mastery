@@ -22,7 +22,7 @@ import {
 export function buildTemplateRecoveryLesson(problemType, skillDefinition = {}, metadata = {}, currentQuestion = null) {
   const tutorType = skillDefinition.tutor || "generic_skill";
   const parsed = parseRecoveryQuestion(problemType, currentQuestion, skillDefinition);
-    const narratedLesson = buildNarratedRecoveryLesson(
+  const narratedLesson = buildNarratedRecoveryLesson(
     problemType,
     skillDefinition,
     metadata,
