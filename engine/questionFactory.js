@@ -5223,6 +5223,18 @@ function certifyDistractorFamily(answer, candidates, problemType) {
   }
 
   const answerFamily = universalEngine.detectAnswerFamily(answer);
+     if (answerFamily === "difference_of_squares_factor") {
+    return list.filter(choice =>
+      /^\(\s*[a-z]\s*[+-]\s*\d+\s*\)\s*\(\s*[a-z]\s*[+-]\s*\d+\s*\)$/i.test(String(choice || "").trim())
+    );
+  }
+
+  if (answerFamily === "binomial_square_factor") {
+    return list.filter(choice =>
+      /^\(\s*[a-z]\s*[+-]\s*\d+\s*\)\s*(\^2|²)$/i.test(String(choice || "").trim()) ||
+      /^\(\s*[a-z]\s*[+-]\s*\d+\s*\)\s*\(\s*[a-z]\s*[+-]\s*\d+\s*\)$/i.test(String(choice || "").trim())
+    );
+  }
 
   const strictFamilies = [
     "vertex_form_equation",
