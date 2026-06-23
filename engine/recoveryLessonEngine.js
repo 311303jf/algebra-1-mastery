@@ -39,7 +39,7 @@ import {
 
 import {
   buildTemplateRecoveryLesson
-} from "./recoveryTemplateEngine.js?v=2200";
+} from "./recoveryTemplateEngine.js?v=3400";
 const RECOVERY_PREFIX = "algebra_recovery_";
 
 
