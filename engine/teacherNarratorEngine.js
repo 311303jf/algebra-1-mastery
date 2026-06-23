@@ -208,18 +208,7 @@ function buildWorkedExample(solved) {
 }
 
 function buildRecoveryPractice(solved) {
-
-  // First similar problem
-  const first = {
-    prompt: buildMicroPracticePrompt(solved),
-    answer: buildMicroPracticeAnswer(solved),
-    choices: buildMicroPracticeChoices(solved)
-  };
-
-  // Second similar problem
-  const second = buildSecondPractice(solved);
-
-  return [first, second];
+  return generateDynamicRecoveryPractice(solved, 2);
 }
 
 /* =========================================================
@@ -443,6 +432,186 @@ function getQuestionText(question) {
     question?.equation ||
     ""
   );
+}
+function generateDynamicRecoveryPractice(solved, count = 2) {
+  const items = [];
+  const used = new Set([
+    normalizePracticeKey(solved?.equationBefore || "")
+  ]);
+
+  let safety = 0;
+
+  while (items.length < count && safety < 100) {
+    safety++;
+
+    const item = generateOnePracticeItem(solved);
+
+    if (!item) continue;
+
+    const key = normalizePracticeKey(item.prompt);
+
+    if (used.has(key)) continue;
+
+    used.add(key);
+    items.push(item);
+  }
+
+  return items.length ? items : [
+    {
+      prompt: buildMicroPracticePrompt(solved),
+      answer: buildMicroPracticeAnswer(solved),
+      choices: buildMicroPracticeChoices(solved)
+    }
+  ];
+}
+
+function generateOnePracticeItem(solved) {
+  const subskill = solved?.subskill || "";
+
+  if (subskill === "one_step_addition") {
+    const x = randInt(2, 15);
+    const n = randInt(2, 12);
+    const right = x + n;
+
+    return makePracticeItem(
+      `Solve: x + ${n} = ${right}`,
+      `x = ${x}`,
+      x
+    );
+  }
+
+  if (subskill === "one_step_subtraction") {
+    const x = randInt(8, 25);
+    const n = randInt(2, 12);
+    const right = x - n;
+
+    return makePracticeItem(
+      `Solve: x − ${n} = ${right}`,
+      `x = ${x}`,
+      x
+    );
+  }
+
+  if (subskill === "one_step_multiplication") {
+    const x = randInt(2, 12);
+    const n = randInt(2, 9);
+    const right = x * n;
+
+    return makePracticeItem(
+      `Solve: ${n}x = ${right}`,
+      `x = ${x}`,
+      x
+    );
+  }
+
+  if (subskill === "one_step_division") {
+    const x = randInt(2, 12);
+    const n = randInt(2, 9);
+    const right = x / n;
+
+    return makePracticeItem(
+      `Solve: x ÷ ${n} = ${formatNumber(right)}`,
+      `x = ${x}`,
+      x
+    );
+  }
+
+  if (subskill === "combine_like_terms") {
+    const x = randInt(2, 10);
+    const a = randInt(2, 6);
+    const b = randInt(1, 5);
+    const c = randInt(2, 10);
+    const right = (a + b) * x + c;
+
+    return makePracticeItem(
+      `Solve: ${a}x + ${b}x + ${c} = ${right}`,
+      `x = ${x}`,
+      x
+    );
+  }
+
+  if (subskill === "distributive_property") {
+    const x = randInt(2, 10);
+    const a = randInt(2, 6);
+    const b = randInt(1, 8);
+    const right = a * (x + b);
+
+    return makePracticeItem(
+      `Solve: ${a}(x + ${b}) = ${right}`,
+      `x = ${x}`,
+      x
+    );
+  }
+
+  if (subskill === "variables_both_sides") {
+    const x = randInt(2, 10);
+    const rightCoeff = randInt(1, 5);
+    const leftCoeff = rightCoeff + randInt(1, 5);
+    const leftConst = randInt(1, 10);
+    const rightConst = (leftCoeff - rightCoeff) * x + leftConst;
+
+    return makePracticeItem(
+      `Solve: ${leftCoeff}x + ${leftConst} = ${rightCoeff}x + ${rightConst}`,
+      `x = ${x}`,
+      x
+    );
+  }
+
+  return null;
+}
+
+function makePracticeItem(prompt, answer, xValue) {
+  return {
+    prompt,
+    answer,
+    choices: buildValueChoices(xValue)
+  };
+}
+
+function buildValueChoices(value) {
+  const choices = [
+    value,
+    value + 1,
+    value - 1,
+    -value,
+    value + 2,
+    value - 2
+  ];
+
+  const unique = [];
+  const used = new Set();
+
+  for (const n of choices) {
+    if (!Number.isFinite(n)) continue;
+    const key = String(n);
+    if (used.has(key)) continue;
+    used.add(key);
+    unique.push(`x = ${formatNumber(n)}`);
+    if (unique.length === 4) break;
+  }
+
+  while (unique.length < 4) {
+    const extra = randInt(-20, 20);
+    const key = String(extra);
+    if (used.has(key)) continue;
+    used.add(key);
+    unique.push(`x = ${formatNumber(extra)}`);
+  }
+
+  return unique;
+}
+
+function normalizePracticeKey(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/\s+/g, "")
+    .replace(/−/g, "-")
+    .replace(/÷/g, "/")
+    .replace(/×/g, "*");
+}
+
+function randInt(min, max) {
+  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 function formatNumber(value) {
   if (Number.isInteger(value)) return String(value);
