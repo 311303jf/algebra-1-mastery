@@ -21,6 +21,18 @@ export function buildNarratedRecoveryLesson(
   metadata = {},
   currentQuestion = null
 ) {
+   const requestedType = normalizeKey(problemType);
+  const actualType = normalizeKey(currentQuestion?.problemType || "");
+
+  if (actualType && requestedType && actualType !== requestedType) {
+    console.warn("Teacher Narrator blocked mismatched recovery question.", {
+      requestedType,
+      actualType,
+      currentQuestion
+    });
+
+    return null;
+  }
   const solved = solveQuestion({
     ...(currentQuestion || {}),
     problemType: currentQuestion?.problemType || problemType
@@ -384,6 +396,13 @@ function escapeHtml(value) {
     .replace(/'/g, "&#039;");
 }
 
+function normalizeKey(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/-/g, "_")
+    .replace(/\s+/g, "_");
+}
 window.AlgebraTeacherNarratorEngine = {
   buildNarratedRecoveryLesson
 };
