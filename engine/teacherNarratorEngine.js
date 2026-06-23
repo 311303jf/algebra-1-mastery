@@ -41,6 +41,15 @@ export function buildNarratedRecoveryLesson(
   if (!solved || solved.solved !== true || !Array.isArray(solved.steps) || solved.steps.length < 2) {
     return null;
   }
+  if (!isSolvedStructureCompatible(problemType, solved)) {
+    console.warn("Teacher Narrator blocked incompatible math structure.", {
+      requestedProblemType: problemType,
+      solvedSubskill: solved.subskill,
+      equation: solved.equationBefore
+    });
+
+    return null;
+  }
 
   const choices = buildGuidedChoices(solved);
 
@@ -402,6 +411,36 @@ function normalizeKey(value) {
     .toLowerCase()
     .replace(/-/g, "_")
     .replace(/\s+/g, "_");
+}
+
+function isSolvedStructureCompatible(problemType, solved) {
+  const requested = normalizeKey(problemType);
+  const subskill = normalizeKey(solved?.subskill || "");
+
+  if (requested.includes("multi_step")) {
+    return (
+      subskill === "combine_like_terms" ||
+      subskill === "distributive_property"
+    );
+  }
+
+  if (requested.includes("combine_like")) {
+    return subskill === "combine_like_terms";
+  }
+
+  if (requested.includes("distributive")) {
+    return subskill === "distributive_property";
+  }
+
+  if (requested.includes("variables_both_sides")) {
+    return subskill === "variables_both_sides";
+  }
+
+  if (requested.includes("one_step")) {
+    return subskill.startsWith("one_step");
+  }
+
+  return true;
 }
 window.AlgebraTeacherNarratorEngine = {
   buildNarratedRecoveryLesson
