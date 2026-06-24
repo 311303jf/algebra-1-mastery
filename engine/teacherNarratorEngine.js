@@ -512,17 +512,17 @@ function generateOnePracticeItem(solved) {
     );
   }
 
-  if (subskill === "one_step_division") {
-    const x = randInt(2, 12);
-    const n = randInt(2, 9);
-    const right = x / n;
+if (subskill === "one_step_division") {
+  const quotient = randInt(2, 12);
+  const divisor = randInt(2, 9);
+  const x = quotient * divisor;
 
-    return makePracticeItem(
-      `Solve: x ÷ ${n} = ${formatNumber(right)}`,
-      `x = ${x}`,
-      x
-    );
-  }
+  return makePracticeItem(
+    `Solve: x ÷ ${divisor} = ${quotient}`,
+    `x = ${x}`,
+    x
+  );
+}
 
   if (subskill === "combine_like_terms") {
     const x = randInt(2, 10);
