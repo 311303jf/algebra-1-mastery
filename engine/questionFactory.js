@@ -5794,14 +5794,28 @@ function generateExponentialFunctionAnswerChoices(answer, problemType, finalizeC
     ]);
   }
 
-  if (text.startsWith("y = ")) {
+if (text.startsWith("y = ")) {
+  const match = text.match(/^y\s*=\s*(\d+(?:\.\d+)?)\((\d+(?:\.\d+)?)\)\^x$/i);
+
+  if (match) {
+    const a = Number(match[1]);
+    const b = Number(match[2]);
+
     return finalizeChoices(text, [
-      text.replace(/\^x/g, "^2"),
-      text.replace(/\(([^)]+)\)\^x/g, "($1)x"),
-      "y = 2x + 5",
-      "y = x² + 3"
+      `y = ${formatNumber(b)}(${formatNumber(a)})^x`,
+      `y = ${formatNumber(a)}(${formatNumber(b + 0.1)})^x`,
+      `y = ${formatNumber(a + 5)}(${formatNumber(b)})^x`,
+      `y = ${formatNumber(a)}x + ${formatNumber(b)}`
     ]);
   }
+
+  return finalizeChoices(text, [
+    text.replace(/\^x/g, "^2"),
+    text.replace(/\(([^)]+)\)\^x/g, "($1)x"),
+    "y = 2x + 5",
+    "y = x² + 3"
+  ]);
+}
 
   if (text.startsWith("(0,")) {
     const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
