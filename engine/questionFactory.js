@@ -5809,9 +5809,25 @@ if (text.startsWith("y = ")) {
     ]);
   }
 
+if (type === "write_exponential_model" || text.startsWith("y = ")) {
+  const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+
+  if (nums.length >= 2) {
+    const a = nums[0];
+    const b = nums[1];
+
+    return finalizeChoices(text, [
+      `y = ${formatNumber(b)}(${formatNumber(a)})^x`,
+      `y = ${formatNumber(a)}(${formatNumber(b + 0.1)})^x`,
+      `y = ${formatNumber(a + 5)}(${formatNumber(b)})^x`,
+      `y = ${formatNumber(a)}x + ${formatNumber(b)}`,
+      `y = ${formatNumber(a)}(${formatNumber(Math.max(0.1, b - 0.1))})^x`
+    ]);
+  }
+
   return finalizeChoices(text, [
-    text.replace(/\^x/g, "^2"),
-    text.replace(/\(([^)]+)\)\^x/g, "($1)x"),
+    "y = 20(1.2)^x",
+    "y = 50(0.8)^x",
     "y = 2x + 5",
     "y = x² + 3"
   ]);
