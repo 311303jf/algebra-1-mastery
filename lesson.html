@@ -175,15 +175,15 @@ const tutorProgressPercent=Math.round((tutorStepNumber/tutorTotalSteps)*100);
     ? step.choices
     : ["Addition","Subtraction","Multiplication","Division"]
 );box.innerHTML=`<div class="tutor-card">
-  <div style="margin-bottom:12px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;font-weight:1000;color:#1e3a8a;margin-bottom:6px;">
-      <span>Recovery Tutor Progress</span>
-      <span>Step ${tutorStepNumber} of ${tutorTotalSteps}</span>
-    </div>
-    <div style="height:9px;background:#dbeafe;border-radius:999px;overflow:hidden;">
-      <div style="height:100%;width:${tutorProgressPercent}%;background:#2563eb;border-radius:999px;"></div>
-    </div>
+ <div style="margin-bottom:14px;background:#ffffff;border:1px solid #bfdbfe;border-radius:14px;padding:12px;">
+  <div style="display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:1000;color:#1e3a8a;margin-bottom:8px;">
+    <span>✅ Tutor Progress</span>
+    <span>${tutorStepNumber} of ${tutorTotalSteps} steps</span>
   </div>
+  <div style="height:12px;background:#dbeafe;border-radius:999px;overflow:hidden;">
+    <div style="height:100%;width:${tutorProgressPercent}%;background:#2563eb;border-radius:999px;"></div>
+  </div>
+</div>
   <div><strong>Tutor:</strong> ${step.tutor}</div>
 
 <div class="tutor-choice-grid">${choices.map(choice=>`<button type="button" class="tutor-choice-btn" onclick="selectTutorChoice(this,'${String(choice).replaceAll("'","\\\\'")}')">${choice}</button>`).join("")}</div><input id="tutorAnswerInput" type="hidden"><div class="intervention-actions"><button class="mini-btn primary" onclick="checkTutorAnswer('${problemType}')">Check with Tutor</button></div><div id="tutorFeedback" style="margin-top:8px;font-size:13px;font-weight:900;"></div></div>`;}
