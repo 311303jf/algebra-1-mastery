@@ -31,7 +31,7 @@ import "./engine/studentSessionEngine.js?v=2301";
   import "./engine/mathRendererEngine.js?v=3000";
   import "./engine/questionProfileEngine.js?v=3100";
   import "./engine/distractorEngine.js?v=3205";
-import "./engine/recoveryLessonEngine.js?v=3507";
+import "./engine/recoveryLessonEngine.js?v=3511";
 import "./engine/formulaEngine.js";
 import "./engine/misconceptionEngine.js";
 import "./engine/questionQualityGate.js";
@@ -167,13 +167,16 @@ function retryTutorStep(problemType){
 }
 
 function checkTutorAnswer(problemType){if(!currentLesson||!window.AlgebraRecoveryLessonEngine)return;const lessonData=AlgebraRecoveryLessonEngine.generateRecoveryLesson(problemType,getQuestionMetadataForRecovery(currentQuestion),currentQuestion);const state=AlgebraRecoveryLessonEngine.loadTutorState(currentLesson.id,problemType);const step=lessonData.tutorDialogue[state.tutorStep];const input=document.getElementById("tutorAnswerInput");const feedback=document.getElementById("tutorFeedback");if(!input||!feedback||!step)return;if(!input.value){feedback.innerHTML=`<div class="tutor-feedback-box warning">Choose one option before submitting.</div>`;return;}const isCorrect=tutorAnswerMatches(input.value,step.expected);
-                                       const checkButton = document.querySelector("#interactiveTutorBox .mini-btn.primary");
+
+                                       AlgebraRecoveryLessonEngine.recordTutorAnswer(currentLesson.id,problemType,isCorrect,lessonData.tutorDialogue.length);
+if(isCorrect){
+const checkButton = document.querySelector("#interactiveTutorBox .mini-btn.primary");
 if (checkButton) {
   checkButton.disabled = true;
   checkButton.style.opacity = "0.6";
   checkButton.style.cursor = "not-allowed";
 }
-                                       AlgebraRecoveryLessonEngine.recordTutorAnswer(currentLesson.id,problemType,isCorrect,lessonData.tutorDialogue.length);if(isCorrect){feedback.innerHTML=`<div class="tutor-feedback-box correct">✅ Correct. ${step.explanation}<div class="intervention-actions"><button class="mini-btn primary" onclick="renderInteractiveTutorStep('${problemType}')">Next Tutor Step</button></div></div>`;}else{feedback.innerHTML=`<div class="tutor-feedback-box incorrect">❌ Not yet.<br><strong>Theory:</strong> ${step.theory}<br><strong>Try again:</strong> Choose another option and submit again.<div class="intervention-actions"><button class="mini-btn" onclick="retryTutorStep('${problemType}')">Try Again</button></div></div>`;}} 
+feedback.innerHTML=`<div class="tutor-feedback-box correct">✅ Correct. ${step.explanation}<div class="intervention-actions"><button class="mini-btn primary" onclick="renderInteractiveTutorStep('${problemType}')">Next Tutor Step</button></div></div>`;}else{feedback.innerHTML=`<div class="tutor-feedback-box incorrect">❌ Not yet.<br><strong>Theory:</strong> ${step.theory}<br><strong>Try again:</strong> Choose another option and submit again.<div class="intervention-actions"><button class="mini-btn" onclick="retryTutorStep('${problemType}')">Try Again</button></div></div>`;}} 
 function generateRecoveryPractice(problemType){
   if(!currentLesson||!window.AlgebraRecoveryLessonEngine)return;
 
