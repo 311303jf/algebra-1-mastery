@@ -201,18 +201,110 @@ function buildTutorDialogue(solved, choices) {
 }
 
 function buildWorkedExample(solved) {
-  const lines = [];
 
-  lines.push(`Problem: ${solved.equationBefore}`);
+  let html = `
+    <div style="
+      background:#ffffff;
+      border:1px solid #bfdbfe;
+      border-radius:12px;
+      padding:14px;
+    ">
+
+      <div style="
+        font-size:18px;
+        font-weight:1000;
+        color:#1e3a8a;
+        margin-bottom:12px;
+      ">
+        Worked Example
+      </div>
+
+      <div style="
+        font-weight:1000;
+        margin-bottom:8px;
+      ">
+        Problem:
+      </div>
+
+      <div style="
+        font-size:22px;
+        color:#1e3a8a;
+        font-weight:1000;
+        margin-bottom:18px;
+      ">
+        ${solved.equationBefore}
+      </div>
+  `;
 
   solved.steps.forEach((step, index) => {
-    lines.push(`Step ${index + 1}: ${step.expression}`);
-    lines.push(`Why: ${step.explanation}`);
+
+    html += `
+      <div style="
+        margin-top:12px;
+        padding:12px;
+        border:1px solid #dbeafe;
+        border-radius:10px;
+        background:#f8fbff;
+      ">
+
+        <div style="
+          font-weight:1000;
+          color:#1e3a8a;
+          margin-bottom:8px;
+        ">
+          Step ${index + 1}
+        </div>
+
+        <div style="
+          font-size:20px;
+          font-weight:1000;
+          margin-bottom:10px;
+        ">
+          ${step.expression}
+        </div>
+
+        <div style="
+          color:#166534;
+          font-weight:600;
+        ">
+          ${step.explanation}
+        </div>
+
+      </div>
+    `;
   });
 
-  lines.push(`Final Answer: ${solved.answer}`);
+  html += `
+      <div style="
+        margin-top:18px;
+        padding:14px;
+        background:#ecfdf5;
+        border:1px solid #86efac;
+        border-radius:10px;
+      ">
 
-  return lines;
+        <div style="
+          font-weight:1000;
+          color:#166534;
+          margin-bottom:6px;
+        ">
+          Final Answer
+        </div>
+
+        <div style="
+          font-size:24px;
+          font-weight:1000;
+          color:#166534;
+        ">
+          ${solved.answer}
+        </div>
+
+      </div>
+
+    </div>
+  `;
+
+  return html;
 }
 
 function buildRecoveryPractice(solved) {
