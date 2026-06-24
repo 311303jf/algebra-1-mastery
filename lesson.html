@@ -31,7 +31,7 @@ import "./engine/studentSessionEngine.js?v=2301";
   import "./engine/mathRendererEngine.js?v=3000";
   import "./engine/questionProfileEngine.js?v=3100";
   import "./engine/distractorEngine.js?v=3205";
-import "./engine/recoveryLessonEngine.js?v=3513";
+import "./engine/recoveryLessonEngine.js?v=3514";
 import "./engine/formulaEngine.js";
 import "./engine/misconceptionEngine.js";
 import "./engine/questionQualityGate.js";
@@ -63,9 +63,11 @@ function renderRecoveryLesson(problemType){if(!currentLesson||!window.AlgebraRec
   ? `<div class="recovery-video">📺 Recommended Video: <a href="${lessonData.video.url}" target="_blank" rel="noopener">${lessonData.video.title}</a></div>`
   : "";
                                            document.getElementById("questionBox").innerHTML=`<div class="recovery-lesson"><div class="recovery-kicker">Interactive AI Recovery Tutor</div><div class="recovery-title">${lessonData.title}</div>${isRecoveryRequiredForSkill(problemType)?`<div class="recovery-locked-note">Normal practice is paused because this skill reached 5 consecutive errors. You must complete the interactive tutor and 2 recovery checks.</div>`:`<div class="recovery-video">💡 Recommended support: this tutor is optional now, but it can help you fix the skill before it becomes required.</div>`}<div class="recovery-section"><h4>1. Concept Summary</h4><ul>${lessonData.conceptSummary.map(item=>`<li>${item}</li>`).join("")}</ul></div><div class="recovery-section"><h4>2. Common Mistake</h4><p style="font-size:13px;font-weight:800;margin:0;">${lessonData.misconception}</p></div><div class="recovery-section"><h4>3. Interactive Tutor</h4><div id="interactiveTutorBox"></div></div>
-                                           <div class="recovery-section" id="workedExampleSection" style="display:none;">
-  <h4>4. Worked Example</h4>
-  <ul>${lessonData.workedExample.map(step=>`<li>${step}</li>`).join("")}</ul>
+<div class="recovery-section" id="workedExampleSection" style="display:none;">
+  ${Array.isArray(lessonData.workedExample)
+    ? `<h4>4. Worked Example</h4><ul>${lessonData.workedExample.map(step=>`<li>${step}</li>`).join("")}</ul>`
+    : lessonData.workedExample
+  }
 </div>
                                            ${videoHtml}<div class="recovery-section"><h4>5. Recovery Practice</h4><p style="font-size:13px;font-weight:800;">After completing the tutor, answer 2 recovery checks correctly to return to normal practice.</p><div id="recoveryPracticeBox"></div><div class="intervention-actions"><button class="mini-btn primary" onclick="window.restartInteractiveTutor('${problemType}')">Start / Restart Tutor</button><button class="mini-btn" onclick="generateRecoveryPractice('${problemType}')">Start Recovery Practice</button></div></div></div>`;startInteractiveTutor(problemType);}
 function normalizeTutorAnswer(value){return String(value||"").toLowerCase().replace(/\s+/g," ").trim();}
