@@ -153,7 +153,7 @@ function buildTutorDialogue(solved, choices) {
   `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">${escapeHtml(solved.equationBefore)}</div>` +
   `<div style="margin-top:10px;">${escapeHtml(steps[0]?.explanation || "")}</div>` +
   
-  `<div style="margin-top:10px;">${escapeHtml(solved.checkQuestion || "What should we notice first?")}</div>`,
+  `<div style="margin-top:10px;">What operation is the inverse of ${escapeHtml(solved.operation || "this operation").toLowerCase()}?</div>`,
     choices: choices.firstStep,
     expected: [solved.checkAnswer],
     explanation:
