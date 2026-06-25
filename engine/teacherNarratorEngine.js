@@ -153,7 +153,7 @@ const inverseQuestion = buildInverseOperationQuestion(solved);
   `<div style="margin-top:10px;font-size:20px;font-weight:1000;color:#1e3a8a;">${escapeHtml(solved.equationBefore)}</div>` +
   `<div style="margin-top:10px;">${escapeHtml(steps[0]?.explanation || "")}</div>` +
   
-  `<div style="margin-top:10px;">What operation is the inverse of ${escapeHtml(solved.operation || "this operation").toLowerCase()}?</div>`,
+  `<div style="margin-top:10px;">${inverseQuestion}</div>`,
     choices: choices.firstStep,
     expected: [solved.checkAnswer],
     explanation:
@@ -718,3 +718,27 @@ function isSolvedStructureCompatible(problemType, solved) {
 window.AlgebraTeacherNarratorEngine = {
   buildNarratedRecoveryLesson
 };
+
+function buildInverseOperationQuestion(solved){
+
+  const op = String(solved.operation || "").toLowerCase();
+
+  if(op.includes("addition")){
+    return "What operation is the inverse of adding this number?";
+  }
+
+  if(op.includes("subtraction")){
+    return "What operation is the inverse of subtracting this number?";
+  }
+
+  if(op.includes("multiplication")){
+    return "What operation is the inverse of multiplying by this number?";
+  }
+
+  if(op.includes("division")){
+    return "What operation is the inverse of dividing by this number?";
+  }
+
+  return "What inverse operation should we use?";
+}
+
