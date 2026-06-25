@@ -326,7 +326,7 @@ function buildOneStepEquationLesson(problemType, metadata, currentQuestion) {
       {
         id: "identify_attached_operation",
         expectedOperation: operation,
-        tutor: `<div><strong>Equation:</strong> ${escapeHtml(parsed.equationBefore)}</div><div style="margin-top:8px;">What operation is attached to x?</div>`,
+        tutor: `<div><strong>Equation:</strong> ${escapeHtml(parsed.equationBefore)}</div><div style="margin-top:8px;">What inverse operation should we use to isolate x?</div>`,
         choices: ["Addition", "Subtraction", "Multiplication", "Division"],
         expected: expectedOperationAnswers(operation),
         explanation: `The operation attached to x is <strong>${operation}</strong>.`,
