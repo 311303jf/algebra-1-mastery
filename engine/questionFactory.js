@@ -5732,49 +5732,6 @@ if (
 function generateExponentialFunctionAnswerChoices(answer, problemType, finalizeChoices) {
   const text = String(answer || "").trim();
   const type = String(problemType || "").toLowerCase();
-     if (
-    type === "factor_difference_of_squares" ||
-    type === "mixed_special_factoring"
-  ) {
-    const match = text.match(
-      /^\(\s*x\s*\+\s*(\d+)\s*\)\s*\(\s*x\s*-\s*\1\s*\)$/i
-    );
-
-    if (match) {
-      const n = Number(match[1]);
-
-      return finalizeChoices(text, [
-        `(x + ${n})(x + ${n})`,
-        `(x - ${n})(x - ${n})`,
-        `(x + ${n + 1})(x - ${n + 1})`,
-        `(x + ${Math.max(1, n - 1)})(x - ${Math.max(1, n - 1)})`,
-        `(x + ${n + 1})(x - ${n})`
-      ]);
-    }
-  }
-
-  if (
-    type === "factor_perfect_square_trinomial" ||
-    type === "mixed_special_factoring"
-  ) {
-    const match = text.match(
-      /^\(\s*x\s*([+-])\s*(\d+)\s*\)(²|\^2)$/i
-    );
-
-    if (match) {
-      const sign = match[1];
-      const n = Number(match[2]);
-      const opposite = sign === "+" ? "-" : "+";
-
-      return finalizeChoices(text, [
-        `(x ${opposite} ${n})²`,
-        `(x ${sign} ${n + 1})²`,
-        `(x ${sign} ${Math.max(1, n - 1)})²`,
-        `(x ${sign} ${n})(x ${opposite} ${n})`,
-        `(x ${opposite} ${n})(x ${opposite} ${n})`
-      ]);
-    }
-  }
 
   if (text === "Exponential growth" || text === "Exponential decay") {
     return finalizeChoices(text, [
@@ -5794,44 +5751,29 @@ function generateExponentialFunctionAnswerChoices(answer, problemType, finalizeC
     ]);
   }
 
-if (text.startsWith("y = ")) {
-  const match = text.match(/^y\s*=\s*(\d+(?:\.\d+)?)\((\d+(?:\.\d+)?)\)\^x$/i);
+  if (type === "write_exponential_model" || text.startsWith("y = ")) {
+    const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
 
-  if (match) {
-    const a = Number(match[1]);
-    const b = Number(match[2]);
+    if (nums.length >= 2) {
+      const a = nums[0];
+      const b = nums[1];
 
-    return finalizeChoices(text, [
-      `y = ${formatNumber(b)}(${formatNumber(a)})^x`,
-      `y = ${formatNumber(a)}(${formatNumber(b + 0.1)})^x`,
-      `y = ${formatNumber(a + 5)}(${formatNumber(b)})^x`,
-      `y = ${formatNumber(a)}x + ${formatNumber(b)}`
-    ]);
-  }
-
-if (type === "write_exponential_model" || text.startsWith("y = ")) {
-  const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
-
-  if (nums.length >= 2) {
-    const a = nums[0];
-    const b = nums[1];
+      return finalizeChoices(text, [
+        `y = ${formatNumber(b)}(${formatNumber(a)})^x`,
+        `y = ${formatNumber(a)}(${formatNumber(b + 0.1)})^x`,
+        `y = ${formatNumber(a + 5)}(${formatNumber(b)})^x`,
+        `y = ${formatNumber(a)}x + ${formatNumber(b)}`,
+        `y = ${formatNumber(a)}(${formatNumber(Math.max(0.1, b - 0.1))})^x`
+      ]);
+    }
 
     return finalizeChoices(text, [
-      `y = ${formatNumber(b)}(${formatNumber(a)})^x`,
-      `y = ${formatNumber(a)}(${formatNumber(b + 0.1)})^x`,
-      `y = ${formatNumber(a + 5)}(${formatNumber(b)})^x`,
-      `y = ${formatNumber(a)}x + ${formatNumber(b)}`,
-      `y = ${formatNumber(a)}(${formatNumber(Math.max(0.1, b - 0.1))})^x`
+      "y = 20(1.2)^x",
+      "y = 50(0.8)^x",
+      "y = 2x + 5",
+      "y = x² + 3"
     ]);
   }
-
-  return finalizeChoices(text, [
-    "y = 20(1.2)^x",
-    "y = 50(0.8)^x",
-    "y = 2x + 5",
-    "y = x² + 3"
-  ]);
-}
 
   if (text.startsWith("(0,")) {
     const nums = text.match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
