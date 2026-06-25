@@ -5452,6 +5452,7 @@ const finalizeChoices = (correctAnswer, candidates) => {
     // Some skills intentionally need mixed-family choices.
   // Do NOT let the Universal Distractor Engine intercept these.
 const bypassUniversalEngine =
+  type === "write_exponential_model" ||
   type === "identify_quadratic_function" ||
   type === "linear_vs_quadratic_vs_exponential" ||
   type === "identify_special_factoring_pattern" ||
