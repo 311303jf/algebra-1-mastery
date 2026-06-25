@@ -145,7 +145,7 @@ function buildTutorDialogue(solved, choices) {
   const steps = solved.steps;
 
   const dialogue = [];
-
+const inverseQuestion = buildInverseOperationQuestion(solved);
   dialogue.push({
     id: "teacher_attention",
     tutor:
